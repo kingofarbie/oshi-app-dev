@@ -1,0 +1,1091 @@
+/* =====================
+🎂 記念日・誕生日
+===================== */
+
+.anniversary-add-card,
+.anniversary-list-card{
+
+    margin:12px;
+    padding:16px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+    border-radius:16px;
+
+    box-shadow:
+        0 4px 14px rgba(0,0,0,.08);
+
+}
+
+
+/* =====================
+   タイトル
+===================== */
+
+.anniversary-add-card h3,
+.anniversary-list-card h3{
+
+    margin-top:0;
+
+}
+
+
+/* =====================
+   入力フォーム
+   左：項目名
+   右：入力欄
+===================== */
+
+.anniversary-add-card{
+
+    display:grid;
+
+    grid-template-columns:
+        80px minmax(0,1fr);
+
+    column-gap:10px;
+    row-gap:8px;
+
+    align-items:center;
+
+}
+
+
+.anniversary-add-card h3{
+
+    grid-column:1 / -1;
+
+    margin:0 0 4px 0;
+
+}
+
+
+.anniversary-add-card label{
+
+    font-size:14px;
+    font-weight:bold;
+
+    margin:0;
+
+}
+
+
+/* ラベル */
+
+.anniversary-add-card > label:not(.anniversary-check){
+
+    grid-column:1;
+
+    align-self:center;
+
+}
+
+
+/* 入力欄 */
+
+.anniversary-add-card > input:not([type="checkbox"]),
+.anniversary-add-card > select,
+.anniversary-add-card > textarea{
+
+    grid-column:2;
+
+    width:100%;
+
+    box-sizing:border-box;
+
+    padding:10px;
+
+    margin:0;
+
+    border-radius:10px;
+
+    border:1px solid var(--border);
+
+    background:var(--background);
+
+    color:var(--text);
+
+    font-size:15px;
+
+}
+
+
+/* 色選択 */
+
+.anniversary-add-card > .anniversary-color-selector{
+
+    grid-column:2;
+
+    width:100%;
+
+}
+
+
+/* メモ */
+
+.anniversary-add-card > textarea{
+
+    min-height:80px;
+
+    resize:vertical;
+
+    line-height:1.4;
+
+}
+
+
+/* =====================
+   プレースホルダー
+===================== */
+
+.anniversary-add-card input::placeholder,
+.anniversary-add-card textarea::placeholder{
+
+    font-size:14px;
+
+    color:#777;
+
+    opacity:1;
+
+}
+
+
+/* =====================
+   🎨 色選択
+===================== */
+
+.anniversary-color-selector{
+
+    position:relative;
+
+    width:100%;
+
+}
+
+
+/* 現在選択中の色 */
+
+.anniversary-color-current{
+
+    width:100%;
+
+    display:flex;
+    align-items:center;
+
+    gap:10px;
+
+    padding:10px 12px;
+
+    margin:0;
+
+    background:var(--card);
+
+    color:var(--text);
+
+    border:1px solid var(--border);
+
+    border-radius:10px;
+
+    text-align:left;
+
+}
+
+
+/* 色プレビュー */
+
+.anniversary-color-preview{
+
+    width:28px;
+    height:28px;
+
+    flex-shrink:0;
+
+    border-radius:6px;
+
+    border:1px solid rgba(0,0,0,.15);
+
+}
+
+
+/* 色名 */
+
+#anniversaryColorName{
+
+    flex:1;
+
+    font-size:14px;
+    font-weight:bold;
+
+}
+
+
+/* ▼ */
+
+.anniversary-color-arrow{
+
+    font-size:12px;
+
+    color:var(--text-sub);
+
+}
+
+
+/* 色選択パネル */
+
+.anniversary-color-picker{
+
+    margin-top:8px;
+
+    padding:12px;
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+}
+
+
+/* 見出し */
+
+.anniversary-color-section-title{
+
+    font-size:13px;
+    font-weight:bold;
+
+    margin:4px 0 8px;
+
+}
+
+
+/* =====================
+   最近使った色
+   最大5個
+===================== */
+
+.anniversary-color-recent{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(5, 32px);
+
+    gap:8px;
+
+    margin-bottom:14px;
+
+}
+
+
+/* =====================
+   色マトリックス
+===================== */
+
+.anniversary-color-matrix{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(15, 1fr);
+
+    gap:5px;
+
+}
+
+
+/* 色ボタン */
+
+.anniversary-color-choice,
+.anniversary-recent-choice{
+
+    width:100%;
+    aspect-ratio:1 / 1;
+
+    min-width:0;
+
+    padding:0;
+    margin:0;
+
+    border-radius:6px;
+
+    border:1px solid rgba(0,0,0,.15);
+
+    cursor:pointer;
+
+    box-sizing:border-box;
+
+}
+
+
+/* 選択中 */
+
+.anniversary-color-choice.selected,
+.anniversary-recent-choice.selected{
+
+    outline:3px solid var(--accent);
+
+    outline-offset:2px;
+
+}
+
+
+/* 押したとき */
+
+.anniversary-color-choice:active,
+.anniversary-recent-choice:active{
+
+    transform:scale(.9);
+
+}
+
+
+/* =====================
+   チェック項目
+===================== */
+
+.anniversary-check{
+
+    grid-column:2;
+
+    display:flex !important;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin:0 !important;
+
+    font-size:14px !important;
+
+    font-weight:normal !important;
+
+}
+
+
+.anniversary-check input{
+
+    width:20px !important;
+    height:20px;
+
+    margin:0 !important;
+
+    flex-shrink:0;
+
+}
+
+
+/* =====================
+   登録ボタン
+===================== */
+
+.anniversary-add-button{
+
+    grid-column:1 / -1;
+
+    width:100%;
+
+    margin-top:6px;
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:12px;
+
+    font-weight:bold;
+
+    font-size:15px;
+
+    background:#ff8fb3;
+
+    color:white;
+
+}
+
+
+/* =====================
+   記念日一覧
+===================== */
+
+.anniversary-list-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:10px 0;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+
+.anniversary-list-item:last-child{
+
+    border-bottom:none;
+
+}
+
+
+.anniversary-list-icon{
+
+    width:42px;
+    height:42px;
+
+    border-radius:12px;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    flex-shrink:0;
+
+}
+
+
+.anniversary-list-info{
+
+    flex:1;
+
+    min-width:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:2px;
+
+}
+
+
+.anniversary-list-info strong{
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+
+.anniversary-list-info span{
+
+    font-size:12px;
+
+    opacity:.7;
+
+}
+
+
+.anniversary-list-info small{
+
+    font-size:11px;
+
+    opacity:.7;
+
+}
+
+
+.anniversary-list-actions{
+
+    display:flex;
+
+    gap:4px;
+
+}
+
+
+.anniversary-list-actions button{
+
+    border:none;
+
+    background:transparent;
+
+    font-size:18px;
+
+    padding:5px;
+
+}
+
+
+.anniversary-hidden{
+
+    opacity:.45;
+
+}
+
+
+.anniversary-empty{
+
+    padding:20px;
+
+    text-align:center;
+
+    opacity:.6;
+
+}
+
+
+/* =====================
+🎂 記念日ページ 固定戻るボタン
+===================== */
+
+.anniversary-fixed-back{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:100;
+
+    padding:8px 12px;
+
+    background:var(--background);
+
+}
+
+
+.anniversary-fixed-back button{
+
+    width:100%;
+
+    padding:11px;
+
+    border:none;
+
+    border-radius:12px;
+
+    font-weight:bold;
+
+    font-size:14px;
+
+    background:var(--surface);
+
+    color:var(--text);
+
+    border:1px solid var(--border);
+
+    box-shadow:
+        0 2px 8px rgba(0,0,0,.08);
+
+}
+
+
+/* =====================
+   スマホ
+===================== */
+
+@media(max-width:480px){
+
+    .anniversary-color-matrix{
+
+        grid-template-columns:
+            repeat(8, 1fr);
+
+        gap:6px;
+
+    }
+
+    .anniversary-color-recent{
+
+        grid-template-columns:
+            repeat(5, 32px);
+
+        gap:8px;
+
+    }
+
+}
+
+
+
+/* =====================
+   🎂 1日手帳 記念日
+   タップで拡大・メモ表示
+===================== */
+
+.planner-anniversary-item{
+
+    position:relative;
+
+    transition:
+        transform .2s ease,
+        padding .2s ease;
+
+    cursor:pointer;
+
+}
+
+
+/* メモは通常は非表示 */
+
+.planner-anniversary-memo{
+
+    display:none;
+
+}
+
+
+/* タップして開いた状態 */
+
+.planner-anniversary-item.planner-anniversary-expanded{
+
+    transform:scale(1.04);
+
+    z-index:10;
+
+}
+
+
+/* 開いたときだけメモ表示 */
+
+/* =====================
+   🎂 記念日タップ後
+   雲の下にメモを表示
+===================== */
+
+.planner-anniversary-item.planner-anniversary-expanded{
+
+    transform:scale(1.04);
+
+    z-index:10;
+
+    flex-wrap:wrap;
+
+}
+
+
+/* =====================
+   📝 メモ
+   通常は非表示
+===================== */
+
+.planner-anniversary-memo{
+
+    display:none;
+
+}
+
+
+/* =====================
+   📝 展開時のメモ
+===================== */
+
+.planner-anniversary-item.planner-anniversary-expanded
+.planner-anniversary-memo{
+
+    display:block;
+
+    flex-basis:100%;
+
+    width:100%;
+
+    box-sizing:border-box;
+
+    margin-top:6px;
+
+    padding-top:7px;
+
+    border-top:
+        1px solid rgba(255,150,185,.25);
+
+    font-size:12px;
+
+    line-height:1.5;
+
+    font-weight:normal;
+
+    color:var(--text);
+
+    opacity:.8;
+
+    white-space:normal;
+
+    overflow-wrap:anywhere;
+
+}
+
+
+
+/* =====================
+🎂 1日手帳 記念日クラウド
+日付の下に配置し、スクロール時も追従
+===================== */
+
+.planner-anniversary-badge {
+position: sticky;
+top: var(--planner-anniversary-top, 0px);
+
+z-index: 100;
+
+display: flex;
+flex-direction: row-reverse;
+flex-wrap: wrap;
+
+justify-content: flex-start;
+align-items: flex-start;
+
+gap: 8px;
+
+width: 100%;
+max-width: 100%;
+
+box-sizing: border-box;
+padding: 8px 10px;
+
+pointer-events: auto;
+
+}
+
+/* =====================
+   ☁️ カプセル型の雲
+   最初の形に戻す
+===================== */
+
+.planner-anniversary-item{
+
+    position:relative;
+
+    display:flex;
+    align-items:center;
+
+    gap:6px;
+
+    width:max-content;
+    max-width:70vw;
+
+    min-height:38px;
+
+    padding:9px 15px;
+
+    background:#fff5f8;
+
+    background-color:#fff5f8;
+
+    /*
+       カプセル型
+    */
+    border-radius:22px;
+
+
+    /*
+       上側：薄い輪郭
+       下側：少し強め
+    */
+    border-top:
+        1px solid rgba(255,179,204,.38);
+
+    border-right:
+        1px solid rgba(255,179,204,.32);
+
+    border-left:
+        1px solid rgba(255,179,204,.32);
+
+    border-bottom:
+        2px solid rgba(255,150,185,.62);
+
+
+    /*
+       下側を少し強調
+       でも影は強くしすぎない
+    */
+    box-shadow:
+
+        0 2px 0 rgba(255,150,185,.20),
+
+        0 4px 9px rgba(255,120,160,.15);
+
+
+    font-size:13px;
+
+    font-weight:bold;
+
+    color:var(--text);
+
+
+    /*
+       ☁️ ふわふわ上下
+    */
+    animation:
+        anniversaryCloudFloat
+        5s
+        ease-in-out
+        infinite;
+
+}
+
+
+/* =====================
+   ☁️ 上側のふわふわ感
+   薄い色で後ろの予定と区別
+===================== */
+
+.planner-anniversary-item::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:7px;
+    right:7px;
+
+    top:-5px;
+
+    height:10px;
+
+    background:
+
+        radial-gradient(
+            ellipse at 12% 100%,
+            rgba(255,245,248,.95) 0 8px,
+            transparent 9px
+        ),
+
+        radial-gradient(
+            ellipse at 31% 100%,
+            rgba(255,245,248,.98) 0 10px,
+            transparent 11px
+        ),
+
+        radial-gradient(
+            ellipse at 52% 100%,
+            rgba(255,245,248,.95) 0 8px,
+            transparent 9px
+        ),
+
+        radial-gradient(
+            ellipse at 73% 100%,
+            rgba(255,245,248,.98) 0 10px,
+            transparent 11px
+        ),
+
+        radial-gradient(
+            ellipse at 91% 100%,
+            rgba(255,245,248,.95) 0 7px,
+            transparent 8px
+        );
+
+    /*
+       上側はごく薄い輪郭
+    */
+    filter:
+        drop-shadow(
+            0 -1px 0 rgba(255,179,204,.28)
+        );
+
+    z-index:-1;
+
+    pointer-events:none;
+}
+
+
+/* =====================
+   ☁️ 下側のふわふわ
+   下の輪郭を少し強め
+===================== */
+
+.planner-anniversary-item::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:6px;
+    right:6px;
+
+    bottom:-4px;
+
+    height:13px;
+
+    background:
+
+        radial-gradient(
+            ellipse at 7% 0%,
+            #fff5f8 0 7px,
+            transparent 8px
+        ),
+
+        radial-gradient(
+            ellipse at 25% 0%,
+            #fff5f8 0 9px,
+            transparent 10px
+        ),
+
+        radial-gradient(
+            ellipse at 45% 0%,
+            #fff5f8 0 8px,
+            transparent 9px
+        ),
+
+        radial-gradient(
+            ellipse at 66% 0%,
+            #fff5f8 0 10px,
+            transparent 11px
+        ),
+
+        radial-gradient(
+            ellipse at 84% 0%,
+            #fff5f8 0 8px,
+            transparent 9px
+        ),
+
+        radial-gradient(
+            ellipse at 97% 0%,
+            #fff5f8 0 6px,
+            transparent 7px
+        );
+
+    /*
+       下側だけ少し輪郭を強く
+    */
+    filter:
+        drop-shadow(
+            0 1px 0 rgba(255,150,185,.48)
+        );
+
+    pointer-events:none;
+}
+
+
+/* =====================
+   🎈 ふわふわ上下運動
+===================== */
+
+@keyframes anniversaryCloudFloat{
+
+    0%{
+
+        transform:
+            translateY(0px);
+
+    }
+
+    20%{
+
+        transform:
+            translateY(-2px);
+
+    }
+
+    42%{
+
+        transform:
+            translateY(0.5px);
+
+    }
+
+    65%{
+
+        transform:
+            translateY(-1.5px);
+
+    }
+
+    82%{
+
+        transform:
+            translateY(1px);
+
+    }
+
+    100%{
+
+        transform:
+            translateY(0px);
+
+    }
+
+}
+
+
+/* =====================
+   🎂 アイコン
+===================== */
+
+.planner-anniversary-icon{
+
+    font-size:17px;
+
+    line-height:1;
+
+    flex-shrink:0;
+
+    position:relative;
+
+    z-index:2;
+
+}
+
+
+/* =====================
+   📝 文字
+===================== */
+
+.planner-anniversary-text{
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    position:relative;
+
+    z-index:2;
+
+}
+
+
+/* =====================
+   ☁️ 複数ある場合
+   少しだけ動きをずらす
+===================== */
+
+.planner-anniversary-item:nth-child(2){
+
+    animation-duration:
+        5.6s;
+
+    animation-delay:
+        -.9s;
+
+}
+
+
+.planner-anniversary-item:nth-child(3){
+
+    animation-duration:
+        4.5s;
+
+    animation-delay:
+        -1.8s;
+
+}
+
+
+.planner-anniversary-item:nth-child(4){
+
+    animation-duration:
+        6.1s;
+
+    animation-delay:
+        -2.6s;
+
+}
+
+
+.planner-anniversary-item:nth-child(5){
+
+    animation-duration:
+        4.9s;
+
+    animation-delay:
+        -1.4s;
+
+}

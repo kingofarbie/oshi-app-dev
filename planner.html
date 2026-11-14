@@ -1,0 +1,393 @@
+<!-- =====================
+     1日手帳ビュー
+===================== -->
+
+
+<div id="dayPlanner" class="card">
+
+    <h2 id="plannerTitle">
+
+        📅
+
+    </h2>
+
+
+    <div id="plannerTimeline">
+
+    </div>
+
+    <hr>
+
+<h3>📝 今日の思い出</h3>
+
+<div id="plannerMemory">
+
+    <div class="memory-section">
+
+        <div class="memory-header">
+
+          <span>📷 写真</span>
+
+            <div class="memory-header-actions">
+
+                <button onclick="addPhoto()">
+                ＋
+                </button>
+
+                <button onclick="startPhotoDeleteMode()">
+                🗑
+                </button>
+
+                <button onclick="startPhotoShareMode()">
+                📤
+                </button>
+
+                <button onclick="openPhotoSortMenu('calendar')">
+                🔀
+                </button>
+            </div>
+
+        </div>
+
+        <div id="photoList" class="memory-list">
+            写真はありません
+        </div>
+
+    </div>
+
+
+
+
+<div class="memory-section">
+
+    <div class="memory-header">
+
+        <span>🎥 動画</span>
+
+        <div class="memory-header-actions">
+
+            <button onclick="addMovie()">
+                ＋
+            </button>
+
+            <button onclick="startMovieDeleteMode()">
+                🗑
+            </button>
+
+            <button onclick="startMovieShareMode()">
+                📤
+            </button>
+
+            <button onclick="openMovieSortMenu('calendar')">
+                🔀
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="movieList" class="memory-list">
+        動画はありません
+    </div>
+
+</div>
+
+
+
+    
+<div class="memory-section">
+
+    <div class="memory-header">
+
+        <span>📝 メモ</span>
+
+        <div class="memory-header-actions">
+
+            <!-- 追加 -->
+            <button onclick="addMemo()">
+                ＋
+            </button>
+
+            <!-- 削除 -->
+            <button onclick="startMemoDeleteMode()">
+                🗑
+            </button>
+
+            <!-- 編集 -->
+            <button onclick="startMemoEditMode()">
+                ✏️
+            </button>
+
+            <!-- 並べ替え -->
+            <button onclick="startMemoSortMode()">
+                🔀
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="memoList" class="memory-list">
+        メモはありません
+    </div>
+
+</div>
+
+
+    <div class="memory-section">
+        <div class="memory-header">
+            <span>💰 支出</span>
+            <button onclick="addExpense()">＋</button>
+        </div>
+
+        <div id="expenseList" class="memory-list">
+            支出はありません
+        </div>
+    </div>
+
+    <div class="memory-section">
+        <div class="memory-header">
+            <span>⭐ 評価</span>
+            <button onclick="addRating()">＋</button>
+        </div>
+
+        <div id="ratingView" class="memory-list">
+            未評価
+        </div>
+    </div>
+
+    <div class="memory-section">
+        <div class="memory-header">
+            <span>😊 今日の一言</span>
+            <button onclick="addComment()">＋</button>
+        </div>
+
+        <div id="commentView" class="memory-list">
+            まだありません
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<div id="plannerBottomBar">
+    <button
+        id="plannerFamilyButton"
+        onclick="openPlannerFamily()">
+        👨‍👩‍👧 家族
+    </button>
+
+    <button onclick="openDayMemory()">
+        📤 共有
+    </button>
+
+    <button onclick="openPlannerAddMenu()">
+        ＋ 追加
+    </button>
+
+    <button
+        id="plannerTodayButton"
+        onclick="goToPlannerToday()">
+        📅 今日
+    </button>
+</div>
+
+
+<!-- ＋追加メニュー -->
+<div id="plannerAddMenu" class="modal" style="display:none;">
+
+    <div class="modal-content">
+
+        <h3>＋ 追加する内容</h3>
+
+        <button onclick="closePlannerAddMenu(); openEventForm();">
+            📅 予定
+        </button>
+
+        <button onclick="openPlannerMemo()">
+            📝 メモ
+        </button>
+
+        <button onclick="openPlannerHandwriting()">
+            ✍️ 手書きメモ
+        </button>
+
+        <button onclick="openPlannerSticker()">
+            🎨 スタンプ
+        </button>
+
+        <button onclick="closePlannerAddMenu()">
+            キャンセル
+        </button>
+
+    </div>
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+<!-- =====================
+     🎨 マイスタンプ
+===================== -->
+
+<div id="plannerStickerMenu" class="modal" style="display:none;">
+
+    <div class="modal-content">
+
+        <h2>🎨 マイスタンプ</h2>
+
+        <div id="plannerStickerList">
+            登録したスタンプはありません
+        </div>
+
+        <button
+            type="button"
+            onclick="document.getElementById('plannerStickerPicker').click()">
+            ＋ 画像を登録
+        </button>
+
+        <button
+            type="button"
+            onclick="closePlannerStickerMenu()">
+            閉じる
+        </button>
+
+    </div>
+
+</div>
+
+<!-- スタンプ画像選択 -->
+<input
+    type="file"
+    id="plannerStickerPicker"
+    accept="image/*"
+    multiple
+    style="display:none"
+    onchange="plannerStickerFilesSelected(event)">
+
+
+
+
+<!-- 予定画像の共有設定 -->
+<div id="plannerShareModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <h2>📤 予定画像を作成</h2>
+
+        <p>画像に家族の予定を含めますか？</p>
+
+        <button type="button"
+            onclick="plannerShareChooseFamily(true)">
+            👨‍👩‍👧 家族の予定を含める
+        </button>
+
+        <button type="button"
+            onclick="plannerShareChooseFamily(false)">
+            🗓️ 個人の予定だけ
+        </button>
+
+        <button type="button"
+            onclick="plannerShareCloseModal()">
+            キャンセル
+        </button>
+    </div>
+</div>
+
+
+
+<!-- =====================
+メモ追加
+===================== -->
+
+<div id="memoModal" class="modal">
+
+    <div class="modal-content">
+
+        <h2>📝 メモ追加</h2>
+
+        <textarea
+            id="memoText"
+            placeholder="今日の思い出を書こう..."
+            rows="8">
+        </textarea>
+
+        <button onclick="saveMemo()">
+            💾 保存
+        </button>
+
+        <button onclick="closeMemoModal()">
+            キャンセル
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<input
+    type="file"
+    id="photoPicker"
+    accept="image/*"
+    multiple
+    style="display:none"
+    onchange="photoSelected(event)">
+
+
+    <input
+    type="file"
+    id="moviePicker"
+    accept="video/*"
+    multiple
+    style="display:none"
+    onchange="movieSelected(event)">
+
+
+    <!-- 動画ビューア -->
+<div id="movieViewer">
+
+    <button
+    class="movie-favorite"
+    onclick="toggleFavoriteMovie()">
+    ☆
+</button>
+
+<button
+    class="movie-share"
+    onclick="shareCurrentMovie()">
+    📤
+</button>
+
+<button
+    class="movie-delete"
+    onclick="deleteCurrentMovie()">
+    🗑
+</button>
+
+    <button
+        class="movie-close"
+        onclick="closeMovieViewer()">
+        ✕
+    </button>
+
+<video
+    id="movieViewerVideo"
+    playsinline
+    controls
+    ontouchstart="movieTouchStartX = event.touches[0].clientX;"
+    ontouchend="movieSwipe(event)">
+</video>
+
+</div>
+
+

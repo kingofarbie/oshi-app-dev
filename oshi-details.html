@@ -1,0 +1,639 @@
+
+<section id="oshiDetailPage" class="page oshi-home-page">
+
+    <!-- =========================================
+         推しページ ヘッダー
+    ========================================== -->
+    <header class="oshi-home-header">
+        <button
+            type="button"
+            class="oshi-home-back"
+            onclick="closeOshiDetail()"
+            aria-label="推し一覧に戻る"
+        >‹</button>
+
+        <div class="oshi-home-header-title">
+            <span class="oshi-home-eyebrow">MY FAVORITE PERSON</span>
+            <h1 class="oshi-detail-title">推しのページ</h1>
+        </div>
+
+        <div class="oshi-home-header-actions">
+            <button
+                type="button"
+                class="oshi-home-icon-button"
+                onclick="openOshiPhotoAddModal()"
+                aria-label="写真を追加"
+                title="写真を追加"
+            >＋</button>
+
+
+
+        </div>
+    </header>
+
+    <!-- =========================================
+         メインビジュアル
+    ========================================== -->
+    <div class="oshi-home-hero">
+
+        <div class="oshi-home-hero-decoration oshi-home-decoration-one">✦</div>
+        <div class="oshi-home-hero-decoration oshi-home-decoration-two">♡</div>
+        <div class="oshi-home-hero-decoration oshi-home-decoration-three">✧</div>
+
+        <div class="oshi-home-hero-label">
+            <span>♡</span>
+            MY SPECIAL PERSON
+            <span>♡</span>
+        </div>
+
+        <div class="oshi-home-main-photo-wrap">
+
+            <button
+                type="button"
+                id="oshiMainPhotoPlaceholder"
+                class="oshi-main-photo-placeholder"
+                onclick="openOshiPhotoAddModal()"
+                aria-label="推しの写真を追加"
+            >
+                <span class="oshi-home-photo-placeholder-icon">♡</span>
+                <span>お気に入りの写真を追加</span>
+                <small>あなたの推しを飾ろう</small>
+            </button>
+
+            <button
+                type="button"
+                id="oshiMainPhotoImageButton"
+                class="oshi-home-main-photo-button"
+                aria-label="メイン写真を表示"
+            >
+                <img
+                    id="oshiMainPhotoImage"
+                    class="oshi-home-main-photo"
+                    src=""
+                    alt="推しのメイン写真"
+                >
+                <span class="oshi-home-main-photo-badge">MY Oshi ♡</span>
+            </button>
+
+            <div class="oshi-home-photo-sparkle sparkle-one">✧</div>
+            <div class="oshi-home-photo-sparkle sparkle-two">✦</div>
+            <div class="oshi-home-photo-sparkle sparkle-three">♡</div>
+        </div>
+
+        <div class="oshi-home-hero-caption">
+            <span class="oshi-home-caption-line"></span>
+            <span>あなたの「好き」を集める場所</span>
+            <span class="oshi-home-caption-line"></span>
+        </div>
+    </div>
+
+    <!-- =========================================
+         推しプロフィール
+    ========================================== -->
+
+<section class="oshi-profile-card oshi-home-profile-section"
+         id="oshiHomeProfile">
+
+    <div class="oshi-home-section-heading">
+        <span class="oshi-home-section-icon">💗</span>
+        <div>
+            <p class="oshi-home-section-en">PROFILE</p>
+            <h2>大好きな推しについて</h2>
+        </div>
+        <span class="oshi-home-heading-decoration">✧</span>
+    </div>
+
+    <!-- 通常表示 -->
+
+    <div id="oshiProfileView">
+
+        <div class="oshi-home-message-card">
+            <span class="oshi-home-message-mark">“</span>
+            <p id="oshiHomeMessage">
+                好きなところも、心に残った瞬間も。
+                ここに少しずつ集めていこう。
+            </p>
+            <span class="oshi-home-message-heart">♡</span>
+        </div>
+
+        <div class="oshi-home-profile-details">
+
+            <div class="oshi-home-profile-row">
+                <span class="oshi-home-profile-label">お名前</span>
+                <span class="oshi-home-profile-value"
+                      id="oshiHomeName">—</span>
+            </div>
+
+            <div class="oshi-home-profile-row">
+                <span class="oshi-home-profile-label">ジャンル</span>
+                <span class="oshi-home-profile-value"
+                      id="oshiHomeGenre">—</span>
+            </div>
+
+            <div class="oshi-home-profile-row">
+                <span class="oshi-home-profile-label">🎂 誕生日</span>
+                <span class="oshi-home-profile-value"
+                      id="oshiHomeBirthday">未登録</span>
+            </div>
+
+            <div class="oshi-home-profile-row">
+                <span class="oshi-home-profile-label">💗 活動開始日・推し始めた日</span>
+                <span class="oshi-home-profile-value"
+                      id="oshiHomeStartDate">未登録</span>
+            </div>
+
+            <div class="oshi-home-profile-row">
+                <span class="oshi-home-profile-label">✨ 結成日・デビュー日</span>
+                <span class="oshi-home-profile-value"
+                      id="oshiHomeFormationDate">未登録</span>
+            </div>
+
+        </div>
+
+        <div class="oshi-home-profile-note">
+            <span>✿</span>
+            <p>推しのことを知るたびに、ここも少しずつ育てていこう。</p>
+        </div>
+
+        <button type="button"
+                class="oshi-profile-edit-button"
+                onclick="openOshiProfileEditor()">
+            ✏️ プロフィールを編集
+        </button>
+
+    </div>
+
+
+    <!-- 編集表示：最初は非表示 -->
+
+    <div id="oshiProfileEditor" hidden>
+
+        <div class="oshi-profile-edit-field">
+
+            <label for="oshiProfileFavoritePoints">
+                💗 好きなところ・メッセージ
+            </label>
+
+            <textarea
+                id="oshiProfileFavoritePoints"
+                rows="4"
+                maxlength="2000"
+                placeholder="好きなところや、心に残った瞬間を書こう♡"
+            ></textarea>
+
+        </div>
+
+        <div class="oshi-profile-edit-field">
+
+            <label for="oshiProfileBirthday">
+                🎂 誕生日
+            </label>
+
+            <input
+                type="date"
+                id="oshiProfileBirthday"
+            >
+
+        </div>
+
+        <div class="oshi-profile-edit-field">
+
+            <label for="oshiProfileStartDate">
+                💗 活動開始日・推し始めた日
+            </label>
+
+            <input
+                type="date"
+                id="oshiProfileStartDate"
+            >
+
+        </div>
+
+        <div class="oshi-profile-edit-field">
+
+            <label for="oshiProfileFormationDate">
+                ✨ 結成日・デビュー日
+            </label>
+
+            <input
+                type="date"
+                id="oshiProfileFormationDate"
+            >
+
+        </div>
+
+        <div class="oshi-profile-edit-actions">
+
+            <button type="button"
+                    onclick="saveOshiProfile()">
+                💾 保存
+            </button>
+
+            <button type="button"
+                    onclick="cancelOshiProfileEdit()">
+                キャンセル
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+    <!-- =========================================
+         ページ内ナビゲーション
+    ========================================== -->
+    <nav class="oshi-home-section-nav" aria-label="推しページ内メニュー">
+
+        <a class="oshi-home-nav-item" href="#oshiHomeSchedule">
+            <span class="oshi-home-nav-icon">🗓️</span>
+            <span>予定</span>
+        </a>
+
+        <a class="oshi-home-nav-item" href="#oshiHomeGallery">
+            <span class="oshi-home-nav-icon">📸</span>
+            <span>ギャラリー</span>
+        </a>
+
+        <a class="oshi-home-nav-item" href="#oshiHomeRecords">
+            <span class="oshi-home-nav-icon">📖</span>
+            <span>記録</span>
+        </a>
+
+        <a class="oshi-home-nav-item" href="#oshiHomeLinks">
+            <span class="oshi-home-nav-icon">🔗</span>
+            <span>リンク</span>
+        </a>
+    </nav>
+
+    <!-- =========================================
+         スケジュール
+    ========================================== -->
+    <section class="oshi-home-content-section" id="oshiHomeSchedule">
+
+        <div class="oshi-home-section-heading">
+            <span class="oshi-home-section-icon">🗓️</span>
+            <div>
+                <p class="oshi-home-section-en">SCHEDULE</p>
+                <h2>推し活の予定</h2>
+            </div>
+        </div>
+
+        <div class="oshi-home-feature-card oshi-home-schedule-card">
+            <div class="oshi-home-feature-card-top">
+                <span class="oshi-home-feature-icon">🎟️</span>
+                <span class="oshi-home-feature-label">SPECIAL DAYS</span>
+            </div>
+
+            <h3>会える日も、楽しみな日も。</h3>
+            <p>ライブやイベントなど、推しにまつわる予定をまとめて確認。</p>
+
+            <button
+                type="button"
+                class="oshi-home-outline-button"
+                onclick="oshiHomeOpenCalendar()"
+            >
+                カレンダーを開く <span>›</span>
+            </button>
+        </div>
+
+        <div class="oshi-home-mini-note">
+            <span>✦</span>
+            <span>楽しみな予定を、ひとつずつ思い出に。</span>
+        </div>
+    </section>
+
+    <!-- =========================================
+         ギャラリー
+         既存の写真追加・閲覧・削除・共有機能を維持
+    ========================================== -->
+    <section class="oshi-home-content-section oshi-home-gallery-section"
+             id="oshiHomeGallery">
+
+        <div class="oshi-home-section-heading">
+            <span class="oshi-home-section-icon">📸</span>
+            <div>
+                <p class="oshi-home-section-en">GALLERY</p>
+                <h2>お気に入りの瞬間</h2>
+            </div>
+            <span class="oshi-home-heading-decoration">♡</span>
+        </div>
+
+        <p class="oshi-home-section-description">
+            忘れたくない表情も、大切な思い出もここに。
+        </p>
+
+        <div class="oshi-home-gallery-preview" id="oshiHomeGalleryPreview">
+            <div class="oshi-home-gallery-empty">
+                <span>♡</span>
+                <p>あなたの好きな写真を集めよう</p>
+                <small>写真はここから追加できます</small>
+            </div>
+        </div>
+
+        <div class="oshi-home-gallery-actions">
+            <button
+                type="button"
+                class="oshi-home-primary-button"
+                onclick="openOshiPhotoAddModal()"
+            >
+                <span>＋</span> 写真を追加
+            </button>
+
+            <button
+                type="button"
+                class="oshi-home-outline-button"
+                onclick="openOshiPhotoAlbum()"
+            >
+                アルバムを見る <span>›</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- =========================================
+         推し活の記録
+    ========================================== -->
+    <section class="oshi-home-content-section" id="oshiHomeRecords">
+
+        <div class="oshi-home-section-heading">
+            <span class="oshi-home-section-icon">📖</span>
+            <div>
+                <p class="oshi-home-section-en">MEMORIES</p>
+                <h2>推し活の記録</h2>
+            </div>
+        </div>
+
+        <div class="oshi-home-record-card">
+            <div class="oshi-home-record-decoration">✧</div>
+            <span class="oshi-home-record-icon">📝</span>
+            <div class="oshi-home-record-text">
+                <h3>忘れたくない気持ちを残そう</h3>
+                <p>ライブの感想や、心に響いた言葉、推しへの想いを記録。</p>
+            </div>
+            <button
+                type="button"
+                class="oshi-home-record-button"
+                onclick="openOshiRecord && openOshiRecord()"
+                aria-label="推し活の記録を開く"
+            >›</button>
+        </div>
+
+        <div class="oshi-home-record-card oshi-home-record-card-secondary">
+            <span class="oshi-home-record-icon">🎁</span>
+            <div class="oshi-home-record-text">
+                <h3>グッズ・思い出</h3>
+                <p>大切にしているグッズや、特別な出来事をまとめる場所。</p>
+            </div>
+            <span class="oshi-home-record-heart">♡</span>
+        </div>
+    </section>
+
+
+
+
+<!-- =========================================
+     公式リンク・SNS
+========================================== -->
+<section class="oshi-home-content-section" id="oshiHomeLinks">
+
+    <div class="oshi-home-section-heading">
+        <span class="oshi-home-section-icon">🔗</span>
+        <div>
+            <p class="oshi-home-section-en">LINKS</p>
+            <h2>推しに会いに行く</h2>
+        </div>
+    </div>
+
+    <div class="oshi-home-links-card">
+
+        <p>公式サイトやSNSへのリンクをまとめておこう。</p>
+
+        <!-- 登録済みリンクの表示 -->
+        <div
+            id="oshiHomeLinksList"
+            class="oshi-sns-list oshi-home-sns-list"
+        >
+            <span class="oshi-home-links-empty">
+                公式サイトやSNSを登録してみよう♡
+            </span>
+        </div>
+
+        <!-- リンク編集画面 -->
+        <div
+            id="oshiHomeLinksEditor"
+            class="oshi-home-links-editor"
+            hidden
+        >
+
+            <div class="oshi-home-links-editor-heading">
+                <span>✦</span>
+                <strong>公式リンクを編集</strong>
+            </div>
+
+            <div id="oshiHomeLinksEditList"></div>
+
+            <button
+                type="button"
+                class="oshi-home-links-add-button"
+                onclick="addOshiHomeLink()"
+            >
+                ＋ リンクを追加
+            </button>
+
+            <div class="oshi-home-links-edit-actions">
+
+                <button
+                    type="button"
+                    onclick="saveOshiHomeLinks()"
+                >
+                    💾 保存
+                </button>
+
+                <button
+                    type="button"
+                    onclick="cancelOshiHomeLinksEdit()"
+                >
+                    キャンセル
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- 編集開始ボタン -->
+        <button
+            type="button"
+            id="oshiHomeLinksEditButton"
+            class="oshi-profile-edit-button"
+            onclick="openOshiHomeLinksEditor()"
+        >
+            ✏️ リンクを編集
+        </button>
+
+    </div>
+
+</section>
+
+
+
+    <!-- =========================================
+         ページ下部
+    ========================================== -->
+    <footer class="oshi-home-footer">
+        <div class="oshi-home-footer-stars">✧　♡　✧</div>
+        <p>Every day is a day to love your oshi.</p>
+        <span>あなたの「好き」が、もっと輝きますように。</span>
+    </footer>
+
+    <!-- =========================================
+         写真追加モーダル
+         既存IDを維持
+    ========================================== -->
+    <div id="oshiPhotoAddModal" class="oshi-photo-add-modal" style="display:none;">
+        <div class="oshi-photo-add-modal-backdrop"
+             onclick="closeOshiPhotoAddModal()"></div>
+
+        <div class="oshi-photo-add-modal-content" role="dialog" aria-modal="true"
+             aria-label="写真を追加">
+
+            <button
+                type="button"
+                class="oshi-photo-add-modal-close"
+                onclick="closeOshiPhotoAddModal()"
+                aria-label="閉じる"
+            >×</button>
+
+            <div class="oshi-photo-add-modal-heading">
+                <span>♡</span>
+                <h2>写真を追加</h2>
+                <p>お気に入りの瞬間を残そう</p>
+            </div>
+
+            <button type="button" class="oshi-photo-add-option"
+                    onclick="openOshiCamera()">
+                <span>📷</span>
+                <span>
+                    <strong>カメラで撮影</strong>
+                    <small>今この瞬間を残す</small>
+                </span>
+                <span class="oshi-photo-add-option-arrow">›</span>
+            </button>
+
+            <button type="button" class="oshi-photo-add-option"
+                    onclick="openOshiAlbum()">
+                <span>🖼️</span>
+                <span>
+                    <strong>端末から選ぶ</strong>
+                    <small>保存してある写真を追加</small>
+                </span>
+                <span class="oshi-photo-add-option-arrow">›</span>
+            </button>
+
+            <input
+                type="file"
+                id="oshiCameraInput"
+                accept="image/*"
+                capture="environment"
+                hidden
+            >
+
+            <input
+                type="file"
+                id="oshiAlbumInput"
+                accept="image/*"
+                multiple
+                hidden
+            >
+        </div>
+    </div>
+
+    <!-- =========================================
+         写真アルバムビューア
+         既存IDを維持
+    ========================================== -->
+    <div id="oshiPhotoAlbumViewer" class="oshi-photo-album-viewer"
+         style="display:none;">
+
+        <div class="oshi-photo-album-header">
+            <button type="button" id="oshiPhotoAlbumCloseButton"
+                    aria-label="閉じる">‹</button>
+
+            <div class="oshi-photo-album-header-title">
+                <h2>Photo Gallery</h2>
+                <span>大切な瞬間を集めて</span>
+            </div>
+
+            <span id="oshiPhotoAlbumSelectedCount">0</span>
+        </div>
+
+        <div class="oshi-photo-album-stars"></div>
+
+<div class="oshi-photo-album-toolbar">
+    <button type="button" id="oshiPhotoAlbumDeleteButton">
+        🗑️ 削除
+    </button>
+
+    <button type="button" id="oshiPhotoAlbumShareButton">
+        ↗ 共有
+    </button>
+
+    <button type="button" id="oshiPhotoAlbumAddButton">
+        ＋ 追加
+    </button>
+
+    <button type="button" id="oshiPhotoAlbumSortButton">
+        ↕ 並べ替え
+    </button>
+</div>
+
+
+
+        <div id="oshiPhotoAlbumViewerGrid" class="oshi-photo-album-viewer-grid"></div>
+    </div>
+
+    <!-- =========================================
+         写真詳細ビューア
+         既存IDを維持
+    ========================================== -->
+    <div id="oshiPhotoViewer" class="oshi-photo-viewer" style="display:none;">
+
+<div class="oshi-photo-viewer-header">
+    <button type="button" id="oshiPhotoViewerCloseButton"
+            aria-label="閉じる">×</button>
+</div>
+
+        <div class="oshi-photo-viewer-stage">
+            <img
+                id="oshiPhotoViewerImage"
+                src=""
+                alt="推しの写真"
+                draggable="false"
+            >
+        </div>
+
+<div class="oshi-photo-viewer-toolbar">
+
+    <button type="button" id="oshiPhotoViewerTopButton"
+            aria-label="トップ画に指定" title="トップ画に指定">
+        ❤️
+    </button>
+
+    <button type="button" id="oshiPhotoViewerFavoriteButton"
+            aria-label="お気に入り">♡</button>
+
+    <button type="button" id="oshiPhotoViewerAddButton"
+            aria-label="写真を追加">＋</button>
+
+    <button type="button" id="oshiPhotoViewerShareButton"
+            aria-label="写真を共有">↗</button>
+
+    <button type="button" id="oshiPhotoViewerDeleteButton"
+            aria-label="写真を削除">🗑️</button>
+
+</div>
+
+    </div>
+
+</section>

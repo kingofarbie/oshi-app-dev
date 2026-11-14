@@ -1,0 +1,438 @@
+/* ==================================================
+   🌌 推し活手帳
+   background.css
+
+   ゆめかわ星空テーマ
+   ・ヘッダー
+   ・下部タブ
+   ・テーマカラー
+   ・1日手帳の写真/動画アイコン
+================================================== */
+
+
+/* ==================================================
+   🌌 ゆめかわ星空：テーマカラー
+================================================== */
+
+body.theme-dreamy-star {
+
+    --accent:#9b7edb;
+    --accent-light:#c4a9f0;
+    --accent-soft:#f3edff;
+
+    --border:#d9cfee;
+    --border-strong:#c2b2df;
+
+    --text:#29233a;
+    --text-sub:#746b86;
+
+    --danger:#d94a63;
+
+    --header-gradient:
+        linear-gradient(
+            135deg,
+            #7254a8,
+            #a98ad8
+        );
+}
+
+
+/* ==================================================
+   🌌 ヘッダー
+================================================== */
+
+body.theme-dreamy-star .header {
+
+    position:relative;
+    width:100%;
+
+    background:
+        radial-gradient(
+            circle at 20% 30%,
+            rgba(255,255,255,.9) 0 1px,
+            transparent 2px
+        ),
+        radial-gradient(
+            circle at 75% 20%,
+            rgba(235,215,255,.9) 0 1.5px,
+            transparent 3px
+        ),
+        radial-gradient(
+            circle at 45% 70%,
+            rgba(210,205,255,.8) 0 1px,
+            transparent 2px
+        ),
+        linear-gradient(
+            135deg,
+            #17102d 0%,
+            #34205a 40%,
+            #60428a 70%,
+            #211735 100%
+        );
+
+    background-size:
+        220px 220px,
+        300px 300px,
+        180px 180px,
+        100% 100%;
+
+    color:#fff;
+
+    overflow:hidden;
+    z-index:1000;
+
+    box-shadow:
+        0 3px 15px
+        rgba(120,80,180,.35);
+}
+
+
+/* ==================================================
+   ✨ ヘッダーの星
+================================================== */
+
+body.theme-dreamy-star .header::before {
+
+    content:"";
+
+    position:absolute;
+    inset:0;
+
+    pointer-events:none;
+
+    background:
+        radial-gradient(
+            circle at 30% 25%,
+            rgba(255,255,255,.95) 0 2px,
+            transparent 4px
+        ),
+        radial-gradient(
+            circle at 70% 55%,
+            rgba(255,220,255,.9) 0 2px,
+            transparent 4px
+        ),
+        radial-gradient(
+            circle at 90% 20%,
+            rgba(210,220,255,.9) 0 2px,
+            transparent 4px
+        );
+
+    animation:
+        dreamyHeaderStars 4s ease-in-out infinite;
+}
+
+
+/* ヘッダー内の文字・ボタンを前面へ */
+
+body.theme-dreamy-star .header > * {
+
+    position:relative;
+    z-index:1;
+}
+
+
+/* ==================================================
+   ✨ ヘッダー星の瞬き
+================================================== */
+
+@keyframes dreamyHeaderStars {
+
+    0%,
+    100% {
+        opacity:.45;
+    }
+
+    50% {
+        opacity:1;
+    }
+}
+
+
+/* ==================================================
+   🌌 下部タブ
+================================================== */
+
+body.theme-dreamy-star .tabbar {
+
+    position:fixed;
+
+    left:0;
+    right:0;
+    bottom:0;
+
+    width:100%;
+    height:65px;
+
+    background:
+        radial-gradient(
+            circle at 15% 30%,
+            rgba(255,255,255,.85) 0 1px,
+            transparent 2px
+        ),
+        radial-gradient(
+            circle at 50% 20%,
+            rgba(235,215,255,.9) 0 1.5px,
+            transparent 3px
+        ),
+        radial-gradient(
+            circle at 85% 65%,
+            rgba(210,205,255,.85) 0 1px,
+            transparent 2px
+        ),
+        linear-gradient(
+            135deg,
+            #17102d 0%,
+            #34205a 40%,
+            #60428a 70%,
+            #211735 100%
+        );
+
+    background-size:
+        180px 180px,
+        260px 260px,
+        220px 220px,
+        100% 100%;
+
+    color:#fff;
+
+    box-sizing:border-box;
+
+    z-index:9999;
+
+    box-shadow:
+        0 -4px 18px
+        rgba(100,70,170,.35);
+}
+
+
+/* ==================================================
+   ✨ タブの星
+================================================== */
+
+body.theme-dreamy-star .tabbar::before {
+
+    content:"";
+
+    position:absolute;
+    inset:0;
+
+    pointer-events:none;
+
+    background:
+        radial-gradient(
+            circle at 25% 35%,
+            rgba(255,255,255,.9) 0 1px,
+            transparent 2px
+        ),
+        radial-gradient(
+            circle at 65% 70%,
+            rgba(255,220,255,.8) 0 1px,
+            transparent 2px
+        ),
+        radial-gradient(
+            circle at 90% 25%,
+            rgba(210,220,255,.8) 0 1px,
+            transparent 2px
+        );
+
+    animation:
+        dreamyTabStars 5s ease-in-out infinite;
+}
+
+
+/* タブ文字を星より前へ */
+
+body.theme-dreamy-star .tabbar .tab {
+
+    position:relative;
+    z-index:2;
+}
+
+
+/* ==================================================
+   ✨ タブ星の瞬き
+================================================== */
+
+@keyframes dreamyTabStars {
+
+    0%,
+    100% {
+        opacity:.4;
+    }
+
+    50% {
+        opacity:1;
+    }
+}
+
+
+/* ==================================================
+   📱 下部タブによる隠れ防止
+================================================== */
+
+body {
+
+    padding-bottom:70px;
+    box-sizing:border-box;
+}
+
+
+/* ==================================================
+   🌌 星空テーマ：通常ボタン
+================================================== */
+
+body.theme-dreamy-star button {
+
+    background:var(--accent);
+
+    color:#fff;
+
+    border-color:var(--accent);
+}
+
+
+/* ==================================================
+   🌌 重要ボタン
+================================================== */
+
+body.theme-dreamy-star .primary-btn,
+body.theme-dreamy-star .add-btn,
+body.theme-dreamy-star .save-btn,
+body.theme-dreamy-star .confirm-btn {
+
+    background:
+        linear-gradient(
+            135deg,
+            #8d6bc7,
+            #b99ae8
+        );
+
+    color:#fff !important;
+
+    border-color:transparent;
+}
+
+
+/* ==================================================
+   🌌 白系・透明系ボタン
+================================================== */
+
+body.theme-dreamy-star .icon-btn,
+body.theme-dreamy-star .setting-item button,
+body.theme-dreamy-star .setting-content button {
+
+    background:#faf7ff;
+
+    color:#7654a8 !important;
+
+    border:1px solid #d8c8ee;
+}
+
+
+/* ==================================================
+   🌌 キャンセル・閉じる
+================================================== */
+
+body.theme-dreamy-star .cancel-btn,
+body.theme-dreamy-star .close-btn {
+
+    background:#f5f3f8;
+
+    color:#666 !important;
+
+    border-color:#ddd9e5;
+}
+
+
+/* ==================================================
+   🌌 見出し・アクセント
+================================================== */
+
+body.theme-dreamy-star .section-title,
+body.theme-dreamy-star .page-title {
+
+    color:var(--accent);
+}
+
+
+/* ==================================================
+   📷 1日手帳
+   写真・動画などのアイコンボタン
+   ★ 白固定
+================================================== */
+
+/* 写真：＋・🗑・📤・🔀 */
+
+body.theme-dreamy-star .memory-header-actions button {
+
+    background:#ffffff !important;
+
+    color:#222222 !important;
+
+    border:none !important;
+
+    box-shadow:none !important;
+}
+
+
+/* 動画・メモ・支出・評価・今日の一言：＋ */
+
+body.theme-dreamy-star .memory-header > button {
+
+    background:#ffffff !important;
+
+    color:#000000 !important;
+
+    border:none !important;
+
+    box-shadow:none !important;
+}
+
+
+/* ==================================================
+   ➕ ＋ボタンは黒固定
+================================================== */
+
+body.theme-dreamy-star .memory-header-actions button[onclick*="addPhoto"],
+body.theme-dreamy-star .memory-header > button[onclick*="addVideo"],
+body.theme-dreamy-star .memory-header > button[onclick*="addMemo"],
+body.theme-dreamy-star .memory-header > button[onclick*="addExpense"],
+body.theme-dreamy-star .memory-header > button[onclick*="addRating"],
+body.theme-dreamy-star .memory-header > button[onclick*="addComment"] {
+
+    color:#000000 !important;
+}
+
+
+/* ==================================================
+   🖱 ホバーしても白固定
+================================================== */
+
+body.theme-dreamy-star .memory-header-actions button:hover,
+body.theme-dreamy-star .memory-header > button:hover {
+
+    background:#ffffff !important;
+
+    box-shadow:none !important;
+}
+
+
+/* ＋のホバーも黒固定 */
+
+body.theme-dreamy-star .memory-header-actions button[onclick*="addPhoto"]:hover,
+body.theme-dreamy-star .memory-header > button[onclick*="addVideo"]:hover,
+body.theme-dreamy-star .memory-header > button[onclick*="addMemo"]:hover,
+body.theme-dreamy-star .memory-header > button[onclick*="addExpense"]:hover,
+body.theme-dreamy-star .memory-header > button[onclick*="addRating"]:hover,
+body.theme-dreamy-star .memory-header > button[onclick*="addComment"]:hover {
+
+    color:#000000 !important;
+}
+
+
+
+/* 🌌 ゆめかわ星空 ヘッダータイトル */
+body.theme-dreamy-star .header {
+    display:flex;
+    align-items:center;
+}

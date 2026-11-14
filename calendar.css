@@ -1,0 +1,519 @@
+/* =========================
+   カレンダー
+========================= */
+
+.holiday-label{
+    font-size:8px;
+    color:#ff6b81;
+    margin-left:2px;
+}
+
+.calendar-header{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    width:100%;
+    box-sizing:border-box;
+
+    margin-bottom:10px;
+}
+
+.calendar-title{
+    font-size:32px;
+    font-weight:bold;
+    text-align:center;
+}
+
+/* =========================
+   曜日
+========================= */
+
+.calendar-week{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    text-align:center;
+
+    font-size:13px;
+    font-weight:bold;
+
+    color:var(--text);
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-bottom:2px solid var(--border-strong);
+
+    border-radius:8px 8px 0 0;
+
+    overflow:hidden;
+
+    padding:9px 2px;
+}
+
+.calendar-week.sunday{
+    color:#e74b67;
+}
+
+.calendar-week.saturday{
+    color:#4285e8;
+}
+
+
+/* =========================
+   日付グリッド
+========================= */
+
+.calendar-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(7,minmax(0,1fr));
+
+    gap:0;
+
+    overflow:hidden;
+
+    border-radius:0 0 8px 8px;
+
+    width:calc(100% + 4px);
+margin-left:-2px;
+box-sizing:border-box;
+}
+
+
+/* =========================
+   日付セル
+========================= */
+
+.calendar-day{
+    height:90px;
+
+    background:var(--card);
+
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+
+    border-radius:0;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:flex-start;
+
+    padding:4px;
+
+    cursor:pointer;
+    position:relative;
+
+    overflow:hidden;
+}
+
+.calendar-day:hover{
+    background:var(--surface);
+}
+
+
+/* 日付文字 */
+
+.calendar-date{
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:1px;
+    margin-left:-2px;
+    line-height:1;
+}
+
+
+/* =========================
+   予定表示
+========================= */
+
+.calendar-event-preview{
+    background:var(--event-preview-bg, transparent) !important;
+    color:var(--text);
+
+    border-radius:0;
+
+    padding:1px 3px;
+    margin-top:2px;
+
+    font-size:13px;
+    font-weight:bold;
+    line-height:1.1;
+
+    min-height:14px;
+
+    display:flex;
+    align-items:center;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+    box-sizing:border-box;
+}
+
+
+/* 予定が多い場合 */
+
+.calendar-more{
+    position:absolute;
+    right:3px;
+    bottom:3px;
+    z-index:2;
+
+    font-size:10px;
+    font-weight:bold;
+
+    color:var(--accent);
+
+    background:rgba(142,216,255,0.65);
+
+    border-radius:8px;
+
+    margin:0;
+
+    padding:3px 5px;
+
+    line-height:1;
+
+    min-height:12px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    flex-shrink:0;
+
+    white-space:nowrap;
+
+    pointer-events:none;
+}
+
+
+/* =========================
+   今日
+========================= */
+
+.today{
+    background:
+        color-mix(
+            in srgb,
+            var(--accent) 8%,
+            var(--card)
+        );
+
+    border:2px solid var(--accent);
+
+    font-weight:bold;
+}
+
+
+/* =========================
+   選択日
+========================= */
+
+.calendar-day.selected-day{
+    background:
+        color-mix(
+            in srgb,
+            var(--accent) 6%,
+            var(--card)
+        );
+
+    box-shadow:
+        inset 0 0 0 2px var(--accent-light);
+}
+
+
+/* =========================
+   空白
+========================= */
+
+.empty-day{
+    background:var(--card);
+
+    cursor:default;
+
+    opacity:1;
+}
+
+/* =========================
+   選択日表示
+========================= */
+
+.selected-date{
+    margin-top:12px;
+
+    padding:10px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-left:4px solid var(--accent);
+
+    border-radius:10px;
+
+    text-align:center;
+}
+
+
+/* =========================
+   予定カード
+========================= */
+
+.event-card{
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    border-left:4px solid var(--accent);
+
+    border-radius:12px;
+
+    padding:12px;
+
+    margin-bottom:8px;
+
+    box-shadow:
+        0 2px 8px rgba(0,0,0,.05);
+}
+
+.event-card-title{
+    font-weight:bold;
+    color:var(--text);
+    margin-bottom:8px;
+}
+
+.event-card-info{
+    font-size:13px;
+    color:var(--text-sub);
+    line-height:1.5;
+}
+
+.event-button-area{
+    display:flex;
+    gap:8px;
+}
+
+.event-button-area button{
+    margin-top:8px;
+}
+
+.edit-btn{
+    background:#444;
+}
+
+.map-btn{
+    background:#1976d2;
+}
+
+.event-delete-btn,
+.delete-btn{
+    background:var(--danger);
+}
+
+
+/* =====================
+   祝日表示
+===================== */
+
+.holiday-name {
+    font-size:11px;
+    color:#e53935;
+    font-weight:bold;
+    line-height:1.2;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-top:2px;
+}
+
+
+/* =========================
+   カレンダー記念日・写真アイコン
+========================= */
+
+.calendar-day-icon{
+    font-size:12px;
+    margin-left:2px;
+    line-height:1;
+    vertical-align:middle;
+}
+
+
+.calendar-share-area {
+    display:flex;
+    gap:8px;
+    width:100%;
+}
+
+.calendar-share-area button {
+    flex:1;
+    min-width:0;
+
+    height:36px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:18px !important;
+    font-weight:600;
+}
+
+
+/* =====================
+   📅 カレンダータイトル行
+===================== */
+
+.calendar-title-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.calendar-title-row h2 {
+    margin:0;
+    font-size:30px;
+}
+
+
+/* =====================
+   📅 特別カレンダーアイコン
+===================== */
+
+.calendar-special-buttons {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-shrink:0;
+}
+
+
+/* 👶 💊 ⚾ 共通 */
+
+.calendar-title-row .calendar-children-button,
+.calendar-title-row .calendar-health-button,
+.calendar-title-row .calendar-sports-button {
+    flex-shrink:0;
+
+    width:46px;
+    height:46px;
+
+    padding:0;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border:none;
+    border-radius:12px;
+
+    font-size:25px;
+    line-height:1;
+
+    cursor:pointer;
+
+    background:var(--surface);
+
+    box-shadow:
+        0 2px 5px rgba(0,0,0,.12);
+
+    box-sizing:border-box;
+}
+
+.calendar-title-row .calendar-children-button{
+    font-size:25px;
+    transform:scale(1.00);
+}
+
+
+.event-share-header {
+    display:flex;
+    align-items:center;
+    width:100%;
+    box-sizing:border-box;
+}
+
+.event-share-header h2 {
+    margin:0;
+    flex:1;
+    min-width:0;
+}
+
+
+.event-share-close-btn {
+    flex-shrink:0;
+
+    width:30px;
+    height:30px;
+
+    margin:0;
+    padding:0;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border:none !important;
+    background:transparent !important;
+    box-shadow:none !important;
+
+    color:var(--text) !important;
+
+    font-size:18px;
+    font-weight:400;
+    line-height:1;
+
+    cursor:pointer;
+}
+
+
+.event-share-event-item {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    box-sizing:border-box;
+    cursor:pointer;
+}
+
+.event-share-event-info {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+}
+
+.event-share-event-title {
+    flex:0 1 auto;
+    min-width:0;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.event-share-event-date {
+    flex:0 1 auto;
+    min-width:0;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.event-share-event-date.event-share-date-expanded {
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+}

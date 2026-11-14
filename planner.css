@@ -1,0 +1,1121 @@
+/* =====================
+   推し活手帳 v1.8
+   planner.css 完全統一版
+
+   白ベース
+   ・カードは薄い境界線＋右下の柔らかい影
+   ・1日手帳は付箋風
+   ・カレンダーはマスを明確に区切る
+   ・写真は枠を見えるようにする
+   ・既存クラス・機能は維持
+===================== */
+
+
+/* =====================
+   1日手帳ビュー
+   左時間固定 + 予定自由配置
+===================== */
+
+#dayPlanner{
+    margin-top:20px;
+    padding-bottom:90px;
+}
+
+
+/* =====================
+   タイトル
+===================== */
+
+#plannerTitle{
+    position:sticky;
+    top:0;
+    z-index:100;
+
+    margin:0 0 16px 0;
+    padding:12px 8px;
+
+    background:var(--accent);
+    color:#fff;
+
+    font-size:26px;
+    font-weight:bold;
+    text-align:center;
+
+    border-radius:12px;
+
+    box-shadow:
+        3px 4px 10px rgba(0,0,0,0.10);
+}
+
+
+/* =====================
+   手帳本体
+===================== */
+
+.planner-layout{
+    display:flex;
+    position:relative;
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+    border-radius:12px;
+
+    overflow: clip;
+
+    box-shadow:
+        3px 5px 12px rgba(0,0,0,0.07);
+}
+
+
+/* =====================================================
+   📌 個人予定の展開中は家族レーンの上に表示
+===================================================== */
+
+.planner-layout:has(.planner-event-expanded) {
+    overflow: visible !important;
+}
+
+
+/* =====================
+   左時間軸
+===================== */
+
+.planner-times{
+    width:65px;
+
+    flex-shrink:0;
+
+    background:var(--surface);
+
+    border-right:1px solid var(--border);
+}
+
+
+.planner-time-fixed{
+    height:40px;
+
+    padding-top:5px;
+
+    font-size:15px;
+    font-weight:700;
+
+    color:var(--text);
+
+    text-align:center;
+}
+
+
+/* =====================
+   予定配置エリア
+===================== */
+
+.planner-board{
+    flex:1;
+
+    position:relative;
+
+    height:1920px;
+
+    background:var(--card);
+
+    border-left:0;
+
+}
+
+
+/* =====================
+   手帳時間線
+===================== */
+
+.planner-line{
+    position:absolute;
+
+    left:0;
+    right:0;
+
+    pointer-events:none;
+}
+
+
+.planner-line-major{
+    border-top:1px solid var(--border);
+}
+
+
+.planner-line-minor{
+    border-top:1px solid rgba(128,128,128,.12);
+}
+
+
+/* =====================
+   現在時刻
+===================== */
+
+.planner-now-line{
+    position:absolute;
+
+    left:0;
+    right:0;
+
+    height:2px;
+
+    background:var(--accent);
+    color:var(--accent);
+
+    font-size:13px;
+    font-weight:bold;
+
+    z-index:5;
+
+    box-shadow:
+        0 1px 4px rgba(0,0,0,0.12);
+}
+
+
+/* =====================
+   イベントカード
+   付箋デザイン
+===================== */
+
+.planner-event{
+    position:absolute;
+
+    left:10px;
+    right:10px;
+
+    box-sizing:border-box;
+
+    padding:14px;
+
+    border-radius:8px;
+
+    overflow:hidden;
+
+    background:var(--surface);
+    color:var(--text);
+
+    border:1px solid var(--border);
+    border-left:6px solid var(--accent-light);
+
+    box-shadow:
+        3px 5px 10px rgba(0,0,0,0.12);
+
+    z-index:2;
+}
+
+
+
+/* =====================
+   終了済み
+===================== */
+
+.finished-event{
+    opacity:0.45;
+}
+
+
+/* =====================
+   時間
+===================== */
+
+.planner-event-time{
+    font-size:16px;
+    font-weight:bold;
+
+    color:var(--text-sub);
+
+    margin-bottom:6px;
+}
+
+
+/* =====================
+   タイトル
+===================== */
+
+.planner-event-title{
+    font-size:22px;
+    font-weight:bold;
+
+    color:var(--text);
+
+    margin-bottom:8px;
+}
+
+
+.planner-event-title strong{
+    color:var(--text);
+}
+
+
+/* =====================
+   場所
+===================== */
+
+.planner-place{
+    font-size:16px;
+
+    color:var(--text-sub);
+
+    margin-top:5px;
+}
+
+
+/* =====================
+   同伴者
+===================== */
+
+.planner-companion{
+    font-size:16px;
+
+    color:var(--text-sub);
+
+    margin-top:5px;
+}
+
+
+/* =====================
+   思い出
+===================== */
+
+#plannerMemory{
+    margin-top:20px;
+}
+
+
+/* =====================
+   固定ボトムバー
+===================== */
+
+#plannerBottomBar{
+    position:fixed;
+
+    left:12px;
+    right:12px;
+    bottom:70px;
+
+    display:flex;
+    gap:10px;
+
+    padding:0;
+
+    background:transparent;
+    border:none;
+
+    z-index:100;
+}
+
+
+#plannerBottomBar button{
+    flex:1;
+
+    height:48px;
+
+    border:none;
+    border-radius:14px;
+
+    background:var(--accent);
+
+    color:#fff;
+
+    font-size:15px;
+    font-weight:bold;
+
+    box-shadow:
+        3px 5px 12px rgba(0,0,0,0.12);
+}
+
+
+#plannerCalendarBack{
+    margin-right:auto;
+}
+
+
+/* =====================
+   思い出ヘッダー
+===================== */
+
+.memory-section{
+    margin-bottom:20px;
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+    border-radius:14px;
+
+    padding:12px;
+
+    box-shadow:
+        3px 4px 10px rgba(0,0,0,0.07);
+}
+
+
+.memory-header{
+    display:grid;
+
+    grid-template-columns:1fr auto;
+
+    align-items:center;
+
+    gap:8px;
+}
+
+
+.memory-header button{
+    width:28px;
+    height:28px;
+
+    padding:0;
+
+    background:none;
+    border:none;
+
+    color:var(--text);
+
+    font-size:22px;
+}
+
+
+/* =====================
+   思い出一覧
+===================== */
+
+.memory-list{
+    padding:10px 0 15px;
+
+    border-bottom:1px solid var(--border);
+}
+
+
+
+
+/* =====================
+   思い出ヘッダー操作
+===================== */
+
+.memory-header-actions{
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+}
+
+
+.memory-header-actions button{
+    width:28px;
+    height:28px;
+
+    padding:0;
+
+    background:none;
+    border:none;
+
+    color:var(--text);
+
+    font-size:20px;
+}
+
+
+
+/* =====================
+   カレンダー年月選択
+===================== */
+
+.calendar-title{
+    cursor:pointer;
+
+    user-select:none;
+
+    -webkit-tap-highlight-color:transparent;
+
+    transition:opacity 0.2s;
+}
+
+
+.calendar-title:active{
+    opacity:0.6;
+}
+
+
+.calendar-date-picker{
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+    margin:20px 0;
+
+    padding:12px;
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    box-shadow:
+        2px 3px 8px rgba(0,0,0,0.07);
+}
+
+
+.calendar-date-picker label{
+    font-weight:bold;
+
+    margin-top:5px;
+
+    color:var(--text);
+}
+
+
+.calendar-date-picker select{
+    width:100%;
+
+    padding:12px;
+
+    font-size:16px;
+
+    border-radius:8px;
+
+    border:1px solid var(--border);
+
+    box-sizing:border-box;
+
+    background:var(--surface);
+
+    color:var(--text);
+}
+
+
+/* =====================
+   カレンダー予定表示
+===================== */
+
+.calendar-event-preview{
+    background:var(--surface);
+
+    color:var(--text);
+
+    border:1px solid var(--border);
+
+    border-radius:4px;
+
+    padding:2px 4px;
+
+    margin-top:2px;
+
+    font-size:12px;
+
+    font-weight:bold;
+
+    line-height:1.2;
+
+    height:auto;
+
+    min-height:calc(1em + 2px);
+
+    display:flex;
+
+    align-items:center;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    box-shadow:
+        1px 2px 4px rgba(0,0,0,0.06);
+
+    box-sizing:border-box;
+}
+
+
+/* =====================
+   カレンダー日付マス
+   planner.css側でも視認性を補強
+===================== */
+
+.calendar-day{
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    box-shadow:
+        1px 2px 4px rgba(0,0,0,0.04);
+}
+
+/* 空白マス */
+
+.empty-day{
+    background:var(--card) !important;
+
+    border:1px solid var(--border);
+
+    box-shadow:none;
+
+    opacity:1;
+}
+
+/* 今日 */
+
+.calendar-day.today{
+    background:rgba(255,111,165,0.10);
+
+    border:2px solid var(--accent-light);
+
+    box-shadow:
+        2px 3px 7px rgba(0,0,0,0.06);
+}
+
+
+/* 選択日 */
+
+.calendar-day.selected-day{
+    background:rgba(255,45,85,0.07);
+
+    border:2px solid var(--accent);
+
+    box-shadow:
+        2px 3px 7px rgba(0,0,0,0.07);
+}
+
+
+/* =====================
+   カレンダー曜日
+===================== */
+
+.calendar-week{
+    color:var(--text);
+
+    font-weight:bold;
+
+    padding:6px 2px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:4px;
+}
+
+
+.calendar-week.sunday{
+    color:#e85d75;
+}
+
+
+.calendar-week.saturday{
+    color:#4d91df;
+}
+
+
+/* =====================
+   カレンダー全体補強
+===================== */
+
+.calendar-grid{
+    gap:2px;
+}
+
+
+/* =====================
+   スマホ
+===================== */
+
+@media(max-width:480px){
+
+    #plannerTitle{
+        font-size:24px;
+    }
+
+    .planner-times{
+        width:58px;
+    }
+
+    .planner-time-fixed{
+        font-size:17px;
+    }
+
+    .planner-event{
+        left:6px;
+        right:6px;
+        padding:10px;
+
+        border-left-width:5px;
+    }
+
+    .planner-event-title{
+        font-size:18px;
+    }
+
+    .planner-place,
+    .planner-companion{
+        font-size:14px;
+    }
+
+    .memory-section{
+        padding:10px;
+    }
+
+}
+
+
+/* =====================
+   1日手帳
+   タップ・長押し操作
+===================== */
+
+/* 編集・削除ボタンは通常非表示 */
+
+.planner-event-actions{
+
+    display:none;
+
+    gap:8px;
+
+    margin-top:10px;
+
+}
+
+
+/* 長押しした付箋だけ表示 */
+
+.planner-event-editing{
+
+    z-index:50;
+
+    box-shadow:
+        0 6px 18px rgba(0,0,0,.28);
+
+}
+
+
+/* 編集モードのボタン */
+
+.planner-event-editing .planner-event-actions{
+
+    display:flex;
+
+}
+
+
+/* 編集ボタン */
+
+.planner-edit-btn{
+
+    flex:1;
+
+    padding:8px 10px !important;
+
+    margin:0 !important;
+
+    border:none;
+
+    border-radius:9px;
+
+    background:var(--accent) !important;
+
+    color:#fff !important;
+
+    font-size:13px;
+
+    font-weight:bold;
+
+}
+
+
+/* 削除ボタン */
+
+.planner-delete-btn{
+
+    flex:1;
+
+    padding:8px 10px !important;
+
+    margin:0 !important;
+
+    border:none;
+
+    border-radius:9px;
+
+    background:var(--danger) !important;
+
+    color:#fff !important;
+
+    font-size:13px;
+
+    font-weight:bold;
+
+}
+
+
+
+/* キャンセルボタン */
+
+.planner-cancel-btn{
+
+    flex:1 1 0;
+
+    min-width:0;
+
+    box-sizing:border-box;
+
+    padding:8px 10px !important;
+
+    margin:0 !important;
+
+    border:none;
+
+    border-radius:9px;
+
+    background:#777 !important;
+
+    color:#fff !important;
+
+    font-size:11px !important;
+
+    font-weight:bold;
+
+    white-space:nowrap;
+
+}
+
+
+
+/* 実時間サイズになった付箋 */
+
+.planner-event-compact{
+
+    transition:
+        height .2s ease,
+        box-shadow .2s ease;
+
+}
+
+
+/* タップ可能であることを自然に示す */
+
+.planner-event{
+
+    cursor:pointer;
+
+    transition:
+        height .2s ease,
+        box-shadow .2s ease;
+
+}
+
+
+.calendar-day{
+    -webkit-user-select:none;
+    user-select:none;
+    -webkit-touch-callout:none;
+    -webkit-tap-highlight-color:transparent;
+}
+
+
+#dayPlanner.planner-saturday{
+    background:#eaf7ff;
+}
+
+#dayPlanner.planner-sunday{
+    background:#fff0f5;
+}
+
+
+#dayPlanner.planner-holiday-day{
+    background:#fff0f5;
+}
+
+/* =====================
+   1日手帳 祝日表示
+===================== */
+
+.planner-holiday{
+
+    display:block;
+
+    width:max-content;
+
+    margin:6px auto 0;
+
+    padding:5px 18px;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    color:#d94b7a;
+
+    background:#fff0f5;
+
+    border-radius:20px;
+
+    line-height:1.3;
+
+}
+
+
+.planner-date-title{
+
+    text-align:center;
+
+}
+
+
+/* =====================
+   カレンダー曜日カラー統一
+===================== */
+
+/* 日曜日 */
+.calendar-day.sunday{
+    background:#fff0f5 !important;
+}
+
+
+/* 土曜日 */
+.calendar-day.saturday{
+    background:#eaf7ff !important;
+}
+
+
+/* 祝日 */
+.calendar-day.holiday{
+    background:#fff0f5 !important;
+}
+
+
+/* =====================
+   📝 メモ付箋デザイン
+===================== */
+
+#memoList .memo-card-item{
+    position:relative;
+
+    width:100%;
+    box-sizing:border-box;
+
+    height:auto !important;
+    min-height:0 !important;
+
+    padding: 0 14px 5px 18px !important;
+
+    margin-bottom:10px;
+
+    background:var(--surface);
+    color:var(--text);
+
+    border:1px solid var(--border);
+    border-left:6px solid var(--accent);
+
+    border-radius:8px;
+
+    box-shadow:
+        3px 4px 9px rgba(0,0,0,0.10);
+
+    overflow:hidden;
+
+    white-space:normal;
+    overflow-wrap:anywhere;
+}
+
+
+/* メモ本文 */
+
+#memoList .memo-card-text{
+    display:block;
+
+    font-size:18px;
+    line-height:1.55;
+
+    color:var(--text);
+
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+
+    padding:0;
+    margin:0;
+}
+
+
+/* 右上の折れ目を削除 */
+
+#memoList .memo-card-item::after{
+    display:none !important;
+    content:none !important;
+}
+
+
+/* 選択中 */
+
+#memoList .memo-card-item.memo-selected{
+    border-left-color:var(--accent);
+
+    box-shadow:
+        0 0 0 2px var(--accent-light),
+        3px 4px 9px rgba(0,0,0,0.10);
+}
+
+
+/* 並び替え中 */
+
+#memoList .memo-card-item.memo-sort-item{
+    cursor:grab;
+}
+
+
+/* ドラッグ中 */
+
+#memoList .memo-card-item.memo-dragging{
+    opacity:.7;
+
+    transform:scale(1.02);
+
+    box-shadow:
+        0 8px 18px rgba(0,0,0,.22);
+}
+
+
+/* 並び替えハンドル */
+
+#memoList .memo-drag-handle{
+    flex-shrink:0;
+
+    margin-left:10px;
+
+    padding:4px 6px;
+
+    color:var(--text-sub);
+
+    font-size:22px;
+
+    cursor:grab;
+
+    touch-action:none;
+}
+
+
+/* 並び替え位置 */
+
+#memoList .memo-drag-placeholder{
+    height:8px;
+
+    margin:4px 2px;
+
+    border-radius:6px;
+
+    background:var(--accent-light);
+}
+
+
+/* =====================
+   📝 メモ追加モーダル
+===================== */
+
+#memoModal .modal-content h2{
+    font-size:24px;
+}
+
+#memoModal #memoText{
+    font-size:18px;
+    line-height:1.6;
+
+    padding:12px;
+
+    box-sizing:border-box;
+}
+
+#memoModal #memoText::placeholder{
+    font-size:17px;
+}
+
+#memoModal .modal-content button{
+    font-size:16px;
+}
+
+
+
+/* =====================
+   長押しメニューの表示崩れ対策
+===================== */
+
+.planner-event-editing{
+    z-index:10000 !important;
+    overflow:visible !important;
+}
+
+.planner-event-editing .planner-event-actions{
+    position:relative;
+    z-index:10001;
+
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+
+    width:min(180px, calc(100vw - 32px));
+    max-width:calc(100vw - 32px);
+
+    box-sizing:border-box;
+    padding:8px;
+
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+
+    box-shadow:0 4px 14px rgba(0,0,0,.2);
+}
+
+.planner-event-editing .planner-event-actions button{
+    display:block;
+
+    width:100%;
+    min-width:0;
+    min-height:42px;
+
+    flex:none;
+    box-sizing:border-box;
+
+    padding:8px 10px !important;
+    font-size:14px !important;
+    white-space:nowrap;
+}
+
+/* タップで展開した付箋 */
+.planner-event-expanded{
+    overflow:visible !important;
+}
+
+
+
+
+
+
+/* =========================================
+   📌 展開中の予定を表示する前面レイヤー
+   ・時間軸の位置を再計算しない
+   ・元の予定ボードと同じ座標を使用
+========================================= */
+
+.planner-event-front-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 90;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.planner-event-front-layer > .planner-event {
+    pointer-events: auto;
+}
+
+/* 前面レイヤーのカードを家族レーンより上に表示 */
+.planner-layout:has(.planner-event-expanded) {
+    overflow: visible !important;
+}
+
+
+

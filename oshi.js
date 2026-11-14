@@ -1,0 +1,1967 @@
+/* =========================
+   推しページ読み込み
+========================= */
+
+function loadOshiPage(){
+
+    const container =
+        document.getElementById("oshiContainer");
+
+    if(!container){
+
+        console.error(
+            "oshiContainer が見つかりません"
+        );
+
+        return;
+
+    }
+
+
+    fetch("oshi.html")
+
+        .then(response => {
+
+            if(!response.ok){
+
+                throw new Error(
+                    "oshi.html の読み込みに失敗しました"
+                );
+
+            }
+
+            return response.text();
+
+        })
+
+
+        .then(html => {
+
+            container.innerHTML = html;
+
+
+            /* =====================
+               HTML読み込み後に初期化
+            ===================== */
+
+            initOshiList();
+
+            initOshiReadingHelper();
+
+        })
+
+
+        .catch(error => {
+
+            console.error(
+                "oshi.html 読み込みエラー:",
+                error
+            );
+
+            container.innerHTML = `
+                <div class="card">
+                    <p>
+                        推しページを読み込めませんでした。
+                    </p>
+                </div>
+            `;
+
+        });
+
+}
+
+/* =========================
+   推しリスト
+========================= */
+
+
+/*
+    付箋カラー
+
+    後からここだけ変更すれば
+    推し付箋のデザインを変更できる。
+*/
+
+const OSHI_PIN_COLORS = [
+
+    "#fff3f8",
+    "#f3f7ff",
+    "#f5f0ff",
+    "#effff6",
+    "#fff8ed",
+    "#f3faff",
+    "#fff1f5",
+    "#f4f1ff"
+
+];
+
+
+/* =========================
+   ジャンル名
+========================= */
+
+const OSHI_GENRE_NAMES = {
+
+    artists: "🎤 アーティスト",
+    sports: "⚽ スポーツ",
+    other: "その他"
+
+};
+
+
+/* =========================
+   区分名
+========================= */
+
+const OSHI_TYPE_NAMES = {
+
+    individual: "👤 個人",
+    group: "👥 団体"
+
+};
+
+
+/* =========================
+   登録モーダル
+========================= */
+
+function openOshiRegisterModal(){
+
+    console.log("★ 推し登録ボタンが押された");
+
+    const modal =
+        document.getElementById(
+            "oshiRegisterModal"
+        );
+
+    console.log(
+        "★ モーダル:",
+        modal
+    );
+
+    if(!modal){
+
+        console.error(
+            "★ oshiRegisterModal が見つからない"
+        );
+
+        return;
+
+    }
+
+    modal.classList.add("show");
+
+    console.log(
+        "★ showを追加しました:",
+        modal.className
+    );
+
+}
+
+function closeOshiRegisterModal(){
+
+    const modal =
+        document.getElementById(
+            "oshiRegisterModal"
+        );
+
+    if(!modal){
+        return;
+    }
+
+    modal.classList.remove("show");
+
+}
+
+
+/* =========================
+   推し登録
+========================= */
+
+function registerOshi(){
+
+    const name =
+        document.getElementById(
+            "oshiRegisterName"
+        )?.value.trim();
+
+    const reading =
+        document.getElementById(
+            "oshiRegisterReading"
+        )?.value.trim();
+
+    const genre =
+        document.getElementById(
+            "oshiRegisterGenre"
+        )?.value;
+
+    const type =
+        document.getElementById(
+            "oshiRegisterType"
+        )?.value;
+
+
+    if(!name){
+
+        alert(
+            "名前・名称を入力してください。"
+        );
+
+        return;
+
+    }
+
+
+    const data =
+        db.load();
+
+
+    if(!data.oshiList){
+
+        data.oshiList = [];
+
+    }
+
+
+    const oshi = {
+
+        id:
+            "oshi_" +
+            Date.now(),
+
+        name:
+            name,
+
+        reading:
+            reading || name,
+
+        genre:
+            genre || "other",
+
+        type:
+            type || "individual",
+
+        registeredAt:
+            Date.now(),
+
+        listed:
+            true
+
+    };
+
+
+    data.oshiList.push(oshi);
+
+
+    db.save(data);
+
+
+    closeOshiRegisterModal();
+
+
+    clearOshiRegisterForm();
+
+
+    renderOshiList();
+
+}
+
+
+/* =========================
+   登録フォームクリア
+========================= */
+
+function clearOshiRegisterForm(){
+
+    const name =
+        document.getElementById(
+            "oshiRegisterName"
+        );
+
+    const reading =
+        document.getElementById(
+            "oshiRegisterReading"
+        );
+
+
+    if(name){
+
+        name.value = "";
+
+    }
+
+
+    if(reading){
+
+        reading.value = "";
+
+    }
+
+}
+
+
+
+/* =========================
+   推しリスト表示
+========================= */
+
+function renderOshiList(){
+
+    const container =
+        document.getElementById(
+            "oshiList"
+        );
+
+    if(!container){
+
+        console.warn(
+            "oshiList がまだ存在しません"
+        );
+
+        return;
+
+    }
+
+
+    const data =
+        db.load();
+
+
+    const list =
+        (data.oshiList || [])
+        .filter(
+            oshi =>
+                oshi.listed !== false
+        );
+
+
+    const genreFilter =
+        document.getElementById(
+            "oshiGenreFilter"
+        )?.value || "all";
+
+
+    const typeFilter =
+        document.getElementById(
+            "oshiTypeFilter"
+        )?.value || "all";
+
+
+    const sort =
+        document.getElementById(
+            "oshiSort"
+        )?.value || "registered";
+
+
+    /* =====================
+       絞り込み
+    ===================== */
+
+    let filtered =
+        list.filter(oshi => {
+
+            if(
+                genreFilter !== "all" &&
+                oshi.genre !== genreFilter
+            ){
+
+                return false;
+
+            }
+
+
+            if(
+                typeFilter !== "all" &&
+                oshi.type !== typeFilter
+            ){
+
+                return false;
+
+            }
+
+
+            return true;
+
+        });
+
+
+    /* =====================
+       並べ替え
+    ===================== */
+
+    if(sort === "reading"){
+
+        filtered.sort(
+            (a,b) =>
+
+                String(
+                    a.reading ||
+                    a.name
+                ).localeCompare(
+                    String(
+                        b.reading ||
+                        b.name
+                    ),
+                    "ja"
+                )
+
+        );
+
+    }else{
+
+        filtered.sort(
+            (a,b) =>
+                (a.registeredAt || 0) -
+                (b.registeredAt || 0)
+        );
+
+    }
+
+
+    /* =====================
+       表示なし
+    ===================== */
+
+    if(filtered.length === 0){
+
+        container.innerHTML = `
+
+            <div class="oshi-empty">
+
+                ⭐
+
+                <br>
+
+                まだ推しが登録されていません
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    /* =====================
+       推し付箋生成
+    ===================== */
+
+    container.innerHTML =
+
+        filtered.map(
+            (oshi,index) => {
+
+                const color =
+                    OSHI_PIN_COLORS[
+                        index %
+                        OSHI_PIN_COLORS.length
+                    ];
+
+
+                return `
+
+                    <div
+                        class="oshi-list-card"
+                        style="
+                            --oshi-pin-color:
+                                ${color};
+                        "
+                        onclick="
+                            openOshiDetail(
+                                '${oshi.id}'
+                            )
+                        ">
+
+
+                        <!-- =====================
+                             名前
+                        ====================== -->
+
+                        <div
+                            class="oshi-list-name">
+
+                            ${escapeOshiHtml(
+                                oshi.name
+                            )}
+
+                        </div>
+
+
+                        <!-- =====================
+                             ジャンル・区分
+                        ====================== -->
+
+                        <div
+                            class="oshi-list-info">
+
+                            <span>
+
+                                ${
+                                    OSHI_GENRE_NAMES[
+                                        oshi.genre
+                                    ]
+                                    ||
+                                    "その他"
+                                }
+
+                            </span>
+
+
+                            <span>
+
+                                ${
+                                    OSHI_TYPE_NAMES[
+                                        oshi.type
+                                    ]
+                                    ||
+                                    "個人"
+                                }
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- =====================
+                             詳細・推し活記録
+                        ====================== -->
+
+                        <div
+                            class="oshi-list-actions">
+
+
+                            <!-- 推し詳細 -->
+
+                            <button
+                                type="button"
+                                class="oshi-list-action"
+                                onclick="
+                                    event.stopPropagation();
+
+                                    openOshiDetail(
+                                        '${oshi.id}'
+                                    );
+                                ">
+
+                                <span
+                                    class="
+                                        oshi-list-action-icon
+                                    ">
+
+                                    👤
+
+                                </span>
+
+                                <span>
+
+                                    詳細
+
+                                </span>
+
+                            </button>
+
+
+                            <!-- 推し活記録 -->
+
+                            <button
+                                type="button"
+                                class="oshi-list-action"
+                                onclick="
+                                    event.stopPropagation();
+
+                                    openOshiRecord(
+                                        '${oshi.id}'
+                                    );
+                                ">
+
+                                <span
+                                    class="
+                                        oshi-list-action-icon
+                                    ">
+
+                                    💖
+
+                                </span>
+
+                                <span>
+
+                                    推し活記録
+
+                                </span>
+
+                            </button>
+
+
+                        </div>
+
+
+
+                        <!-- =====================
+                             編集・削除
+                        ====================== -->
+
+                        <div class="oshi-list-card-management">
+
+                            <!-- 編集 -->
+
+                            <button
+                                type="button"
+                                class="oshi-list-edit"
+                                title="推し情報を編集"
+                                aria-label="推し情報を編集"
+                                onclick="
+                                    event.stopPropagation();
+
+                                    openOshiEditModal('${oshi.id}');
+                                ">
+
+                                ✏️
+
+                            </button>
+
+
+                            <!-- 削除 -->
+
+                            <button
+                                type="button"
+                                class="oshi-list-delete"
+                                title="リストから削除"
+                                aria-label="リストから削除"
+                                onclick="
+                                    event.stopPropagation();
+
+                                    removeOshiFromList('${oshi.id}');
+                                ">
+
+                                ✕
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+
+        ).join("");
+
+}
+
+
+/* =========================
+   リストから削除
+========================= */
+
+function removeOshiFromList(id){
+
+    if(
+        !confirm(
+            "推しリストから外しますか？\n\n詳細データは削除されません。"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    const data =
+        db.load();
+
+
+    const oshi =
+        (data.oshiList || [])
+        .find(
+            item =>
+                item.id === id
+        );
+
+
+    if(!oshi){
+
+        return;
+
+    }
+
+
+    /*
+       完全削除ではなく
+       listed=false にする。
+
+       詳細データは残す。
+    */
+
+    oshi.listed =
+        false;
+
+
+    db.save(data);
+
+
+    renderOshiList();
+
+}
+
+
+
+/* =====================================================
+   ✏️ 推し情報の編集
+===================================================== */
+
+
+/* =====================
+   編集画面を開く
+===================== */
+
+function openOshiEditModal(id){
+
+    const data =
+        db.load();
+
+    const oshi =
+        (data.oshiList || [])
+        .find(
+            item =>
+                item.id === id
+        );
+
+    if(!oshi){
+
+        alert(
+            "編集する推し情報が見つかりません。"
+        );
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "oshiEditId"
+    ).value = oshi.id;
+
+    document.getElementById(
+        "oshiEditName"
+    ).value = oshi.name || "";
+
+    document.getElementById(
+        "oshiEditReading"
+    ).value =
+        oshi.reading || oshi.name || "";
+
+    document.getElementById(
+        "oshiEditGenre"
+    ).value =
+        oshi.genre || "other";
+
+    document.getElementById(
+        "oshiEditType"
+    ).value =
+        oshi.type || "individual";
+
+
+    document.getElementById(
+        "oshiEditModal"
+    ).classList.add("show");
+
+}
+
+
+/* =====================
+   編集内容を保存
+===================== */
+
+function saveOshiEdit(){
+
+    const id =
+        document.getElementById(
+            "oshiEditId"
+        ).value;
+
+    const name =
+        document.getElementById(
+            "oshiEditName"
+        ).value.trim();
+
+    const reading =
+        document.getElementById(
+            "oshiEditReading"
+        ).value.trim();
+
+    const genre =
+        document.getElementById(
+            "oshiEditGenre"
+        ).value;
+
+    const type =
+        document.getElementById(
+            "oshiEditType"
+        ).value;
+
+
+    if(!name){
+
+        alert(
+            "名前・名称を入力してください。"
+        );
+
+        return;
+
+    }
+
+
+    const data =
+        db.load();
+
+    const oshi =
+        (data.oshiList || [])
+        .find(
+            item =>
+                item.id === id
+        );
+
+
+    if(!oshi){
+
+        alert(
+            "編集する推し情報が見つかりません。"
+        );
+
+        return;
+
+    }
+
+
+    /* 基本情報だけを更新 */
+
+    oshi.name =
+        name;
+
+    oshi.reading =
+        reading || name;
+
+    oshi.genre =
+        genre || "other";
+
+    oshi.type =
+        type || "individual";
+
+
+    /* 既存の詳細データ・写真などは変更しない */
+
+    db.save(data);
+
+
+    closeOshiEditModal();
+
+
+    renderOshiList();
+
+
+    alert(
+        "推し情報を保存しました。"
+    );
+
+}
+
+
+/* =====================
+   編集画面を閉じる
+===================== */
+
+function closeOshiEditModal(){
+
+    document.getElementById(
+        "oshiEditModal"
+    )?.classList.remove("show");
+
+}
+
+
+
+
+
+/* =========================
+   絞り込み・並べ替え
+========================= */
+
+function initOshiList(){
+
+    const genre =
+        document.getElementById(
+            "oshiGenreFilter"
+        );
+
+    const type =
+        document.getElementById(
+            "oshiTypeFilter"
+        );
+
+    const sort =
+        document.getElementById(
+            "oshiSort"
+        );
+
+
+    if(genre){
+
+        genre.addEventListener(
+            "change",
+            renderOshiList
+        );
+
+    }
+
+
+    if(type){
+
+        type.addEventListener(
+            "change",
+            renderOshiList
+        );
+
+    }
+
+
+    if(sort){
+
+        sort.addEventListener(
+            "change",
+            renderOshiList
+        );
+
+    }
+
+
+    renderOshiList();
+
+}
+
+
+/* =========================
+   HTMLエスケープ
+========================= */
+
+function escapeOshiHtml(value){
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+/* =========================
+   推し詳細ページ
+========================= */
+
+function openOshiDetail(id){
+
+console.log(
+    "★ 推し詳細を開く:",
+    id
+);
+
+
+/* =====================
+   推しデータ取得
+===================== */
+
+const data =
+    db.load();
+
+const oshi =
+    (data.oshiList || [])
+    .find(
+        item =>
+            item.id === id
+    );
+
+
+if(!oshi){
+
+    console.error(
+        "★ 推しが見つかりません:",
+        id
+    );
+
+    return;
+
+}
+
+
+/* =====================
+   詳細データ確認
+===================== */
+
+if(!data.oshiDetails){
+
+    data.oshiDetails = {};
+
+}
+
+
+const detail =
+    data.oshiDetails[id];
+
+
+const mode =
+    detail
+        ? "edit"
+        : "new";
+
+
+console.log(
+    "★ 詳細モード:",
+    mode
+);
+
+
+/* =====================
+   推しページ本体
+===================== */
+
+const oshiPage =
+    document.getElementById(
+        "oshiPage"
+    );
+
+
+if(!oshiPage){
+
+    console.error(
+        "★ oshiPage が見つかりません"
+    );
+
+    return;
+
+}
+
+
+/* =====================
+   推しコンテナ
+===================== */
+
+const container =
+    document.getElementById(
+        "oshiContainer"
+    );
+
+
+if(!container){
+
+    console.error(
+        "★ oshiContainer が見つかりません"
+    );
+
+    return;
+
+}
+
+
+/* =====================
+   推しページを表示
+===================== */
+
+oshiPage.classList.add(
+    "active"
+);
+
+
+/* =====================
+   詳細HTML読み込み
+===================== */
+
+fetch("oshi-details.html")
+
+    .then(response => {
+
+        if(!response.ok){
+
+            throw new Error(
+                "oshi-details.html の読み込みに失敗しました"
+            );
+
+        }
+
+        return response.text();
+
+    })
+
+
+    .then(html => {
+
+        /* =====================
+           HTMLを入れる
+        ===================== */
+
+        container.innerHTML =
+            html;
+
+
+        /* =====================
+           詳細ページ取得
+        ===================== */
+
+        const detailPage =
+            document.getElementById(
+                "oshiDetailPage"
+            );
+
+
+        if(!detailPage){
+
+            console.error(
+                "★ oshiDetailPage が見つかりません"
+            );
+
+            return;
+
+        }
+
+
+        /* =====================
+           詳細ページ表示
+        ===================== */
+
+        detailPage.classList.add(
+            "active"
+        );
+
+
+        /* =====================
+           現在の推し情報
+        ===================== */
+
+        container.dataset.oshiId =
+            id;
+
+
+        container.dataset.oshiDetailMode =
+            mode;
+
+
+        /* =====================
+           タイトルを現在の推し名に変更
+        ===================== */
+
+        const title =
+            detailPage.querySelector(
+                ".oshi-detail-title"
+            );
+
+
+        if(title){
+
+            title.textContent =
+                oshi.name;
+
+        }
+
+
+        console.log(
+            "★ 推し詳細ページ表示:",
+            oshi.name
+        );
+
+
+        /* =====================
+           既存の写真機能を初期化
+        ===================== */
+
+        if(
+            typeof initOshiDetailsPage ===
+            "function"
+        ){
+
+            initOshiDetailsPage(id);
+
+        }
+
+
+        /* =====================
+           新しいプロフィール表示機能
+        ===================== */
+
+        if(
+            typeof renderOshiProfile2 ===
+            "function"
+        ){
+
+            renderOshiProfile2(id);
+
+        }
+
+    })
+
+
+    .catch(error => {
+
+        console.error(
+            "★ 推し詳細読み込みエラー:",
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="card">
+
+                <p>
+                    推し詳細ページを
+                    読み込めませんでした。
+                </p>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================
+   推し詳細ページを閉じる
+========================= */
+
+function closeOshiDetail(){
+
+    console.log(
+        "★ 推し詳細ページを閉じる"
+    );
+
+
+    const container =
+        document.getElementById(
+            "oshiContainer"
+        );
+
+
+    if(!container){
+
+        console.error(
+            "★ oshiContainer が見つかりません"
+        );
+
+        return;
+
+    }
+
+
+    /* =====================
+       推し一覧ページへ戻す
+    ===================== */
+
+    fetch("oshi.html")
+
+        .then(response => {
+
+            if(!response.ok){
+
+                throw new Error(
+                    "oshi.html の読み込みに失敗しました"
+                );
+
+            }
+
+            return response.text();
+
+        })
+
+
+        .then(html => {
+
+            container.innerHTML =
+                html;
+
+
+            /* =====================
+               推しページを表示
+            ===================== */
+
+            const oshiPage =
+                document.getElementById(
+                    "oshiPage"
+                );
+
+
+            if(oshiPage){
+
+                oshiPage.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            /* =====================
+               推し一覧を初期化
+            ===================== */
+
+            initOshiList();
+
+
+            console.log(
+                "★ 推し詳細ページを閉じて推し一覧へ戻りました"
+            );
+
+        })
+
+
+        .catch(error => {
+
+            console.error(
+                "★ 推し詳細ページを閉じる際のエラー:",
+                error
+            );
+
+        });
+
+}
+
+/* =========================
+   起動
+========================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadOshiPage
+);
+
+
+
+
+/* =========================
+   ローマ字入力補助
+========================= */
+
+const OSHI_ROMAJI_MAP = {
+
+    "あ":"a",
+    "い":"i",
+    "う":"u",
+    "え":"e",
+    "お":"o",
+
+    "か":"ka",
+    "き":"ki",
+    "く":"ku",
+    "け":"ke",
+    "こ":"ko",
+
+    "さ":"sa",
+    "し":"shi",
+    "す":"su",
+    "せ":"se",
+    "そ":"so",
+
+    "た":"ta",
+    "ち":"chi",
+    "つ":"tsu",
+    "て":"te",
+    "と":"to",
+
+    "な":"na",
+    "に":"ni",
+    "ぬ":"nu",
+    "ね":"ne",
+    "の":"no",
+
+    "は":"ha",
+    "ひ":"hi",
+    "ふ":"fu",
+    "へ":"he",
+    "ほ":"ho",
+
+    "ま":"ma",
+    "み":"mi",
+    "む":"mu",
+    "め":"me",
+    "も":"mo",
+
+    "や":"ya",
+    "ゆ":"yu",
+    "よ":"yo",
+
+    "ら":"ra",
+    "り":"ri",
+    "る":"ru",
+    "れ":"re",
+    "ろ":"ro",
+
+    "わ":"wa",
+    "を":"wo",
+    "ん":"n",
+
+    "が":"ga",
+    "ぎ":"gi",
+    "ぐ":"gu",
+    "げ":"ge",
+    "ご":"go",
+
+    "ざ":"za",
+    "じ":"ji",
+    "ず":"zu",
+    "ぜ":"ze",
+    "ぞ":"zo",
+
+    "だ":"da",
+    "ぢ":"ji",
+    "づ":"zu",
+    "で":"de",
+    "ど":"do",
+
+    "ば":"ba",
+    "び":"bi",
+    "ぶ":"bu",
+    "べ":"be",
+    "ぼ":"bo",
+
+    "ぱ":"pa",
+    "ぴ":"pi",
+    "ぷ":"pu",
+    "ぺ":"pe",
+    "ぽ":"po",
+
+    "きゃ":"kya",
+    "きゅ":"kyu",
+    "きょ":"kyo",
+
+    "しゃ":"sha",
+    "しゅ":"shu",
+    "しょ":"sho",
+
+    "ちゃ":"cha",
+    "ちゅ":"chu",
+    "ちょ":"cho",
+
+    "にゃ":"nya",
+    "にゅ":"nyu",
+    "にょ":"nyo",
+
+    "ひゃ":"hya",
+    "ひゅ":"hyu",
+    "ひょ":"hyo",
+
+    "みゃ":"mya",
+    "みゅ":"myu",
+    "みょ":"myo",
+
+    "りゃ":"rya",
+    "りゅ":"ryu",
+    "りょ":"ryo",
+
+    "ぎゃ":"gya",
+    "ぎゅ":"gyu",
+    "ぎょ":"gyo",
+
+    "じゃ":"ja",
+    "じゅ":"ju",
+    "じょ":"jo",
+
+    "びゃ":"bya",
+    "びゅ":"byu",
+    "びょ":"byo",
+
+    "ぴゃ":"pya",
+    "ぴゅ":"pyu",
+    "ぴょ":"pyo"
+
+};
+
+
+/* =========================
+   かな → ローマ字
+========================= */
+
+function convertKanaToRomaji(text){
+
+    let result = "";
+
+    const normalized =
+        text
+        .normalize("NFKC")
+        .toLowerCase()
+        .replace(/[\u30a1-\u30f6]/g, function(char){
+
+            return String.fromCharCode(
+                char.charCodeAt(0) - 0x60
+            );
+
+        });
+
+
+    let i = 0;
+
+
+    while(i < normalized.length){
+
+        /* 2文字の拗音 */
+
+        const pair =
+            normalized.substring(i, i + 2);
+
+        if(OSHI_ROMAJI_MAP[pair]){
+
+            result += OSHI_ROMAJI_MAP[pair];
+
+            i += 2;
+
+            continue;
+
+        }
+
+
+        /* 小さい「っ」 */
+
+        if(normalized[i] === "っ"){
+
+            const next =
+                normalized.substring(i + 1, i + 3);
+
+            const nextRomaji =
+                OSHI_ROMAJI_MAP[next] ||
+                OSHI_ROMAJI_MAP[normalized[i + 1]];
+
+            if(nextRomaji){
+
+                result += nextRomaji.charAt(0);
+
+            }
+
+            i++;
+
+            continue;
+
+        }
+
+
+        /* 通常の1文字 */
+
+        if(OSHI_ROMAJI_MAP[normalized[i]]){
+
+            result +=
+                OSHI_ROMAJI_MAP[normalized[i]];
+
+        }else{
+
+            /*
+                英数字・記号などは
+                そのまま残す
+            */
+
+            result += normalized[i];
+
+        }
+
+
+        i++;
+
+    }
+
+
+    return result
+        .replace(/\s+/g, " ")
+        .trim();
+
+}
+
+
+/* =========================
+   ローマ字候補を表示
+========================= */
+
+function updateOshiReadingSuggestion(){
+
+    const nameInput =
+        document.getElementById(
+            "oshiRegisterName"
+        );
+
+    const readingInput =
+        document.getElementById(
+            "oshiRegisterReading"
+        );
+
+    const suggestionArea =
+        document.getElementById(
+            "oshiReadingSuggestion"
+        );
+
+    const suggestionButton =
+        document.getElementById(
+            "oshiReadingSuggestionButton"
+        );
+
+
+    if(
+        !nameInput ||
+        !readingInput ||
+        !suggestionArea ||
+        !suggestionButton
+    ){
+
+        return;
+
+    }
+
+
+    const name =
+        nameInput.value.trim();
+
+
+    /* 名前が空なら候補を隠す */
+
+    if(!name){
+
+        suggestionArea.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    /* かな → ローマ字 */
+
+    const suggestion =
+        convertKanaToRomaji(name);
+
+
+    /* 変換できなければ候補を隠す */
+
+    if(
+        !suggestion ||
+        suggestion === name.toLowerCase()
+    ){
+
+        suggestionArea.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    /* 候補文字を表示 */
+
+    suggestionButton.textContent =
+        suggestion;
+
+
+    /* 候補エリアを表示 */
+
+    suggestionArea.style.display =
+        "block";
+
+
+    /* 候補をタップしたらローマ字欄へ */
+
+    suggestionButton.onclick =
+        function(){
+
+            readingInput.value =
+                suggestion;
+
+            readingInput.focus();
+
+        };
+
+}
+
+
+/* =========================
+   ローマ字欄を小文字化
+========================= */
+
+function normalizeOshiReading(){
+
+    const input =
+        document.getElementById(
+            "oshiRegisterReading"
+        );
+
+
+    if(!input){
+
+        return;
+
+    }
+
+
+    input.value =
+        input.value
+        .normalize("NFKC")
+        .toLowerCase();
+
+}
+
+
+/* =========================
+   ローマ字入力補助を初期化
+========================= */
+
+function initOshiReadingHelper(){
+
+    document.addEventListener(
+        "input",
+        function(e){
+
+            /* 名前欄 */
+
+            if(
+                e.target &&
+                e.target.id ===
+                    "oshiRegisterName"
+            ){
+
+                updateOshiReadingSuggestion();
+
+            }
+
+
+            /* ローマ字欄 */
+
+            if(
+                e.target &&
+                e.target.id ===
+                    "oshiRegisterReading"
+            ){
+
+                normalizeOshiReading();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================
+   推し活記録ページを開く
+========================= */
+
+
+async function openOshiRecord(id) {
+
+    const container =
+        document.getElementById("oshiContainer");
+
+    if (!container) {
+        console.error("oshiContainer が見つかりません。");
+        return;
+    }
+
+    const oshiId =
+        id || container.dataset.oshiId;
+
+    if (!oshiId) {
+        alert("推しの情報を取得できませんでした。");
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("./oshi-record.html");
+
+        const html = await response.text();
+
+        if (!response.ok) {
+            console.error(
+                "oshi-record.html の読み込みに失敗:",
+                response.status,
+                html
+            );
+
+            alert("記録ページの読み込みに失敗しました。");
+            return;
+        }
+
+        container.innerHTML = html;
+
+        container.dataset.oshiId = oshiId;
+        container.dataset.oshiRecordMode = "view";
+
+        await initOshiRecordPage(oshiId);
+
+        const recordPage =
+            container.querySelector("#oshiRecordPage");
+
+        if (recordPage) {
+            recordPage.classList.add("active");
+        }
+
+        const title =
+            container.querySelector("#oshiRecordTitle");
+
+        if (title) {
+            const data = await db.load();
+
+            const oshi = data.oshiList?.find(
+                item => item.id === oshiId
+            );
+
+            if (oshi) {
+                title.textContent =
+                    oshi.name + " の推し活記録";
+            }
+        }
+
+    } catch (error) {
+
+        console.error(
+            "推し活記録ページのエラー:",
+            error
+        );
+
+        alert("記録ページを開けませんでした。");
+    }
+}
+
+
+
+
+/* =========================
+   推し活記録ページを閉じる
+========================= */
+
+function closeOshiRecord(){
+
+    console.log(
+        "★ 推し活記録ページを閉じる"
+    );
+
+
+    const container =
+        document.getElementById(
+            "oshiContainer"
+        );
+
+
+    if(!container){
+
+        console.error(
+            "★ oshiContainer が見つかりません"
+        );
+
+        return;
+
+    }
+
+
+    /* =====================
+       推しIDを取得
+    ===================== */
+
+    const oshiId =
+        container.dataset.oshiId;
+
+
+    console.log(
+        "★ 戻る推しID:",
+        oshiId
+    );
+
+
+    /* =====================
+       推しページを再読み込み
+    ===================== */
+
+    fetch("oshi.html")
+
+        .then(response => {
+
+            if(!response.ok){
+
+                throw new Error(
+                    "oshi.html の読み込みに失敗しました"
+                );
+
+            }
+
+            return response.text();
+
+        })
+
+
+        .then(html => {
+
+            container.innerHTML =
+                html;
+
+
+            /* =====================
+               推しページを表示
+            ===================== */
+
+            const oshiPage =
+                document.getElementById(
+                    "oshiPage"
+                );
+
+
+            if(oshiPage){
+
+                oshiPage.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            /* =====================
+               推し一覧を初期化
+            ===================== */
+
+            initOshiList();
+
+
+            console.log(
+                "★ 推し一覧へ戻りました"
+            );
+
+        })
+
+
+        .catch(error => {
+
+            console.error(
+                "★ 推し一覧への復帰に失敗:",
+                error
+            );
+
+        });
+
+}
+
+
+
+

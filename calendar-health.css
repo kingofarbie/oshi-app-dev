@@ -1,0 +1,1843 @@
+/* =====================================================
+💊 健康カレンダー
+calendar-health.css
+===================================================== */
+
+/* =====================================================
+画面
+===================================================== */
+
+.health-calendar-screen {
+
+width: 100%;
+max-width: 100%;
+
+box-sizing: border-box;
+
+overflow-x: hidden;
+
+}
+
+/* =====================================================
+ヘッダー
+===================================================== */
+
+/* =====================================================
+💊 健康カレンダー ヘッダー
+===================================================== */
+
+.health-calendar-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: auto;
+    align-items: start;
+    column-gap: 8px;
+    padding: 8px 10px;
+}
+
+
+/* =====================================================
+💊 健康カレンダー タイトル
+===================================================== */
+
+.health-calendar-title {
+    grid-column: 1;
+    grid-row: 1;
+
+    align-self: start;
+
+    min-width: 0;
+    margin: 0;
+
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.2;
+
+    color: var(--text);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+
+/* =====================================================
+◀ 通常カレンダー ＋ 📊 グラフ
+===================================================== */
+
+.health-calendar-header .health-graph-button,
+.health-calendar-header .health-back-button {
+    flex-shrink: 0;
+
+    width: 46px;
+    height: 46px;
+    max-width: 46px;
+    min-height: 46px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 12px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    font-size: 25px;
+    font-weight: 400;
+    line-height: 1;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 5px rgba(0,0,0,.12);
+
+    box-sizing: border-box;
+}
+
+.health-calendar-header .health-graph-button {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.health-calendar-header .health-back-button {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+}
+
+
+/* =====================================================
+月・今日
+===================================================== */
+
+.health-calendar-controls {
+
+width: 100%;
+
+box-sizing: border-box;
+
+padding: 4px 6px;
+
+position: relative;
+
+}
+
+.health-month-title-button {
+
+display: block;
+
+width: 100%;
+
+box-sizing: border-box;
+
+padding: 2px 0;
+
+border: none;
+
+background: transparent;
+
+color: var(--text);
+
+font-size: 30px;
+
+font-weight: 800;
+
+line-height: 1.2;
+
+text-align: center;
+
+cursor: pointer;
+
+}
+
+.health-today-button {
+
+position: absolute;
+
+right: 6px;
+
+bottom: 4px;
+
+width: 100px;
+
+height: 40px;
+
+box-sizing: border-box;
+
+padding: 0;
+
+border: 1px solid var(--border);
+
+border-radius: 10px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 15px;
+
+font-weight: 800;
+
+}
+
+/* =====================================================
+カレンダー
+===================================================== */
+
+.health-calendar {
+
+width: 100%;
+
+box-sizing: border-box;
+
+padding: 2px 4px 5px;
+
+}
+
+.health-week-grid {
+
+display: grid;
+
+grid-template-columns:
+    repeat(7, minmax(0, 1fr));
+
+width: 100%;
+
+box-sizing: border-box;
+
+border-left: 1px solid var(--border);
+
+border-top: 1px solid var(--border);
+
+border-radius: 8px 8px 0 0;
+
+overflow: hidden;
+
+}
+
+.health-week-cell {
+
+min-width: 0;
+
+box-sizing: border-box;
+
+padding: 11px 2px;
+
+border-right: 1px solid var(--border);
+
+border-bottom: 2px solid var(--border);
+
+background: #fff;
+
+color: var(--text);
+
+font-size: 16px;
+
+font-weight: 800;
+
+line-height: 1.2;
+
+text-align: center;
+
+}
+
+.health-week-cell.sunday {
+
+color: #e74b67;
+
+}
+
+.health-week-cell.saturday {
+
+color: #4285e8;
+
+}
+
+.health-day-grid {
+
+display: grid;
+
+grid-template-columns:
+    repeat(7, minmax(0, 1fr));
+
+width: 100%;
+
+box-sizing: border-box;
+
+border-left: 1px solid var(--border);
+
+border-bottom: 1px solid var(--border);
+
+border-radius: 0 0 8px 8px;
+
+overflow: hidden;
+
+}
+
+.health-calendar-empty {
+
+height: 83px;
+
+box-sizing: border-box;
+
+border-right: 1px solid var(--border);
+
+border-bottom: 1px solid var(--border);
+
+background: #fff;
+
+opacity: 0.65;
+
+}
+
+.health-calendar-day {
+
+height: 83px;
+
+min-width: 0;
+
+box-sizing: border-box;
+
+padding: 5px 4px;
+
+border-right: 1px solid var(--border);
+
+border-bottom: 1px solid var(--border);
+
+background: #fff;
+
+color: var(--text);
+
+display: flex;
+
+flex-direction: column;
+
+align-items: flex-start;
+
+justify-content: flex-start;
+
+overflow: hidden;
+
+cursor: pointer;
+
+}
+
+.health-calendar-day-number {
+
+margin-left: -1px;
+
+font-size: 17px;
+
+font-weight: 800;
+
+line-height: 1.2;
+
+}
+
+.health-calendar-day.sunday {
+
+color: #e74b67;
+
+background: #fff;
+
+}
+
+.health-calendar-day.saturday {
+
+color: #4285e8;
+
+background: #fff;
+
+}
+
+.health-calendar-day.holiday {
+
+color: #e74b67;
+
+background: #fff;
+
+}
+
+.health-calendar-day.today {
+
+border: 2px solid var(--accent);
+
+}
+
+.health-calendar-day.selected {
+
+box-shadow:
+    inset 0 0 0 2px var(--accent);
+
+}
+
+/* =====================================================
+祝日
+===================================================== */
+
+.health-holiday-name {
+
+width: 100%;
+
+margin-top: 2px;
+
+font-size: 11px;
+
+font-weight: 800;
+
+line-height: 1.2;
+
+color: #e53935;
+
+white-space: nowrap;
+
+overflow: hidden;
+
+text-overflow: ellipsis;
+
+}
+
+/* =====================================================
+健康記録アイコン
+===================================================== */
+
+.health-record-icons {
+
+display: flex;
+
+flex-wrap: wrap;
+
+align-items: center;
+
+gap: 2px;
+
+width: 100%;
+
+margin-top: 5px;
+
+}
+
+.health-record-icon {
+
+display: inline-flex;
+
+align-items: center;
+
+justify-content: center;
+
+width: 24px;
+
+height: 24px;
+
+font-size: 18px;
+
+line-height: 1;
+
+}
+
+/* =====================================================
+📖 日めくり
+===================================================== */
+
+/* =====================================================
+📖 日めくり画面
+===================================================== */
+
+.health-daily-page {
+
+width: 100%;
+
+max-width: 700px;
+
+margin: 0 auto;
+
+box-sizing: border-box;
+
+padding: 0 10px 35px;
+
+}
+
+/* =====================================================
+📅 日めくりヘッダー
+===================================================== */
+
+.health-daily-header {
+display: grid;
+grid-template-columns: 1fr auto;
+grid-template-rows: auto auto;
+align-items: end;
+width: 100%;
+box-sizing: border-box;
+gap: 6px 10px;
+margin-bottom: 12px;
+}
+
+.health-daily-header h1 {
+grid-column: 1;
+grid-row: 1;
+min-width: 0;
+margin: 0;
+padding: 0;
+font-size: 28px;
+font-weight: 800;
+line-height: 1.2;
+white-space: nowrap;
+}
+
+.health-daily-back-button {
+grid-column: 2;
+grid-row: 1;
+flex-shrink: 0;
+}
+
+/* =====================================================
+日付
+===================================================== */
+
+.health-daily-date-row {
+
+display: flex;
+
+align-items: center;
+
+justify-content: space-between;
+
+gap: 12px;
+
+margin-bottom: 16px;
+
+}
+
+.health-daily-date {
+
+flex: 1;
+
+text-align: center;
+
+font-size: 32px;
+
+font-weight: 800;
+
+}
+
+.health-daily-date-button {
+
+width: 58px;
+
+height: 58px;
+
+flex-shrink: 0;
+
+border: 1px solid var(--border);
+
+border-radius: 12px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 25px;
+
+font-weight: 800;
+
+}
+
+/* =====================================================
+セクション
+===================================================== */
+
+.health-daily-section {
+
+margin-top: 16px;
+
+padding: 18px;
+
+border: 1px solid var(--border);
+
+border-radius: 14px;
+
+background: var(--card);
+
+}
+
+.health-daily-section h2 {
+
+margin: 0 0 14px;
+
+font-size: 25px;
+
+font-weight: 800;
+
+}
+
+/* =====================================================
+💊 服薬
+===================================================== */
+
+.health-medication-list {
+
+display: flex;
+
+flex-direction: column;
+
+gap: 12px;
+
+}
+
+.health-medication-row {
+
+display: flex;
+
+align-items: center;
+
+gap: 12px;
+
+}
+
+.health-medication-name {
+
+flex: 1;
+
+font-size: 23px;
+
+font-weight: 800;
+
+}
+
+.health-medication-button {
+
+min-width: 0;
+
+width: fit-content;
+
+min-height: 64px;
+
+padding: 10px 18px;
+
+border: 1px solid var(--border);
+
+border-radius: 12px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 28px;
+
+font-weight: 900;
+
+line-height: 1.3;
+
+white-space: nowrap;
+
+box-sizing: border-box;
+
+}
+
+.health-medication-button.taken {
+
+background: var(--accent);
+
+color: #fff;
+
+}
+
+/* =====================================================
+入力
+===================================================== */
+
+.health-input-row {
+
+display: flex;
+
+align-items: center;
+
+gap: 10px;
+
+flex-wrap: wrap;
+
+}
+
+.health-input-row input {
+
+width: 145px;
+
+height: 58px;
+
+box-sizing: border-box;
+
+padding: 8px 10px;
+
+border: 1px solid var(--border);
+
+border-radius: 11px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 25px;
+
+font-weight: 800;
+
+text-align: center;
+
+}
+
+.health-input-row span {
+
+font-size: 21px;
+
+font-weight: 800;
+
+}
+
+/* =====================================================
+体調
+===================================================== */
+
+.health-large-select {
+
+width: 100%;
+
+min-height: 60px;
+
+padding: 8px 14px;
+
+border: 1px solid var(--border);
+
+border-radius: 11px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 21px;
+
+font-weight: 800;
+
+}
+
+/* =====================================================
+🌸 生理
+===================================================== */
+
+.health-menstrual-button {
+
+width: 100%;
+
+min-height: 62px;
+
+border: 1px solid var(--border);
+
+border-radius: 12px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 21px;
+
+font-weight: 800;
+
+}
+
+.health-menstrual-button.active {
+
+background: var(--accent);
+
+color: #fff;
+
+}
+
+/* =====================================================
+その他
+===================================================== */
+
+.health-other-toggle-button {
+
+width: 100%;
+
+min-height: 60px;
+
+margin-top: 16px;
+
+border: 1px solid var(--border);
+
+border-radius: 12px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 21px;
+
+font-weight: 800;
+
+}
+
+.health-memo-input {
+
+width: 100%;
+
+box-sizing: border-box;
+
+padding: 12px;
+
+border: 1px solid var(--border);
+
+border-radius: 11px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 20px;
+
+font-weight: 700;
+
+resize: vertical;
+
+}
+
+/* =====================================================
+保存
+===================================================== */
+
+.health-save-button {
+
+width: 100%;
+
+min-height: 66px;
+
+margin-top: 20px;
+
+border: none;
+
+border-radius: 13px;
+
+background: var(--accent);
+
+color: #fff;
+
+font-size: 23px;
+
+font-weight: 800;
+
+}
+
+/* =====================================================
+確認モーダル
+===================================================== */
+
+.health-confirm-content {
+
+width: 100%;
+
+max-width: 500px;
+
+box-sizing: border-box;
+
+margin: 20vh auto 0;
+
+padding: 25px 20px;
+
+border: 1px solid var(--border);
+
+border-radius: 16px;
+
+background: var(--card);
+
+color: var(--text);
+
+}
+
+.health-confirm-title {
+
+font-size: 24px;
+
+font-weight: 800;
+
+text-align: center;
+
+}
+
+.health-confirm-message {
+
+margin-top: 18px;
+
+font-size: 20px;
+
+font-weight: 700;
+
+line-height: 1.6;
+
+text-align: center;
+
+}
+
+.health-confirm-buttons {
+
+display: flex;
+
+gap: 12px;
+
+margin-top: 22px;
+
+}
+
+.health-confirm-buttons button {
+
+flex: 1;
+
+min-height: 58px;
+
+border-radius: 11px;
+
+font-size: 18px;
+
+font-weight: 800;
+
+}
+
+.health-confirm-cancel {
+
+border: 1px solid var(--border);
+
+background: var(--surface);
+
+color: var(--text);
+
+}
+
+.health-confirm-delete {
+
+border: none;
+
+background: #e74b67;
+
+color: #fff;
+
+}
+
+/* =====================================================
+通常モーダル
+===================================================== */
+
+.health-modal {
+
+position: fixed;
+
+inset: 0;
+
+z-index: 1000;
+
+box-sizing: border-box;
+
+padding: 12px;
+
+background: rgba(0, 0, 0, 0.5);
+
+overflow-y: auto;
+
+-webkit-overflow-scrolling: touch;
+
+}
+
+.health-modal-content {
+
+width: 100%;
+
+max-width: 500px;
+
+box-sizing: border-box;
+
+margin: 20px auto;
+
+padding: 20px;
+
+border: 1px solid var(--border);
+
+border-radius: 14px;
+
+background: var(--card);
+
+color: var(--text);
+
+max-height: calc(100vh - 40px);
+
+overflow-y: auto;
+
+}
+
+.health-modal-header {
+
+display: flex;
+
+align-items: center;
+
+justify-content: space-between;
+
+gap: 10px;
+
+}
+
+.health-modal-title {
+
+font-size: 22px;
+
+font-weight: 800;
+
+}
+
+.health-modal-header button {
+
+width: 46px;
+
+height: 46px;
+
+padding: 0;
+
+border: 1px solid var(--border);
+
+border-radius: 10px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 22px;
+
+font-weight: 800;
+
+}
+
+.health-date-picker {
+
+display: flex;
+
+align-items: center;
+
+gap: 10px;
+
+margin-top: 18px;
+
+}
+
+.health-date-picker label {
+
+font-size: 18px;
+
+font-weight: 800;
+
+}
+
+.health-date-picker select {
+
+min-width: 0;
+
+padding: 10px;
+
+border: 1px solid var(--border);
+
+border-radius: 9px;
+
+background: var(--card);
+
+color: var(--text);
+
+font-size: 18px;
+
+font-weight: 700;
+
+}
+
+.health-modal-buttons {
+
+display: flex;
+
+justify-content: flex-end;
+
+gap: 12px;
+
+margin-top: 20px;
+
+}
+
+.health-modal-buttons button {
+
+min-height: 50px;
+
+padding: 9px 14px;
+
+border: 1px solid var(--border);
+
+border-radius: 10px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 17px;
+
+font-weight: 800;
+
+}
+
+/* =====================================================
+スマホ
+===================================================== */
+
+@media (max-width: 600px) {
+
+.health-calendar-title {
+    font-size: 22px;
+}
+
+.health-back-button {
+    width: 46px;
+    height: 46px;
+    max-width: 46px;
+
+    padding: 0;
+
+    font-size: 25px;
+}
+
+.health-month-title-button {
+
+    font-size: 29px;
+
+}
+
+
+.health-today-button {
+
+    width: 88px;
+
+    height: 40px;
+
+    font-size: 14px;
+
+}
+
+
+.health-week-cell {
+
+    padding: 10px 2px;
+
+    font-size: 15px;
+
+}
+
+
+.health-calendar-day,
+.health-calendar-empty {
+
+    height: 83px;
+
+}
+
+
+.health-calendar-day-number {
+
+    font-size: 17px;
+
+}
+
+
+.health-holiday-name {
+
+    font-size: 10px;
+
+}
+
+
+.health-record-icon {
+
+    width: 22px;
+
+    height: 22px;
+
+    font-size: 17px;
+
+}
+
+
+.health-daily-page {
+
+    padding: 7px 8px 30px;
+
+}
+
+
+.health-daily-header h1 {
+
+    font-size: 26px;
+
+}
+
+
+.health-daily-back-button {
+
+    min-height: 48px;
+
+    padding: 7px 10px;
+
+    font-size: 14px;
+
+}
+
+
+.health-daily-date {
+
+    font-size: 28px;
+
+}
+
+
+.health-daily-date-button {
+
+    width: 54px;
+
+    height: 54px;
+
+    font-size: 22px;
+
+}
+
+
+.health-daily-section {
+
+    padding: 15px;
+
+}
+
+
+.health-daily-section h2 {
+
+    font-size: 23px;
+
+}
+
+
+.health-medication-name {
+
+    font-size: 21px;
+
+}
+
+.health-medication-button {
+
+min-width: 0;
+
+width: fit-content;
+
+min-height: 64px;
+
+padding: 10px 18px;
+
+font-size: 26px;
+
+font-weight: 900;
+
+line-height: 1.3;
+
+white-space: nowrap;
+
+}
+
+.health-input-row input {
+
+    width: 130px;
+
+    height: 56px;
+
+    font-size: 23px;
+
+}
+
+
+.health-input-row span {
+
+    font-size: 19px;
+
+}
+
+
+.health-large-select {
+
+    min-height: 58px;
+
+    font-size: 19px;
+
+}
+
+
+.health-menstrual-button {
+
+    min-height: 60px;
+
+    font-size: 20px;
+
+}
+
+
+.health-other-toggle-button {
+
+    min-height: 58px;
+
+    font-size: 20px;
+
+}
+
+
+.health-save-button {
+
+    min-height: 64px;
+
+    font-size: 22px;
+
+}
+
+
+.health-confirm-content {
+
+    margin-top: 25vh;
+
+    padding: 22px 16px;
+
+}
+
+
+.health-confirm-title {
+
+    font-size: 22px;
+
+}
+
+
+.health-confirm-message {
+
+    font-size: 18px;
+
+}
+
+}
+
+/* =====================================================
+📊 健康グラフボタン
+===================================================== */
+
+.health-graph-button {
+
+flex-shrink: 0;
+
+width: auto;
+
+min-width: 150px;
+
+height: 40px;
+
+box-sizing: border-box;
+
+padding: 8px 12px;
+
+border: 1px solid var(--border);
+
+border-radius: 10px;
+
+background: var(--surface);
+
+color: var(--text);
+
+font-size: 15px;
+
+font-weight: 800;
+
+cursor: pointer;
+
+white-space: nowrap;
+
+align-self: flex-end;
+
+}
+
+/* =====================================================
+📊 健康グラフ画面
+===================================================== */
+
+/* グラフ画面ヘッダー */
+.health-graph-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 10px;
+padding: 0 0 10px;
+border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+margin-bottom: 16px;
+}
+
+/* グラフタイトル */
+.health-graph-header h1 {
+margin: 0;
+font-size: 22px;
+font-weight: bold;
+flex: 1;
+order: 1;
+}
+
+/* 通常カレンダーへ戻るボタン */
+.health-graph-header .health-back-button {
+    order: 2;
+    flex-shrink: 0;
+    width: auto;
+    min-width: 150px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* 表示期間・表示項目 */
+.health-graph-control-section {
+margin-bottom: 18px;
+}
+
+.health-graph-control-title {
+font-size: 16px;
+font-weight: bold;
+margin-bottom: 8px;
+}
+
+/* =====================================================
+📅 表示期間
+ラジオボタン風
+===================================================== */
+
+.health-graph-period-buttons {
+display: flex;
+width: 100%;
+gap: 6px;
+margin: 0;
+}
+
+.health-graph-period-button {
+flex: 1;
+
+width: auto !important;
+min-width: 0;
+
+margin: 0 !important;
+padding: 6px 4px !important;
+
+border: none !important;
+border-radius: 0 !important;
+
+background: transparent !important;
+color: var(--text) !important;
+
+font-size: 15px;
+font-weight: bold;
+
+cursor: pointer;
+white-space: nowrap;
+
+box-shadow: none !important;
+
+}
+
+/* 未選択 */
+.health-graph-period-button::before {
+content: "○";
+margin-right: 5px;
+font-size: 18px;
+}
+
+/* 選択中 */
+.health-graph-period-button.active::before {
+content: "◉";
+}
+
+/* =====================================================
+📊 表示項目
+ラジオボタン風
+===================================================== */
+
+.health-graph-metric-buttons {
+display: flex;
+flex-wrap: wrap;
+width: 100%;
+gap: 0;
+margin: 0;
+}
+
+.health-graph-metric-button {
+flex: 0 0 25%;
+
+width: auto !important;
+min-width: 0;
+
+margin: 0 !important;
+padding: 6px 4px !important;
+
+border: none !important;
+border-radius: 0 !important;
+
+background: transparent !important;
+color: var(--text) !important;
+
+font-size: 15px;
+font-weight: bold;
+
+cursor: pointer;
+white-space: nowrap;
+
+box-shadow: none !important;
+text-align: left;
+
+}
+
+/* 未選択 */
+.health-graph-metric-button::before {
+content: "○";
+margin-right: 5px;
+font-size: 18px;
+}
+
+/* 選択中 */
+.health-graph-metric-button.active::before {
+content: "◉";
+}
+
+/* =====================================================
+📈 グラフ
+===================================================== */
+
+.health-graph-chart-section {
+margin-top: 20px;
+}
+
+.health-graph-title {
+font-size: 18px;
+font-weight: bold;
+margin-bottom: 10px;
+}
+
+.health-graph-chart {
+width: 100%;
+overflow-x: auto;
+}
+
+.health-graph-no-data {
+padding: 30px 10px;
+text-align: center;
+font-size: 15px;
+font-weight: bold;
+}
+
+/* =====================================================
+健康管理：入力例（placeholder）
+===================================================== */
+
+.health-daily-page input::placeholder,
+.health-daily-page textarea::placeholder {
+color: #aaa;
+opacity: 1;
+}
+
+/* =====================================================
+📊 健康グラフ 折れ線
+===================================================== */
+
+.health-graph-line {
+fill: none !important;
+stroke: #7c4dff !important;
+stroke-width: 3 !important;
+stroke-linecap: round;
+stroke-linejoin: round;
+}
+
+.health-graph-point {
+fill: #7c4dff !important;
+stroke: #7c4dff !important;
+stroke-width: 2 !important;
+}
+
+/* =====================================================
+📊 健康グラフ 選択表示
+===================================================== */
+
+.health-graph-selection-line {
+stroke: #7c4dff !important;
+stroke-width: 3 !important;
+stroke-dasharray: 5 4;
+pointer-events: none;
+}
+
+.health-graph-selection-label {
+fill: #7c4dff !important;
+font-size: 13px;
+font-weight: bold;
+pointer-events: none;
+}
+
+.health-graph-selection-value {
+fill: #7c4dff !important;
+font-size: 14px;
+font-weight: bold;
+pointer-events: none;
+}
+
+.health-graph-selection-hit-area {
+fill: rgba(124, 77, 255, 0.001) !important;
+cursor: crosshair;
+touch-action: none;
+pointer-events: all !important;
+}
+
+/* =====================================================
+🔢 健康数値入力ポップアップ
+===================================================== */
+
+.health-number-input-modal {
+
+position: fixed;
+
+inset: 0;
+
+z-index: 9999;
+
+display: flex;
+
+align-items: center;
+
+justify-content: center;
+
+padding: 20px;
+
+background: rgba(0, 0, 0, 0.45);
+
+}
+
+/* =====================================================
+ポップアップ本体
+===================================================== */
+
+.health-number-input-dialog {
+
+width: min(
+    100%,
+    360px
+);
+
+padding: 20px;
+
+border-radius: 18px;
+
+background: var(--card-bg, #ffffff);
+
+box-shadow:
+    0 10px 35px
+    rgba(0, 0, 0, 0.25);
+
+}
+
+/* =====================================================
+タイトル
+===================================================== */
+
+.health-number-input-title {
+
+margin-bottom: 12px;
+
+text-align: center;
+
+font-size: 20px;
+
+font-weight: bold;
+
+}
+
+/* =====================================================
+入力値表示
+===================================================== */
+
+.health-number-input-display {
+
+min-height: 52px;
+
+margin-bottom: 14px;
+
+padding: 8px 14px;
+
+display: flex;
+
+align-items: center;
+
+justify-content: flex-end;
+
+border-radius: 10px;
+
+background: rgba(0, 0, 0, 0.06);
+
+font-size: 28px;
+
+font-weight: bold;
+
+overflow: hidden;
+
+word-break: break-all;
+
+}
+
+/* =====================================================
+数字キー
+===================================================== */
+
+.health-number-keypad {
+
+display: grid;
+
+grid-template-columns:
+    repeat(3, 1fr);
+
+gap: 8px;
+
+}
+
+/* =====================================================
+数字ボタン
+===================================================== */
+
+.health-number-keypad button {
+
+min-height: 52px;
+
+margin: 0;
+
+padding: 0;
+
+border: none;
+
+border-radius: 10px;
+
+background: rgba(0, 0, 0, 0.07);
+
+color: var(--text);
+
+font-size: 22px;
+
+font-weight: bold;
+
+cursor: pointer;
+
+box-shadow: none;
+
+}
+
+/* =====================================================
+小数点
+===================================================== */
+
+.health-number-keypad
+.decimal-button {
+
+font-size: 24px;
+
+}
+
+/* =====================================================
+戻る
+===================================================== */
+
+.health-number-keypad
+.backspace-button {
+
+font-size: 24px;
+
+}
+
+/* =====================================================
+下部操作ボタン
+===================================================== */
+
+.health-number-input-actions {
+
+display: grid;
+
+grid-template-columns:
+    repeat(3, 1fr);
+
+gap: 8px;
+
+margin-top: 12px;
+
+}
+
+.health-number-input-actions button {
+
+min-height: 48px;
+
+margin: 0;
+
+padding: 6px 4px;
+
+border: none;
+
+border-radius: 10px;
+
+font-size: 15px;
+
+font-weight: bold;
+
+cursor: pointer;
+
+}
+
+/* =====================================================
+スマホ
+===================================================== */
+
+@media (
+max-width: 480px
+) {
+
+.health-number-input-dialog {
+
+    width: 100%;
+
+    max-width: 360px;
+
+    padding: 18px;
+
+}
+
+
+.health-number-keypad button {
+
+    min-height: 54px;
+
+    font-size: 23px;
+
+}
+
+
+.health-number-input-display {
+
+    min-height: 54px;
+
+    font-size: 30px;
+
+}
+
+}
+

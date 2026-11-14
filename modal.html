@@ -1,0 +1,645 @@
+<!-- =====================================================
+     共通モーダル
+     modal.html
+===================================================== -->
+
+
+<!-- =====================================================
+     🔢 数値入力モーダル
+===================================================== -->
+
+<div
+    id="numberInputModal"
+    class="number-input-modal"
+    style="display:none;"
+>
+
+    <div class="number-input-dialog">
+
+        <!-- タイトル -->
+        <div
+            id="numberInputTitle"
+            class="number-input-title"
+        >
+            数値を入力
+        </div>
+
+
+        <!-- 入力値表示 -->
+        <div
+            id="numberInputDisplay"
+            class="number-input-display"
+        ></div>
+
+
+        <!-- 数字キー -->
+        <div class="number-keypad">
+
+            <button
+                type="button"
+                data-number="1"
+            >1</button>
+
+            <button
+                type="button"
+                data-number="2"
+            >2</button>
+
+            <button
+                type="button"
+                data-number="3"
+            >3</button>
+
+
+            <button
+                type="button"
+                data-number="4"
+            >4</button>
+
+            <button
+                type="button"
+                data-number="5"
+            >5</button>
+
+            <button
+                type="button"
+                data-number="6"
+            >6</button>
+
+
+            <button
+                type="button"
+                data-number="7"
+            >7</button>
+
+            <button
+                type="button"
+                data-number="8"
+            >8</button>
+
+            <button
+                type="button"
+                data-number="9"
+            >9</button>
+
+
+            <button
+                type="button"
+                class="decimal-button"
+                data-number="."
+            >.</button>
+
+            <button
+                type="button"
+                data-number="0"
+            >0</button>
+
+            <button
+                type="button"
+                class="backspace-button"
+                data-action="backspace"
+            >←</button>
+
+        </div>
+
+
+        <!-- 下部操作 -->
+        <div class="number-input-actions">
+
+            <button
+                type="button"
+                class="number-delete-button"
+                data-action="delete"
+            >
+                キャンセル
+            </button>
+
+            <button
+                type="button"
+                class="number-reset-button"
+                data-action="reset"
+            >
+                リセット
+            </button>
+
+            <button
+                type="button"
+                class="number-save-button"
+                data-action="save"
+            >
+                保存
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- =====================================================
+     ✅ 共通確認モーダル
+===================================================== -->
+
+<div
+    id="commonConfirmModal"
+    class="common-confirm-modal"
+    style="display:none;"
+>
+
+    <div class="common-confirm-dialog">
+
+        <!-- メッセージ -->
+        <div
+            id="commonConfirmMessage"
+            class="common-confirm-message"
+        ></div>
+
+
+        <!-- ボタン -->
+        <div class="common-confirm-actions">
+
+            <button
+                type="button"
+                id="commonConfirmCancelButton"
+                class="common-confirm-cancel"
+            >
+                キャンセル
+            </button>
+
+            <button
+                type="button"
+                id="commonConfirmOkButton"
+                class="common-confirm-ok"
+            >
+                確認
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+<!-- ==============================
+     🔁 繰り返し予定の削除
+     専用モーダル
+============================== -->
+<div
+    id="recurringDeleteModal"
+    class="recurring-delete-modal"
+    style="display:none;"
+>
+    <div
+        class="recurring-delete-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recurringDeleteTitle"
+    >
+        <h3 id="recurringDeleteTitle">
+            🔁 繰り返し予定の削除
+        </h3>
+
+        <div
+            id="recurringDeleteMessage"
+            class="recurring-delete-message"
+        ></div>
+
+        <div class="recurring-delete-actions">
+            <button
+                type="button"
+                id="recurringDeleteOneButton"
+            >
+                この日だけ削除
+            </button>
+
+            <button
+                type="button"
+                id="recurringDeleteAllButton"
+            >
+                繰り返し予定をすべて削除
+            </button>
+
+            <button
+                type="button"
+                id="recurringDeleteCancelButton"
+            >
+                キャンセル
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<!-- =====================================================
+     📝 自由メモ・手書きメモ 共通編集モーダル
+===================================================== -->
+
+<div
+    id="plannerNoteEditorModal"
+    class="modal"
+    style="display:none;"
+>
+    <div
+        class="modal-content planner-note-editor"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="plannerNoteEditorTitle"
+    >
+
+        <h2 id="plannerNoteEditorTitle">
+            📝 自由メモ
+        </h2>
+
+
+<!-- 文字メモ設定 -->
+<div id="plannerNoteTextSettings">
+
+    <!-- メモ内容 -->
+    <label for="plannerNoteText">
+        メモ内容
+    </label>
+
+    <textarea
+        id="plannerNoteText"
+        rows="4"
+        placeholder="ここにメモを追加"
+    ></textarea>
+
+
+    <!-- フォント -->
+    <label
+        for="plannerNoteFont"
+        class="planner-note-font-label"
+    >
+        フォント
+    </label>
+
+    <select id="plannerNoteFont">
+        <option value="sans-serif">ゴシック体</option>
+        <option value="serif">明朝体</option>
+        <option value="system-ui">システム標準</option>
+        <option value="ui-rounded, sans-serif">丸ゴシック風</option>
+        <option value="monospace">等幅フォント</option>
+        <option value="cursive">手書き風</option>
+        <option value="fantasy">装飾フォント</option>
+    </select>
+
+
+    <!-- 色設定：横一列 -->
+    <div class="planner-note-color-settings">
+
+        <!-- 文字色 -->
+        <div class="planner-note-style-group">
+
+            <div class="planner-note-style-title">
+                文字色
+            </div>
+
+            <input
+                type="hidden"
+                id="plannerNoteColor"
+                value="#333333"
+            >
+
+<div class="planner-note-color-list">
+
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#333333" style="background:#333333" aria-label="黒" aria-pressed="true"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#E91E63" style="background:#E91E63" aria-label="ピンク" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#2196F3" style="background:#2196F3" aria-label="青" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#4CAF50" style="background:#4CAF50" aria-label="緑" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#9C27B0" style="background:#9C27B0" aria-label="紫" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#FF9800" style="background:#FF9800" aria-label="オレンジ" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#FFFFFF" style="background:#FFFFFF" aria-label="白" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#795548" style="background:#795548" aria-label="茶色" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#00BCD4" style="background:#00BCD4" aria-label="水色" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#3F51B5" style="background:#3F51B5" aria-label="藍色" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#8BC34A" style="background:#8BC34A" aria-label="黄緑" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="text" data-color="#607D8B" style="background:#607D8B" aria-label="青灰色" aria-pressed="false"></button>
+
+</div>
+
+        </div>
+
+
+        <!-- 背景色 -->
+        <div class="planner-note-style-group">
+
+            <div class="planner-note-style-title">
+                背景色
+            </div>
+
+            <input
+                type="hidden"
+                id="plannerNoteBackgroundColor"
+                value="#FFF8FC"
+            >
+
+
+<div class="planner-note-color-list">
+
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#FFF8FC" style="background:#FFF8FC" aria-label="薄いピンク" aria-pressed="true"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#FFFFFF" style="background:#FFFFFF" aria-label="白" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#FFF1D6" style="background:#FFF1D6" aria-label="クリーム" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#FFF9B8" style="background:#FFF9B8" aria-label="黄色" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#E4F5E8" style="background:#E4F5E8" aria-label="薄い緑" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#E4F2FF" style="background:#E4F2FF" aria-label="薄い青" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#F0E5FF" style="background:#F0E5FF" aria-label="薄い紫" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#FCE4EC" style="background:#FCE4EC" aria-label="桜色" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#E3F2FD" style="background:#E3F2FD" aria-label="空色" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#E8F5E9" style="background:#E8F5E9" aria-label="ミント" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#F3E5F5" style="background:#F3E5F5" aria-label="ラベンダー" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="background" data-color="#FBE9E7" style="background:#FBE9E7" aria-label="薄いオレンジ" aria-pressed="false"></button>
+
+</div>
+
+
+
+
+        </div>
+
+
+        <!-- 枠線の色 -->
+        <div class="planner-note-style-group">
+
+            <div class="planner-note-style-title">
+                枠線の色
+            </div>
+
+            <input
+                type="hidden"
+                id="plannerNoteBorderColor"
+                value="#E8A6C1"
+            >
+
+
+<div class="planner-note-color-list">
+
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#E8A6C1" style="background:#E8A6C1" aria-label="ピンク" aria-pressed="true"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#78BCE8" style="background:#78BCE8" aria-label="青" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#B49AE8" style="background:#B49AE8" aria-label="紫" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#B8B8B8" style="background:#B8B8B8" aria-label="グレー" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#E85B76" style="background:#E85B76" aria-label="濃いピンク" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#55A878" style="background:#55A878" aria-label="緑" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#333333" style="background:#333333" aria-label="黒" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#F4A261" style="background:#F4A261" aria-label="オレンジ" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#F2C94C" style="background:#F2C94C" aria-label="黄色" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#5B8DEF" style="background:#5B8DEF" aria-label="明るい青" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#8BC9A1" style="background:#8BC9A1" aria-label="ミント" aria-pressed="false"></button>
+    <button type="button" class="planner-note-color-swatch" data-color-group="border" data-color="#A1887F" style="background:#A1887F" aria-label="茶色" aria-pressed="false"></button>
+
+</div>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- 枠線の種類 -->
+    <div class="planner-note-style-group">
+
+        <div class="planner-note-style-title">
+            枠線の種類
+        </div>
+
+        <input
+            type="hidden"
+            id="plannerNoteBorderStyle"
+            value="solid"
+        >
+
+        <div class="planner-note-border-list">
+
+            <button type="button" class="planner-note-border-option" data-border-style="solid" aria-pressed="true">通常</button>
+            <button type="button" class="planner-note-border-option" data-border-style="dashed" aria-pressed="false">破線</button>
+            <button type="button" class="planner-note-border-option" data-border-style="dotted" aria-pressed="false">点線</button>
+            <button type="button" class="planner-note-border-option" data-border-style="thick" aria-pressed="false">太枠</button>
+            <button type="button" class="planner-note-border-option" data-border-style="double" aria-pressed="false">二重線</button>
+            <button type="button" class="planner-note-border-option" data-border-style="wavy" aria-pressed="false">波型</button>
+            <button type="button" class="planner-note-border-option" data-border-style="zigzag" aria-pressed="false">ギザギザ</button>
+            <button type="button" class="planner-note-border-option" data-border-style="cloud" aria-pressed="false">雲型</button>
+
+        </div>
+    </div>
+
+
+    <!-- リアルタイムプレビュー -->
+    <div class="planner-note-style-group">
+
+        <div class="planner-note-style-title">
+            プレビュー
+        </div>
+
+        <div
+            id="plannerNotePreview"
+            class="planner-note-preview"
+        >
+            <span
+                id="plannerNotePreviewText"
+                class="planner-note-text"
+            >メモの見本 ♡</span>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+<!-- 手書きメモ設定 -->
+<div
+    id="plannerNoteDrawingSettings"
+    class="planner-note-drawing-settings"
+    style="display:none;"
+>
+    <!-- 描画ツール -->
+
+<div class="planner-drawing-toolbar">
+
+    <!-- ペンの色 -->
+    <label
+        for="plannerDrawingColor"
+        class="planner-drawing-color-label"
+        title="ペンの色"
+        aria-label="ペンの色"
+    >
+        <input
+            type="color"
+            id="plannerDrawingColor"
+            value="#222222"
+            title="ペンの色"
+        >
+    </label>
+
+    <!-- ペンの太さ -->
+    <div
+        class="planner-drawing-width-options"
+        role="group"
+        aria-label="ペンの太さ"
+    >
+        <button
+            type="button"
+            class="planner-drawing-width-button"
+            data-width="2"
+            aria-label="細い"
+            title="細い"
+        >
+            <span class="planner-drawing-width-preview thin"></span>
+        </button>
+
+        <button
+            type="button"
+            class="planner-drawing-width-button is-active"
+            data-width="4"
+            aria-label="普通"
+            title="普通"
+        >
+            <span class="planner-drawing-width-preview normal"></span>
+        </button>
+
+        <button
+            type="button"
+            class="planner-drawing-width-button"
+            data-width="7"
+            aria-label="太い"
+            title="太い"
+        >
+            <span class="planner-drawing-width-preview thick"></span>
+        </button>
+
+        <button
+            type="button"
+            class="planner-drawing-width-button"
+            data-width="12"
+            aria-label="極太"
+            title="極太"
+        >
+            <span class="planner-drawing-width-preview extra-thick"></span>
+        </button>
+    </div>
+
+    <!-- 操作アイコン -->
+    <div class="planner-drawing-action-buttons">
+
+        <button
+            type="button"
+            id="plannerDrawingPenButton"
+            aria-label="ペン"
+            title="ペン"
+            aria-pressed="true"
+        >
+            ✏️
+        </button>
+
+        <button
+            type="button"
+            id="plannerDrawingEraserButton"
+            aria-label="消しゴム"
+            title="消しゴム"
+            aria-pressed="false"
+        >
+            🩹
+        </button>
+
+        <button
+            type="button"
+            id="plannerDrawingUndoButton"
+            aria-label="戻す"
+            title="戻す"
+        >
+            ↩️
+        </button>
+
+        <button
+            type="button"
+            id="plannerDrawingRedoButton"
+            aria-label="やり直す"
+            title="やり直す"
+        >
+            ↪️
+        </button>
+
+        <button
+            type="button"
+            id="plannerDrawingClearButton"
+            aria-label="全消去"
+            title="全消去"
+        >
+            🗑️
+        </button>
+
+    </div>
+
+    <!-- 描画処理が参照する太さの値 -->
+    <input
+        type="range"
+        id="plannerDrawingWidth"
+        min="1"
+        max="20"
+        value="4"
+        hidden
+    >
+
+    <span
+        id="plannerDrawingWidthValue"
+        hidden
+    >4</span>
+
+</div>
+
+
+
+    <!-- 手書きキャンバス -->
+    <div class="planner-drawing-canvas-wrap">
+        <canvas
+            id="plannerNoteDrawingCanvas"
+            aria-label="手書きメモの描画エリア"
+        ></canvas>
+    </div>
+
+    <p class="planner-drawing-help">
+        指やペンで自由に書けます。
+    </p>
+</div>
+
+
+
+        <div class="planner-note-editor-actions">
+
+            <button
+                type="button"
+                id="plannerNoteSaveButton"
+            >
+                💾 保存
+            </button>
+
+            <button
+                type="button"
+                id="plannerNoteCancelButton"
+            >
+                キャンセル
+            </button>
+
+        </div>
+
+    </div>
+</div>

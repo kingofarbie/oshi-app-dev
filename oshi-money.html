@@ -1,0 +1,125 @@
+
+<!-- oshi-money.html -->
+
+<div class="oshi-money-page">
+
+    <!-- =====================
+         ヘッダー
+    ====================== -->
+
+    <div class="oshi-money-header">
+
+        <button
+            type="button"
+            onclick="closeOshiMoney()">
+
+            ← お金へ戻る
+
+        </button>
+
+        <h2>⭐ 推し活費</h2>
+
+    </div>
+
+
+    <!-- =====================
+         期間切り替え
+    ====================== -->
+
+    <div class="oshi-money-period">
+
+        <button
+            type="button"
+            class="active"
+            data-period="month"
+            onclick="changeOshiMoneyPeriod('month')">
+
+            今月
+
+        </button>
+
+        <button
+            type="button"
+            data-period="year"
+            onclick="changeOshiMoneyPeriod('year')">
+
+            今年
+
+        </button>
+
+        <button
+            type="button"
+            data-period="all"
+            onclick="changeOshiMoneyPeriod('all')">
+
+            累計
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================
+         推し活費合計
+    ====================== -->
+
+    <div class="oshi-money-total card">
+
+        <div
+            class="oshi-money-total-label"
+            id="oshiMoneyTotalLabel">
+
+            今月の推し活費
+
+        </div>
+
+        <div
+            class="oshi-money-total-value"
+            id="oshiMoneyTotalValue">
+
+            ¥0
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================
+         推し一覧
+    ====================== -->
+
+    <div class="oshi-money-section">
+
+        <h3>
+            ⭐ 推し別
+        </h3>
+
+        <div id="oshiMoneyPersonList">
+
+            <div class="money-empty-message">
+                推しを読み込んでいます
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================
+         総合計
+    ====================== -->
+
+    <div class="oshi-money-grand-total card">
+
+        <div>
+            ⭐ 推し活費総合計
+        </div>
+
+        <strong id="oshiMoneyGrandTotal">
+            ¥0
+        </strong>
+
+    </div>
+
+
+</div>

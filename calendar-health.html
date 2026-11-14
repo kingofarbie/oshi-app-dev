@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>健康管理 | 推し活手帳</title>
+
+<link
+    rel="stylesheet"
+    href="calendar-health.css"
+>
+
+</head>
+
+
+<body>
+
+<div
+    id="healthCalendarScreen"
+    class="health-calendar-screen"
+>
+
+
+    <!-- =================================================
+         健康カレンダー
+    ================================================== -->
+
+    <div id="healthCalendarPage">
+
+
+<header class="health-calendar-header">
+
+    <h1
+        id="healthCalendarTitle"
+        class="health-calendar-title"
+    >
+        💊 健康
+    </h1>
+
+<button
+    type="button"
+    class="health-graph-button"
+    onclick="openHealthGraph()"
+    title="健康グラフ"
+    aria-label="健康グラフ"
+>
+    📊グラフ
+</button>
+
+    <button
+        type="button"
+        class="health-back-button"
+        onclick="loadCalendarHTML()"
+        title="カレンダーに戻る"
+        aria-label="カレンダーに戻る"
+    >
+        🗓
+    </button>
+
+</header>
+
+
+        <section class="health-calendar-controls">
+
+            <div
+                id="healthCalendarMonthTitle"
+                class="health-month-title-button"
+                onclick="openHealthCalendarDatePicker()"
+            >
+            </div>
+
+
+            <button
+                type="button"
+                class="health-today-button"
+                onclick="healthCalendarToday()"
+            >
+                📅 今日
+            </button>
+
+        </section>
+
+
+        <main
+            id="healthCalendar"
+            class="health-calendar"
+        >
+        </main>
+
+
+
+        <!-- =================================================
+             年月選択
+        ================================================== -->
+
+        <div
+            id="healthCalendarDatePickerModal"
+            class="health-modal"
+            style="display:none;"
+        >
+
+            <div class="health-modal-content">
+
+                <div class="health-modal-header">
+
+                    <div class="health-modal-title">
+                        📅 年月を選択
+                    </div>
+
+                    <button
+                        type="button"
+                        onclick="closeHealthCalendarDatePicker()"
+                    >
+                        ✕
+                    </button>
+
+                </div>
+
+
+                <div class="health-date-picker">
+
+                    <label
+                        for="healthCalendarYearSelect"
+                    >
+                        年
+                    </label>
+
+                    <select
+                        id="healthCalendarYearSelect"
+                    >
+                    </select>
+
+
+                    <label
+                        for="healthCalendarMonthSelect"
+                    >
+                        月
+                    </label>
+
+                    <select
+                        id="healthCalendarMonthSelect"
+                    >
+
+                        <option value="0">1月</option>
+                        <option value="1">2月</option>
+                        <option value="2">3月</option>
+                        <option value="3">4月</option>
+                        <option value="4">5月</option>
+                        <option value="5">6月</option>
+                        <option value="6">7月</option>
+                        <option value="7">8月</option>
+                        <option value="8">9月</option>
+                        <option value="9">10月</option>
+                        <option value="10">11月</option>
+                        <option value="11">12月</option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="health-modal-buttons">
+
+                    <button
+                        type="button"
+                        onclick="applyHealthCalendarDatePicker()"
+                    >
+                        📅 この月へ移動
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="closeHealthCalendarDatePicker()"
+                    >
+                        ❌ キャンセル
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         📖 日めくり
+    ================================================== -->
+
+    <div
+        id="healthDailyPage"
+        class="health-daily-page"
+        style="display:none;"
+    >
+
+
+        <header class="health-daily-header">
+
+            <button
+                type="button"
+                class="health-daily-back-button"
+                onclick="closeHealthDailyView()"
+            >
+                ◀ カレンダー
+            </button>
+
+
+            <h1>
+                📖 日めくり
+            </h1>
+
+        </header>
+
+
+
+        <!-- =================================================
+             日付
+        ================================================== -->
+
+        <div class="health-daily-date-row">
+
+            <button
+                type="button"
+                class="health-daily-date-button"
+                onclick="healthDailyPreviousDay()"
+            >
+                ◀
+            </button>
+
+
+            <div
+                id="healthDailyDate"
+                class="health-daily-date"
+            >
+            </div>
+
+
+            <button
+                type="button"
+                class="health-daily-date-button"
+                onclick="healthDailyNextDay()"
+            >
+                ▶
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             💊 お薬
+        ================================================== -->
+
+        <section class="health-daily-section">
+
+            <h2>
+                💊 お薬
+            </h2>
+
+
+            <div class="health-medication-list">
+
+
+                <!-- 朝 -->
+
+                <div class="health-medication-row">
+
+                    <div class="health-medication-name">
+                        🌅 朝
+                    </div>
+
+                    <button
+                        type="button"
+                        class="health-medication-button"
+                        data-medication="morning"
+                        onclick="toggleHealthMedication('morning')"
+                    >
+                        服用した
+                    </button>
+
+                </div>
+
+
+                <!-- 昼 -->
+
+                <div class="health-medication-row">
+
+                    <div class="health-medication-name">
+                        ☀️ 昼
+                    </div>
+
+                    <button
+                        type="button"
+                        class="health-medication-button"
+                        data-medication="noon"
+                        onclick="toggleHealthMedication('noon')"
+                    >
+                        服用した
+                    </button>
+
+                </div>
+
+
+                <!-- 夜 -->
+
+                <div class="health-medication-row">
+
+                    <div class="health-medication-name">
+                        🌙 夜
+                    </div>
+
+                    <button
+                        type="button"
+                        class="health-medication-button"
+                        data-medication="night"
+                        onclick="toggleHealthMedication('night')"
+                    >
+                        服用した
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             🌡️ 体温
+        ================================================== -->
+
+        <section class="health-daily-section">
+
+            <h2>
+                🌡️ 体温
+            </h2>
+
+
+            <div class="health-input-row">
+
+                <input
+                    id="healthTemperatureInput"
+                    type="number"
+                    inputmode="decimal"
+                    step="0.1"
+                    min="30"
+                    max="45"
+                    placeholder="36.5"
+                >
+
+                <span>℃</span>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             🩺 血圧
+        ================================================== -->
+
+        <section class="health-daily-section">
+
+            <h2>
+                🩺 血圧
+            </h2>
+
+
+            <div class="health-input-row">
+
+                <input
+                    id="healthSystolicInput"
+                    type="number"
+                    inputmode="numeric"
+                    min="50"
+                    max="250"
+                    placeholder="120"
+                >
+
+                <span>/</span>
+
+
+                <input
+                    id="healthDiastolicInput"
+                    type="number"
+                    inputmode="numeric"
+                    min="30"
+                    max="180"
+                    placeholder="75"
+                >
+
+                <span>mmHg</span>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             💓 脈拍
+        ================================================== -->
+
+        <section class="health-daily-section">
+
+            <h2>
+                💓 脈拍
+            </h2>
+
+
+            <div class="health-input-row">
+
+                <input
+                    id="healthPulseInput"
+                    type="number"
+                    inputmode="numeric"
+                    min="20"
+                    max="250"
+                    placeholder="70"
+                >
+
+                <span>bpm</span>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             😊 体調
+        ================================================== -->
+
+        <section class="health-daily-section">
+
+            <h2>
+                😊 体調
+            </h2>
+
+
+            <select
+                id="healthConditionInput"
+                class="health-large-select"
+            >
+
+                <option value="">
+                    選択してください
+                </option>
+
+                <option value="とても良い">
+                    😄 とても良い
+                </option>
+
+                <option value="良好">
+                    🙂 良好
+                </option>
+
+                <option value="普通">
+                    😐 普通
+                </option>
+
+                <option value="少し悪い">
+                    😕 少し悪い
+                </option>
+
+                <option value="悪い">
+                    😣 悪い
+                </option>
+
+            </select>
+
+        </section>
+
+
+
+        <!-- =================================================
+             🌸 月経
+        ================================================== -->
+
+        <section class="health-daily-section">
+
+            <h2>
+                🌸 生理
+            </h2>
+
+
+            <button
+                type="button"
+                id="healthMenstrualButton"
+                class="health-menstrual-button"
+                onclick="toggleHealthMenstrual()"
+            >
+                記録する
+            </button>
+
+        </section>
+
+
+
+        <!-- =================================================
+             ＋ その他
+        ================================================== -->
+
+        <button
+            type="button"
+            id="healthOtherToggleButton"
+            class="health-other-toggle-button"
+            onclick="toggleHealthOtherFields()"
+        >
+            ＋ その他を記録
+        </button>
+
+
+        <div
+            id="healthOtherFields"
+            class="health-other-fields"
+            style="display:none;"
+        >
+
+
+            <!-- 睡眠 -->
+
+            <section class="health-daily-section">
+
+                <h2>
+                    😴 睡眠時間
+                </h2>
+
+                <div class="health-input-row">
+
+                    <input
+                        id="healthSleepInput"
+                        type="number"
+                        inputmode="decimal"
+                        step="0.5"
+                        min="0"
+                        max="24"
+                        placeholder="7.0"
+                    >
+
+                    <span>時間</span>
+
+                </div>
+
+            </section>
+
+
+            <!-- 水分 -->
+
+            <section class="health-daily-section">
+
+                <h2>
+                    💧 水分
+                </h2>
+
+                <div class="health-input-row">
+
+                    <input
+                        id="healthWaterInput"
+                        type="number"
+                        inputmode="numeric"
+                        min="0"
+                        max="10000"
+                        placeholder="1500"
+                    >
+
+                    <span>ml</span>
+
+                </div>
+
+            </section>
+
+
+            <!-- 体重 -->
+
+            <section class="health-daily-section">
+
+                <h2>
+                    ⚖️ 体重
+                </h2>
+
+                <div class="health-input-row">
+
+                    <input
+                        id="healthWeightInput"
+                        type="number"
+                        inputmode="decimal"
+                        step="0.1"
+                        min="0"
+                        max="300"
+                        placeholder="60.0"
+                    >
+
+                    <span>kg</span>
+
+                </div>
+
+            </section>
+
+
+            <!-- メモ -->
+
+            <section class="health-daily-section">
+
+                <h2>
+                    📝 メモ
+                </h2>
+
+                <textarea
+                    id="healthMemoInput"
+                    class="health-memo-input"
+                    rows="4"
+                    placeholder="気になることを入力"
+                ></textarea>
+
+            </section>
+
+        </div>
+
+
+
+        <!-- =================================================
+             💾 保存
+        ================================================== -->
+
+        <button
+            type="button"
+            class="health-save-button"
+            onclick="saveHealthDailyRecord()"
+        >
+            💾 保存
+        </button>
+
+
+    </div>
+
+
+
+
+
+
+        <!-- =================================================
+         📊 健康グラフ
+    ================================================== -->
+
+    <div
+        id="healthGraphPage"
+        class="health-graph-page"
+        style="display:none;"
+    >
+
+        <header class="health-graph-header">
+
+            <button
+                type="button"
+                class="health-back-button"
+                onclick="closeHealthGraph()"
+            >
+                ◀ 健康カレンダー
+            </button>
+
+            <h1>
+                📊 健康グラフ
+            </h1>
+
+        </header>
+
+
+        <div class="health-graph-control-section">
+
+            <div class="health-graph-control-title">
+                表示期間
+            </div>
+
+
+            <div class="health-graph-period-buttons">
+
+                <button
+                    type="button"
+                    class="health-graph-period-button active"
+                    data-period="7"
+                >
+                    1週間
+                </button>
+
+                <button
+                    type="button"
+                    class="health-graph-period-button"
+                    data-period="30"
+                >
+                    1か月
+                </button>
+
+                <button
+                    type="button"
+                    class="health-graph-period-button"
+                    data-period="90"
+                >
+                    3か月
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="health-graph-control-section">
+
+            <div class="health-graph-control-title">
+                表示項目
+            </div>
+
+
+            <div class="health-graph-metric-buttons">
+
+<button
+    type="button"
+    class="health-graph-metric-button active"
+    data-metric="temperature"
+    onclick="setHealthGraphMetric('temperature')"
+>
+    🌡️ 体温
+</button>
+
+<button
+    type="button"
+    class="health-graph-metric-button"
+    data-metric="bloodPressure"
+    onclick="setHealthGraphMetric('bloodPressure')"
+>
+    🩺 血圧
+</button>
+
+<button
+    type="button"
+    class="health-graph-metric-button"
+    data-metric="pulse"
+    onclick="setHealthGraphMetric('pulse')"
+>
+    ❤️ 脈拍
+</button>
+
+<button
+    type="button"
+    class="health-graph-metric-button"
+    data-metric="weight"
+    onclick="setHealthGraphMetric('weight')"
+>
+    ⚖️ 体重
+</button>
+
+<button
+    type="button"
+    class="health-graph-metric-button"
+    data-metric="sleep"
+    onclick="setHealthGraphMetric('sleep')"
+>
+    😴 睡眠
+</button>
+
+<button
+    type="button"
+    class="health-graph-metric-button"
+    data-metric="water"
+    onclick="setHealthGraphMetric('water')"
+>
+    💧 水分
+</button>
+
+
+            </div>
+
+        </div>
+
+
+        <section class="health-graph-chart-section">
+
+            <div
+                id="healthGraphTitle"
+                class="health-graph-title"
+            >
+                🌡️ 体温
+            </div>
+
+
+            <div
+                id="healthGraphChart"
+                class="health-graph-chart"
+            ></div>
+
+
+            <div
+                id="healthGraphNoData"
+                class="health-graph-no-data"
+                style="display:none;"
+            >
+                この期間の記録はありません
+            </div>
+
+        </section>
+
+    </div>
+
+
+
+
+
+    <!-- =================================================
+         💊 服薬記録削除確認
+    ================================================== -->
+
+    <div
+        id="healthMedicationDeleteModal"
+        class="health-modal"
+        style="display:none;"
+    >
+
+        <div class="health-modal-content health-medication-delete-modal">
+
+            <div class="health-modal-header">
+
+                <div class="health-modal-title">
+                    💊 服薬記録
+                </div>
+
+                <button
+                    type="button"
+                    onclick="closeHealthMedicationDeleteModal()"
+                    aria-label="閉じる"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+            <div
+                id="healthMedicationDeleteMessage"
+                class="health-medication-delete-message"
+            >
+            </div>
+
+
+            <div class="health-modal-buttons">
+
+                <button
+                    type="button"
+                    onclick="closeHealthMedicationDeleteModal()"
+                >
+                    キャンセル
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="confirmDeleteHealthMedication()"
+                >
+                    削除する
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<!-- =====================================================
+     🔢 健康数値入力ポップアップ
+===================================================== -->
+
+<div
+    id="healthNumberInputModal"
+    class="health-number-input-modal"
+    style="display:none;"
+>
+
+    <div class="health-number-input-dialog">
+
+        <!-- タイトル -->
+        <div
+            id="healthNumberInputTitle"
+            class="health-number-input-title"
+        >
+            数値を入力
+        </div>
+
+
+        <!-- 現在の入力値 -->
+        <div
+            id="healthNumberInputDisplay"
+            class="health-number-input-display"
+        >
+        </div>
+
+
+        <!-- 数字ボタン -->
+        <div class="health-number-keypad">
+
+            <button
+                type="button"
+                data-number="1"
+            >1</button>
+
+            <button
+                type="button"
+                data-number="2"
+            >2</button>
+
+            <button
+                type="button"
+                data-number="3"
+            >3</button>
+
+
+            <button
+                type="button"
+                data-number="4"
+            >4</button>
+
+            <button
+                type="button"
+                data-number="5"
+            >5</button>
+
+            <button
+                type="button"
+                data-number="6"
+            >6</button>
+
+
+            <button
+                type="button"
+                data-number="7"
+            >7</button>
+
+            <button
+                type="button"
+                data-number="8"
+            >8</button>
+
+            <button
+                type="button"
+                data-number="9"
+            >9</button>
+
+
+            <button
+                type="button"
+                class="decimal-button"
+                data-number="."
+            >.</button>
+
+            <button
+                type="button"
+                data-number="0"
+            >0</button>
+
+            <button
+                type="button"
+                class="backspace-button"
+                data-action="backspace"
+            >←</button>
+
+        </div>
+
+
+        <!-- 操作ボタン -->
+        <div class="health-number-input-actions">
+
+            <button
+                type="button"
+                class="health-number-delete-button"
+                data-action="delete"
+            >
+                削除
+            </button>
+
+            <button
+                type="button"
+                class="health-number-reset-button"
+                data-action="reset"
+            >
+                リセット
+            </button>
+
+            <button
+                type="button"
+                class="health-number-save-button"
+                data-action="save"
+            >
+                保存
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="calendar-health.js"></script>
+
+</body>
+
+</html>

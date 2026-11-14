@@ -1,0 +1,288 @@
+<form id="soccerGameDetailForm" class="soccer-edit-screen soccer-detail-screen"><h2 id="soccerGameDetailTitle">⚽ 試合結果</h2>
+
+<!-- =====================
+     チーム設定
+====================== -->
+
+<div class="soccer-team-setting">
+
+    <div class="soccer-team-setting-row">
+
+        <label>応援チーム</label>
+
+        <div id="soccerDetailTeam"
+             class="soccer-detail-value"></div>
+
+        <div id="soccerDetailHomeAway"
+             class="soccer-detail-select-value"></div>
+
+    </div>
+
+    <div class="soccer-team-setting-row">
+
+        <label>相手チーム</label>
+
+        <div id="soccerDetailOpponent"
+             class="soccer-detail-value"></div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     ホーム・アウェイ
+====================== -->
+
+<div class="soccer-match-board">
+
+    <div class="soccer-match-header">
+
+        <div class="soccer-match-column">
+
+            <div class="soccer-match-side">
+                ホーム
+            </div>
+
+            <div
+                class="soccer-match-team-name"
+                data-soccer-detail-home-name>
+            </div>
+
+        </div>
+
+
+        <div class="soccer-match-separator">
+            －
+        </div>
+
+
+        <div class="soccer-match-column">
+
+            <div class="soccer-match-side">
+                アウェイ
+            </div>
+
+            <div
+                class="soccer-match-team-name"
+                data-soccer-detail-away-name>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================
+         合計得点
+    ====================== -->
+
+    <div class="soccer-live-score-row">
+
+        <div
+            id="soccerDetailLeftTotal"
+            class="soccer-live-score">
+            0
+        </div>
+
+        <div class="soccer-score-dash">
+            －
+        </div>
+
+        <div
+            id="soccerDetailRightTotal"
+            class="soccer-live-score">
+            0
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     前半・後半
+====================== -->
+
+<div class="soccer-score-section">
+
+    <div class="soccer-score-row">
+
+        <label>前半</label>
+
+        <div
+            id="soccerDetailFirstHalf"
+            class="soccer-detail-score">
+            －
+        </div>
+
+    </div>
+
+
+    <div class="soccer-score-row">
+
+        <label>後半</label>
+
+        <div
+            id="soccerDetailSecondHalf"
+            class="soccer-detail-score">
+            －
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     延長
+====================== -->
+
+<div class="soccer-extra-section">
+
+    <div class="soccer-checkbox-row">
+
+        <span id="soccerDetailExtraCheck">
+            □ 延長
+        </span>
+
+    </div>
+
+
+    <div
+        id="soccerDetailExtraTimeArea"
+        class="soccer-extra-time-area">
+
+        <div class="soccer-score-row">
+
+            <label>前半</label>
+
+            <div
+                id="soccerDetailExtraFirstHalf"
+                class="soccer-detail-score">
+                －
+            </div>
+
+        </div>
+
+
+        <div class="soccer-score-row">
+
+            <label>後半</label>
+
+            <div
+                id="soccerDetailExtraSecondHalf"
+                class="soccer-detail-score">
+                －
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     PK
+====================== -->
+
+<div class="soccer-penalty-section">
+
+    <div class="soccer-checkbox-row">
+
+        <span id="soccerDetailPenaltyCheck">
+            □ PK
+        </span>
+
+    </div>
+
+
+    <div
+        id="soccerDetailPenaltyArea"
+        class="soccer-penalty-area">
+
+        <div class="soccer-score-row">
+
+            <div
+                id="soccerDetailPenalty"
+                class="soccer-detail-score soccer-detail-penalty-score">
+                －
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     場所
+====================== -->
+
+<div class="soccer-info-section">
+
+    <label>場所</label>
+
+    <div
+        id="soccerDetailLocation"
+        class="soccer-detail-info">
+    </div>
+
+</div>
+
+
+<!-- =====================
+     メモ
+====================== -->
+
+<div class="soccer-info-section">
+
+    <label>メモ</label>
+
+    <div
+        id="soccerDetailMemo"
+        class="soccer-detail-memo">
+    </div>
+
+</div>
+
+
+<!-- =====================
+     結果
+====================== -->
+
+<div class="soccer-info-section">
+
+    <label>結果</label>
+
+    <div
+        id="soccerDetailResult"
+        class="soccer-detail-result">
+    </div>
+
+</div>
+
+
+<!-- =====================
+     ボタン
+====================== -->
+
+<div class="soccer-edit-buttons">
+
+    <button
+        type="button"
+        onclick="closeSoccerGameDetailPage()">
+        閉じる
+    </button>
+
+    <button
+        type="button"
+        onclick="editSoccerGame()">
+        編集
+    </button>
+
+</div>
+
+</form>

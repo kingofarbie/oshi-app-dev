@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>スポーツカレンダー | 推し活手帳</title>
+
+
+    <!-- =========================
+         スポーツカレンダーCSS
+    ========================== -->
+
+    <link
+        rel="stylesheet"
+        href="calendar-sports.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     🏟️ スポーツカレンダー
+===================================================== -->
+
+<div
+    id="sportsCalendarScreen"
+    class="sports-calendar-screen"
+>
+
+
+    <!-- =========================
+         ヘッダー
+    ========================== -->
+
+    <header class="sports-calendar-header">
+
+        <!-- 左：タイトル -->
+
+        <h1
+            id="sportsCalendarTitle"
+            class="sports-calendar-title"
+        >
+            🏟️ スポーツ
+        </h1>
+
+
+
+        <!-- 右：設定・通常カレンダーへ戻る -->
+
+        <div class="sports-calendar-header-buttons">
+
+            <button
+                type="button"
+                class="sports-settings-button"
+                onclick="openFavoriteSportsSettings()"
+                title="応援スポーツ設定"
+                aria-label="応援スポーツ設定"
+            >
+                ⚙️
+            </button>
+
+            <button
+                type="button"
+                class="sports-back-button"
+                onclick="loadCalendarHTML()"
+                title="カレンダーに戻る"
+                aria-label="カレンダーに戻る"
+            >
+                🗓
+            </button>
+
+        </div>
+
+    </header>
+
+
+<!-- =====================================================
+     🏟️ 現在の応援スポーツ
+===================================================== -->
+
+<section class="sports-current-setting">
+
+    <div
+        id="sportsCurrentSportName"
+        class="sports-current-sport-name"
+    >
+        <span class="sports-current-sport-label">
+            スポーツ未設定
+        </span>
+
+        <select
+            id="sportsCurrentSelect"
+            class="sports-current-select"
+            onchange="changeCurrentFavoriteSport()"
+        ></select>
+
+        <span class="sports-current-team-name"></span>
+    </div>
+
+
+</section>
+
+
+
+    <!-- =========================
+         カレンダー操作
+    ========================== -->
+
+    <section
+        class="sports-calendar-controls"
+    >
+
+
+        <!-- 年月 -->
+
+<section class="sports-calendar-controls">
+
+    <!-- 年月 -->
+
+<div
+    id="sportsCalendarMonthTitle"
+    class="sports-month-title-button"
+    onclick="openSportsCalendarDatePicker()"
+></div>
+
+    <!-- 今日 -->
+
+    <button
+        type="button"
+        class="sports-today-button"
+        onclick="sportsCalendarToday()"
+    >
+        📅 今日
+    </button>
+
+</section>
+
+    </section>
+
+
+
+    <!-- =========================
+         スポーツカレンダー本体
+    ========================== -->
+
+    <main
+        id="sportsCalendar"
+        class="sports-calendar"
+    >
+
+    </main>
+
+
+
+
+<!-- =================================================
+     🏟️ 応援スポーツ設定モーダル
+================================================== -->
+
+<div
+    id="favoriteSportsSettingsModal"
+    class="sports-modal"
+    style="display:none;"
+>
+
+    <div class="sports-modal-content favorite-sports-settings-content">
+
+        <!-- ヘッダー -->
+
+<div class="sports-modal-header favorite-sports-settings-header">
+
+    <div class="sports-modal-title">
+        🏟️ 応援スポーツ設定
+    </div>
+
+    <div class="favorite-sports-header-buttons">
+
+        <button
+            type="button"
+            class="favorite-sports-icon-button"
+            onclick="saveFavoriteSportsSettings()"
+            aria-label="保存"
+            title="保存"
+        >
+            💾
+        </button>
+
+        <button
+            type="button"
+            class="favorite-sports-icon-button"
+            onclick="closeFavoriteSportsSettings()"
+            aria-label="閉じる"
+            title="閉じる"
+        >
+            ❌
+        </button>
+
+    </div>
+
+</div>
+
+        <!-- 説明 -->
+
+        <div class="favorite-sports-help">
+            応援するスポーツとチーム名を最大10件まで登録できます。
+        </div>
+
+
+        <!-- 10件の設定 -->
+
+        <div
+            id="favoriteSportsSettingsList"
+            class="favorite-sports-settings-list"
+        >
+
+        </div>
+
+
+
+    </div>
+
+</div>
+
+
+
+
+    <!-- =================================================
+         年月選択モーダル
+    ================================================== -->
+
+    <div
+        id="sportsCalendarDatePickerModal"
+        class="sports-modal"
+        style="display:none;"
+    >
+
+        <div class="sports-modal-content">
+
+
+            <!-- ヘッダー -->
+
+            <div class="sports-modal-header">
+
+                <div class="sports-modal-title">
+                    📅 年月を選択
+                </div>
+
+
+                <button
+                    type="button"
+                    onclick="closeSportsCalendarDatePicker()"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+
+            <!-- 年月選択 -->
+
+            <div
+                class="sports-date-picker"
+            >
+
+                <label
+                    for="sportsCalendarYearSelect"
+                >
+                    年
+                </label>
+
+
+                <select
+                    id="sportsCalendarYearSelect"
+                >
+
+                </select>
+
+
+
+                <label
+                    for="sportsCalendarMonthSelect"
+                >
+                    月
+                </label>
+
+
+                <select
+                    id="sportsCalendarMonthSelect"
+                >
+
+                    <option value="0">
+                        1月
+                    </option>
+
+                    <option value="1">
+                        2月
+                    </option>
+
+                    <option value="2">
+                        3月
+                    </option>
+
+                    <option value="3">
+                        4月
+                    </option>
+
+                    <option value="4">
+                        5月
+                    </option>
+
+                    <option value="5">
+                        6月
+                    </option>
+
+                    <option value="6">
+                        7月
+                    </option>
+
+                    <option value="7">
+                        8月
+                    </option>
+
+                    <option value="8">
+                        9月
+                    </option>
+
+                    <option value="9">
+                        10月
+                    </option>
+
+                    <option value="10">
+                        11月
+                    </option>
+
+                    <option value="11">
+                        12月
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- ボタン -->
+
+            <div
+                class="sports-modal-buttons"
+            >
+
+                <button
+                    type="button"
+                    onclick="applySportsCalendarDatePicker()"
+                >
+                    📅 この月へ移動
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="closeSportsCalendarDatePicker()"
+                >
+                    ❌ キャンセル
+                </button>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     JavaScript
+===================================================== -->
+
+<script
+    src="calendar-sports.js"
+></script>
+
+
+</body>
+
+</html>

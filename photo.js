@@ -1,0 +1,2640 @@
+/* =====================
+   写真用変数
+===================== */
+let currentPhotoSrc = "";
+let currentPhotoIndex = 0;
+let touchStartX = 0;
+
+let favoriteViewMode = false;
+
+let photoScale = 1;
+
+let photoSortMode = false;
+let currentSortType = "";
+
+let dragPhotoId = null;
+
+/* =====================
+   写真表示設定
+===================== */
+
+const PHOTO_COLUMNS = 3; // 2列
+const PHOTO_ROWS = 3;    // 2段
+
+
+let photoDeleteMode = false;
+let selectedDeletePhotoIds = [];
+
+let photoShareMode = false;
+let selectedSharePhotoIds = [];
+
+/* =====================
+   自由並べ替え用
+===================== */
+
+let photoLongPressTimer = null;
+
+let draggingPhotoId = null;
+
+let draggingPhotoElement = null;
+
+let isPhotoDragging = false;
+
+let dragStartPoint = {
+    x:0,
+    y:0
+};
+
+
+
+let lastDistance = 0;
+
+
+let photoTranslateX = 0;
+let photoTranslateY = 0;
+
+let dragStartX = 0;
+let dragStartY = 0;
+
+let lastTapTime = 0;
+
+/* =====================
+   写真追加
+===================== */
+
+function addPhoto(){
+
+    document.getElementById("photoPicker").click();
+
+}
+
+/* =====================
+   写真追加
+   IndexedDB保存対応
+===================== */
+
+async function photoSelected(event){
+
+    const files =
+        Array.from(
+            event.target.files || []
+        );
+
+    if(!files.length){
+        return;
+    }
+
+
+    const data = db.load();
+
+
+    if(!data.dayMemories){
+        data.dayMemories = {};
+    }
+
+
+    if(!data.dayMemories[selectedCalendarDate]){
+
+        data.dayMemories[selectedCalendarDate] = {
+
+            memo:[],
+            photos:[],
+            videos:[],
+            expenses:[],
+            rating:0,
+            comment:""
+
+        };
+
+    }
+
+
+    const photos =
+        data.dayMemories[
+            selectedCalendarDate
+        ].photos;
+
+
+    let completed = 0;
+
+
+    files.forEach(file=>{
+
+        if(!file.type.startsWith("image/")){
+
+            completed++;
+
+            return;
+
+        }
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload = function(e){
+
+            const img =
+                new Image();
+
+
+            img.onload = async function(){
+
+                try{
+
+                    const MAX = 1000;
+
+
+                    let width =
+                        img.width;
+
+                    let height =
+                        img.height;
+
+
+                    /* =====================
+                       表示用画像を縮小
+                    ===================== */
+
+                    if(width > height){
+
+                        if(width > MAX){
+
+                            height *=
+                                MAX / width;
+
+                            width = MAX;
+
+                        }
+
+                    }else{
+
+                        if(height > MAX){
+
+                            width *=
+                                MAX / height;
+
+                            height = MAX;
+
+                        }
+
+                    }
+
+
+                    const canvas =
+                        document.createElement(
+                            "canvas"
+                        );
+
+
+                    canvas.width =
+                        width;
+
+                    canvas.height =
+                        height;
+
+
+                    const ctx =
+                        canvas.getContext(
+                            "2d"
+                        );
+
+
+                    ctx.drawImage(
+                        img,
+                        0,
+                        0,
+                        width,
+                        height
+                    );
+
+
+                    /*
+                    =====================
+                    表示用サムネイル
+                    =====================
+                    */
+
+                    const smallImage =
+                        canvas.toDataURL(
+                            "image/jpeg",
+                            0.8
+                        );
+
+
+                    /*
+                    =====================
+                    写真ID
+                    =====================
+                    */
+
+                    const photoId =
+                        Date.now()
+                        +
+                        Math.random();
+
+
+                    /*
+                    =====================
+                    写真本体をIndexedDBへ保存
+                    =====================
+                    */
+
+                    await saveMediaFile(
+                        photoId,
+                        file,
+                        "photo"
+                    );
+
+
+                    /*
+                    =====================
+                    写真情報をdbへ保存
+                    =====================
+                    */
+
+                    photos.push({
+
+                        id:
+                            photoId,
+
+                        src:
+                            smallImage,
+
+                        favorite:
+                            false,
+
+                        star:
+                            0,
+
+                        tags:
+                            [],
+
+                        order:
+                            photoId
+
+                    });
+
+
+                    completed++;
+
+
+                    /*
+                    =====================
+                    全写真の処理完了
+                    =====================
+                    */
+
+                    if(
+                        completed >= files.length
+                    ){
+
+                        db.save(data);
+
+                        renderDayMemory();
+
+                    }
+
+
+                }catch(error){
+
+                    console.error(
+                        "写真保存エラー:",
+                        error
+                    );
+
+                    completed++;
+
+
+                    if(
+                        completed >= files.length
+                    ){
+
+                        db.save(data);
+
+                        renderDayMemory();
+
+                    }
+
+                }
+
+            };
+
+
+            img.src =
+                e.target.result;
+
+        };
+
+
+        reader.readAsDataURL(file);
+
+    });
+
+
+    /*
+    =====================
+    同じ写真を再度選択可能
+    =====================
+    */
+
+    event.target.value = "";
+
+}
+
+/* =====================
+   写真ビューア
+===================== */
+
+function openPhotoViewer(id){
+
+    const data = db.load();
+
+const photos = getViewerPhotos();
+
+    const photo =
+        photos.find(
+            p => p.id === id
+        );
+
+
+    if(!photo){
+        return;
+    }
+
+
+    currentPhotoId = id;
+
+    currentPhotoSrc = photo.src;
+
+
+    currentPhotoIndex =
+        photos.findIndex(
+            p => p.id === id
+        );
+
+
+
+    const img =
+        document.getElementById(
+            "photoViewerImage"
+        );
+
+
+    img.src = photo.src;
+
+
+const deleteBtn =
+    document.querySelector(".photo-delete");
+
+const closeBtn =
+    document.querySelector(".photo-close");
+
+
+if(deleteBtn){
+
+    if(favoriteViewMode){
+
+        deleteBtn.style.display = "none";
+
+        if(closeBtn){
+            closeBtn.style.right = "72px";
+        }
+
+    }else{
+
+        deleteBtn.style.display = "flex";
+
+        if(closeBtn){
+            closeBtn.style.right = "20px";
+        }
+
+    }
+
+}
+
+    img.style.transform =
+        "translate(0px,0px) scale(1)";
+
+
+    photoScale = 1;
+
+    photoTranslateX = 0;
+
+    photoTranslateY = 0;
+
+    lastDistance = 0;
+
+
+
+    updateFavoriteButton();
+
+
+
+    document
+    .getElementById(
+        "photoViewer"
+    )
+    .style.display = "flex";
+
+
+
+    document.body.style.overflow = "hidden";
+
+}
+
+function openFavoritePhotoViewer(id){
+
+    const data = db.load();
+
+    let targetPhoto = null;
+    let photos = [];
+
+
+    Object.values(data.dayMemories || {})
+    .forEach(day=>{
+
+        (day.photos || [])
+        .forEach(photo=>{
+
+            if(photo.favorite){
+
+                photos.push(photo);
+
+                if(photo.id === id){
+                    targetPhoto = photo;
+                }
+
+            }
+
+        });
+
+    });
+
+
+    if(!targetPhoto){
+        return;
+    }
+
+
+    favoriteViewMode = true;
+
+    currentPhotoId = id;
+
+    currentPhotoSrc = targetPhoto.src;
+
+
+    currentPhotoIndex =
+        photos.findIndex(
+            p => p.id === id
+        );
+
+
+    const img =
+        document.getElementById(
+            "photoViewerImage"
+        );
+
+
+    img.src = targetPhoto.src;
+
+
+    img.style.transform =
+        "translate(0px,0px) scale(1)";
+
+
+    photoScale = 1;
+    photoTranslateX = 0;
+    photoTranslateY = 0;
+    lastDistance = 0;
+
+
+    updateFavoriteButton();
+
+
+    document.getElementById(
+        "photoViewer"
+    ).style.display="flex";
+
+const deleteBtn =
+    document.querySelector(".photo-delete");
+
+
+if(deleteBtn){
+
+    deleteBtn.style.display = "none";
+
+    document.querySelector(".photo-close").style.right = "72px";
+
+}
+
+    document.getElementById("photoViewer").style.zIndex = "9999";
+
+    document.body.style.overflow="hidden";
+
+}
+
+function closePhotoViewer(){
+
+    document.getElementById("photoViewer").style.display = "none";
+
+    document.body.style.overflow = "";
+
+    photoScale = 1;
+    lastDistance = 0;
+
+    photoTranslateX = 0;
+    photoTranslateY = 0;
+
+    document.getElementById("photoViewerImage").style.transform =
+        "translate(0px,0px) scale(1)";
+        
+    favoriteViewMode = false;
+
+}
+
+
+function getViewerPhotos(){
+
+    const data = db.load();
+
+    let photos =
+        favoriteViewMode
+        ?
+        Object.values(data.dayMemories || {})
+            .flatMap(day => day.photos || [])
+            .filter(photo => photo.favorite)
+        :
+        [
+            ...(data.dayMemories?.[selectedCalendarDate]?.photos || [])
+        ];
+
+
+    /*
+    =====================
+    表示順と同じ順番にする
+    =====================
+    */
+
+    if(favoriteViewMode){
+
+        const sortMode =
+            localStorage.getItem("favoritePhotoSort")
+            || "new";
+
+
+        if(sortMode === "new"){
+
+            photos.sort(
+                (a,b)=>b.id-a.id
+            );
+
+        }
+
+
+        if(sortMode === "old"){
+
+            photos.sort(
+                (a,b)=>a.id-b.id
+            );
+
+        }
+
+
+        if(
+            sortMode === "favoriteNew" ||
+            sortMode === "favoriteOld"
+        ){
+
+            photos.sort(
+                (a,b)=>{
+
+                    const starA = a.star || 0;
+                    const starB = b.star || 0;
+
+
+                    if(starA !== starB){
+
+                        return starB - starA;
+
+                    }
+
+
+                    return sortMode === "favoriteNew"
+                        ? b.id - a.id
+                        : a.id - b.id;
+
+                }
+            );
+
+        }
+
+    }else{
+
+        const sortMode =
+            localStorage.getItem("calendarPhotoSort")
+            || "new";
+
+
+        if(sortMode === "free"){
+
+            photos.sort(
+                (a,b)=>
+                    (a.order || a.id) -
+                    (b.order || b.id)
+            );
+
+        }else if(sortMode === "old"){
+
+            photos.sort(
+                (a,b)=>a.id-b.id
+            );
+
+        }else if(
+            sortMode === "favoriteNew" ||
+            sortMode === "favoriteOld"
+        ){
+
+            photos.sort(
+                (a,b)=>{
+
+                    if(a.favorite !== b.favorite){
+
+                        return b.favorite - a.favorite;
+
+                    }
+
+                    return sortMode === "favoriteNew"
+                        ? b.id - a.id
+                        : a.id - b.id;
+
+                }
+            );
+
+        }else{
+
+            photos.sort(
+                (a,b)=>b.id-a.id
+            );
+
+        }
+
+    }
+
+
+    return photos;
+
+}
+
+function showPhoto(index){
+
+    const data = db.load();
+
+const photos = getViewerPhotos();
+
+    if(photos.length === 0){
+        return;
+    }
+
+
+    // 最後まで行ったら最初へ
+    if(index >= photos.length){
+
+        index = 0;
+
+    }
+
+
+    // 最初より前なら最後へ
+    if(index < 0){
+
+        index = photos.length - 1;
+
+    }
+
+
+    currentPhotoIndex = index;
+
+
+    // ★重要：表示中写真のIDを更新
+    currentPhotoId = photos[index].id;
+
+
+    currentPhotoSrc = photos[index].src;
+
+
+
+    document
+    .getElementById(
+        "photoViewerImage"
+    )
+    .src = currentPhotoSrc;
+
+
+
+    // ★スワイプ後の星状態更新
+    updateFavoriteButton();
+
+}
+
+/* =====================
+   お気に入り
+===================== */
+
+function toggleFavoritePhoto(){
+
+    const data = db.load();
+
+    const day =
+        data.dayMemories?.[selectedCalendarDate];
+
+
+    if(!day) return;
+
+
+const photo =
+    day.photos.find(
+        p => p.id === currentPhotoId
+    );
+
+    if(!photo) return;
+
+
+    photo.favorite =
+        !photo.favorite;
+
+
+    db.save(data);
+
+
+    updateFavoriteButton();
+
+}
+
+function updateFavoriteButton(){
+
+    const btn =
+        document.querySelector(
+            ".photo-favorite"
+        );
+
+
+    if(!btn) return;
+
+
+    const data = db.load();
+
+
+    let photo = null;
+
+
+    Object.values(
+        data.dayMemories || {}
+    )
+    .forEach(day=>{
+
+        (day.photos || [])
+        .forEach(p=>{
+
+            if(p.id === currentPhotoId){
+
+                photo = p;
+
+            }
+
+        });
+
+    });
+
+
+    if(photo && photo.favorite){
+
+        btn.textContent = "⭐";
+
+    }else{
+
+        btn.textContent = "☆";
+
+    }
+
+}
+
+/* =====================
+   写真操作
+===================== */
+
+function photoSwipe(event){
+
+    if(photoScale > 1){
+        return;
+    }
+
+    if(event.changedTouches.length !== 1){
+        return;
+    }
+
+    const touchEndX =
+        event.changedTouches[0].clientX;
+
+    const diff =
+        touchEndX - touchStartX;
+
+    if(Math.abs(diff) < 60){
+        return;
+    }
+
+    if(diff < 0){
+
+        showPhoto(currentPhotoIndex + 1);
+
+    }else{
+
+        showPhoto(currentPhotoIndex - 1);
+
+    }
+
+}
+
+function photoDragStart(event){
+
+    if(photoScale <= 1) return;
+
+    if(event.touches.length !== 1) return;
+
+    event.preventDefault();
+
+    dragStartX = event.touches[0].clientX;
+    dragStartY = event.touches[0].clientY;
+
+}
+
+function photoPinch(event){
+
+    const img =
+        document.getElementById("photoViewerImage");
+
+    // ----- 2本指ピンチ -----
+    if(event.touches.length === 2){
+
+        event.preventDefault();
+
+        const dx =
+            event.touches[0].clientX -
+            event.touches[1].clientX;
+
+        const dy =
+            event.touches[0].clientY -
+            event.touches[1].clientY;
+
+        const distance =
+            Math.sqrt(dx*dx + dy*dy);
+
+        if(lastDistance !== 0){
+
+            photoScale *= distance / lastDistance;
+
+            if(photoScale < 1){
+                photoScale = 1;
+            }
+
+            if(photoScale > 4){
+                photoScale = 4;
+            }
+
+            img.style.transform =
+                `translate(${photoTranslateX}px,${photoTranslateY}px) scale(${photoScale})`;
+
+        }
+
+        lastDistance = distance;
+
+        return;
+
+    }
+
+    // ----- 1本指ドラッグ -----
+
+    if(photoScale > 1 && event.touches.length === 1){
+
+        event.preventDefault();
+
+        const x =
+            event.touches[0].clientX;
+
+        const y =
+            event.touches[0].clientY;
+
+        photoTranslateX += x - dragStartX;
+        photoTranslateY += y - dragStartY;
+
+        dragStartX = x;
+        dragStartY = y;
+
+        img.style.transform =
+            `translate(${photoTranslateX}px,${photoTranslateY}px) scale(${photoScale})`;
+
+    }
+
+}
+
+function photoDragEnd(event){
+
+    if(event.changedTouches.length >= 2){
+        lastDistance = 0;
+    }
+
+}
+
+function photoDoubleTap(event){
+
+    // 2本指なら何もしない
+    if(event.changedTouches.length !== 1){
+        return;
+    }
+
+    const now = Date.now();
+
+    if(now - lastTapTime < 300){
+
+        if(photoScale === 1){
+
+            photoScale = 2;
+
+        }else{
+
+            photoScale = 1;
+            photoTranslateX = 0;
+            photoTranslateY = 0;
+
+        }
+
+        document.getElementById("photoViewerImage").style.transform =
+            `translate(${photoTranslateX}px,${photoTranslateY}px) scale(${photoScale})`;
+
+    }
+
+    lastTapTime = now;
+
+}
+
+/* =====================
+   共有・削除
+===================== */
+
+function shareCurrentPhoto(){
+
+    if(!currentPhotoSrc){
+        return;
+    }
+
+
+    // 画像共有対応端末
+
+    if(
+        navigator.share
+    ){
+
+        fetch(currentPhotoSrc)
+
+        .then(res=>res.blob())
+
+        .then(blob=>{
+
+
+            const file =
+                new File(
+                    [blob],
+                    "oshi-photo.jpg",
+                    {
+                        type:"image/jpeg"
+                    }
+                );
+
+
+            navigator.share({
+
+                files:[file],
+
+                title:"推し活手帳",
+
+                text:"お気に入り写真"
+
+            });
+
+
+        });
+
+
+    }else{
+
+
+        alert(
+            "この端末では共有機能に対応していません"
+        );
+
+
+    }
+
+}
+
+async function deleteCurrentPhoto(){
+
+    if(!confirm("この写真を削除しますか？")){
+        return;
+    }
+
+
+    const data = db.load();
+
+    const day =
+        data.dayMemories?.[
+            selectedCalendarDate
+        ];
+
+
+    if(!day || !day.photos){
+        return;
+    }
+
+
+    /*
+    =====================
+    削除対象の写真を取得
+    =====================
+    */
+
+    const photo =
+        day.photos.find(
+            p => p.id === currentPhotoId
+        );
+
+
+    if(!photo){
+        return;
+    }
+
+
+    /*
+    =====================
+    IndexedDBから
+    写真本体を削除
+    =====================
+    */
+
+    try{
+
+        await deleteMediaFile(
+            photo.id
+        );
+
+
+        /*
+        =====================
+        dbから写真情報を削除
+        =====================
+        */
+
+        day.photos =
+            day.photos.filter(
+                p => p.id !== photo.id
+            );
+
+
+        db.save(data);
+
+
+        /*
+        =====================
+        画面更新
+        =====================
+        */
+
+        closePhotoViewer();
+
+        renderDayMemory();
+
+
+    }catch(error){
+
+        console.error(
+            "写真削除エラー:",
+            error
+        );
+
+        alert(
+            "写真の削除に失敗しました"
+        );
+
+    }
+
+}
+
+/* =====================
+   写真複数共有
+===================== */
+
+function startPhotoShareMode(){
+
+    photoShareMode = true;
+
+    photoDeleteMode = false;
+    selectedDeletePhotoIds = [];
+
+    photoSortMode = false;
+
+    selectedSharePhotoIds = [];
+
+    renderDayPhotos();
+
+}
+
+function togglePhotoShareSelection(id){
+
+    id = Number(id);
+
+    const index =
+        selectedSharePhotoIds.indexOf(id);
+
+
+    if(index >= 0){
+
+        selectedSharePhotoIds.splice(
+            index,
+            1
+        );
+
+    }else{
+
+        selectedSharePhotoIds.push(id);
+
+    }
+
+
+    renderDayPhotos();
+
+}
+
+
+function cancelPhotoShareMode(){
+
+    photoShareMode = false;
+
+    selectedSharePhotoIds = [];
+
+    renderDayPhotos();
+
+}
+
+
+async function shareSelectedPhotos(){
+
+    if(selectedSharePhotoIds.length === 0){
+
+        alert("共有する写真を選択してください");
+
+        return;
+
+    }
+
+
+    const data = db.load();
+
+    const photos =
+        data.dayMemories
+        ?. [selectedCalendarDate]
+        ?. photos || [];
+
+
+    const selectedPhotos =
+        photos.filter(
+            photo =>
+                selectedSharePhotoIds.includes(
+                    Number(photo.id)
+                )
+        );
+
+
+    if(selectedPhotos.length === 0){
+
+        return;
+
+    }
+
+
+    try{
+
+        const files = [];
+
+
+        for(
+            let i = 0;
+            i < selectedPhotos.length;
+            i++
+        ){
+
+            const photo =
+                selectedPhotos[i];
+
+
+            const response =
+                await fetch(photo.src);
+
+
+            const blob =
+                await response.blob();
+
+
+            const file =
+                new File(
+                    [blob],
+                    `oshi-photo-${i + 1}.jpg`,
+                    {
+                        type:
+                            blob.type ||
+                            "image/jpeg"
+                    }
+                );
+
+
+            files.push(file);
+
+        }
+
+
+        if(
+            !navigator.share ||
+            !navigator.canShare ||
+            !navigator.canShare({
+                files: files
+            })
+        ){
+
+            alert(
+                "この端末では複数写真の共有に対応していません"
+            );
+
+            return;
+
+        }
+
+
+        await navigator.share({
+
+            files: files,
+
+            title:
+                "推し活手帳",
+
+            text:
+                `${files.length}枚の写真`
+
+        });
+
+
+        photoShareMode = false;
+
+        selectedSharePhotoIds = [];
+
+        renderDayPhotos();
+
+
+    }catch(error){
+
+        console.log(
+            "写真共有エラー:",
+            error
+        );
+
+    }
+
+}
+
+
+
+function getPhotoShareModeBar(){
+
+    return `
+
+<div class="photo-delete-bar">
+
+    <div class="photo-delete-title">
+        📤 写真を選択中
+    </div>
+
+    <div class="photo-delete-count">
+        ${selectedSharePhotoIds.length}枚選択
+    </div>
+
+    <button
+        onclick="cancelPhotoShareMode()">
+
+        キャンセル
+
+    </button>
+
+    <button
+        onclick="shareSelectedPhotos()"
+        ${selectedSharePhotoIds.length === 0
+            ? "disabled"
+            : ""}>
+
+        📤 共有
+
+    </button>
+
+</div>
+
+`;
+
+}
+
+/* =====================
+   お気に入り表示
+===================== */
+let showAllFavorites = false;
+
+
+/* =====================
+   お気に入り表示
+===================== */
+
+function displayFavorites(){
+
+    const data = db.load();
+
+    // 写真
+    const photos = [];
+
+    Object.values(data.dayMemories || {})
+    .forEach(day=>{
+
+        (day.photos || [])
+        .forEach(photo=>{
+
+            if(photo.favorite){
+
+                photos.push(photo);
+
+            }
+
+        });
+
+    });
+
+    const photoBox =
+        document.getElementById(
+            "favorite-photo-list"
+        );
+
+    if(photoBox){
+
+        if(photos.length === 0){
+
+            photoBox.innerHTML =
+                getPhotoToolbar("favorite") +
+                "お気に入り写真はありません";
+
+        }else{
+
+
+// お気に入り写真 並べ替え
+const favoriteSort =
+    localStorage.getItem("favoritePhotoSort")
+    || "new";
+
+
+if(favoriteSort === "new"){
+
+    photos.sort(
+        (a,b)=> b.id - a.id
+    );
+
+}
+
+
+if(favoriteSort === "old"){
+
+    photos.sort(
+        (a,b)=> a.id - b.id
+    );
+
+}
+
+
+if(favoriteSort === "favoriteNew"){
+
+    photos.sort(
+        (a,b)=>{
+
+            const starA = a.star || 0;
+            const starB = b.star || 0;
+
+
+            if(starA !== starB){
+
+                return starB - starA;
+
+            }
+
+
+            return b.id - a.id;
+
+        }
+    );
+
+}
+
+
+if(favoriteSort === "favoriteOld"){
+
+    photos.sort(
+        (a,b)=>{
+
+            const starA = a.star || 0;
+            const starB = b.star || 0;
+
+
+            if(starA !== starB){
+
+                return starB - starA;
+
+            }
+
+
+            return a.id - b.id;
+
+        }
+    );
+
+}
+
+
+
+
+            const showPhotos =
+                showAllFavorites
+                ?
+                photos
+                :
+                photos.slice(0,4);
+
+            photoBox.innerHTML =
+
+                getPhotoToolbar("favorite")
+
+                +
+
+                showPhotos.map(p=>`
+
+<div class="memory-photo-box">
+
+<img
+src="${p.src}"
+class="memory-photo"
+onclick="openFavoritePhotoViewer(${p.id})">
+
+</div>
+
+`).join("")
+
+                +
+
+                (
+
+                    photos.length > 4
+
+                    ?
+
+`
+
+<div
+class="favorite-more"
+onclick="
+showAllFavorites = !showAllFavorites;
+displayFavorites();
+">
+
+${showAllFavorites ? "閉じる" : "もっと見る"}
+
+</div>
+
+`
+
+                    :
+
+                    ""
+
+                );
+
+        }
+
+    }
+
+    const count =
+        document.getElementById(
+            "favorite-photo-count"
+        );
+
+    if(count){
+
+        count.textContent =
+            photos.length;
+
+    }
+
+}
+
+
+function renderDayPhotos(){
+
+    const data = db.load();
+
+    const day =
+        data.dayMemories?.[selectedCalendarDate];
+
+    const photoArea =
+        document.getElementById("photoList");
+
+    if(!photoArea) return;
+
+
+    if(day && day.photos && day.photos.length){
+
+        let photos = [...day.photos];
+
+
+        /* =====================
+           並び順
+        ===================== */
+
+        const sortMode =
+            localStorage.getItem("calendarPhotoSort")
+            || "new";
+
+
+        if(sortMode === "free"){
+
+            photos.sort(
+                (a,b)=>
+                    (a.order || a.id) -
+                    (b.order || b.id)
+            );
+
+        }else if(sortMode === "old"){
+
+            photos.sort(
+                (a,b)=>a.id-b.id
+            );
+
+        }else{
+
+            photos.sort(
+                (a,b)=>b.id-a.id
+            );
+
+        }
+
+
+        /* =====================
+           表示枚数を自動計算
+        ===================== */
+
+        const photoDisplayCount =
+            PHOTO_COLUMNS * PHOTO_ROWS;
+
+
+        const showPhotos =
+            showAllDayPhotos
+            ? photos
+            : photos.slice(
+                0,
+                photoDisplayCount
+            );
+
+
+        /* =====================
+           列数
+        ===================== */
+
+        photoArea.style.setProperty(
+            "--photo-columns",
+            PHOTO_COLUMNS
+        );
+
+
+        /* =====================
+           写真エリア
+        ===================== */
+
+        photoArea.innerHTML =
+
+        /* 削除モード */
+
+        (
+            photoDeleteMode
+            ?
+            getPhotoDeleteModeBar()
+            :
+            ""
+        )
+
+        +
+
+        /* 共有モード */
+
+        (
+            photoShareMode
+            ?
+            getPhotoShareModeBar()
+            :
+            ""
+        )
+
+        +
+
+        /* 自由並べ替え */
+
+        (
+            photoSortMode
+            ?
+            getPhotoFreeModeBar()
+            :
+            ""
+        )
+
+        +
+
+
+        /* =====================
+           写真
+        ===================== */
+
+        showPhotos.map(p=>`
+
+<div
+class="
+memory-photo-box
+
+${
+    photoDeleteMode &&
+    selectedDeletePhotoIds.includes(
+        Number(p.id)
+    )
+    ?
+    "photo-delete-selected"
+    :
+    ""
+}
+
+${
+    photoShareMode &&
+    selectedSharePhotoIds.includes(
+        Number(p.id)
+    )
+    ?
+    "photo-delete-selected"
+    :
+    ""
+}
+"
+
+data-photo-id="${p.id}"
+
+${
+    photoDeleteMode
+    ?
+    `onclick="toggleDeletePhoto(${p.id})"`
+
+    :
+
+    photoShareMode
+    ?
+    `onclick="togglePhotoShareSelection(${p.id})"`
+
+    :
+
+    ""
+}
+
+>
+
+<img
+src="${p.src}"
+
+class="memory-photo"
+
+draggable="false"
+
+${
+    photoSortMode
+    ?
+    ""
+
+    :
+
+    photoDeleteMode
+    ?
+    ""
+
+    :
+
+    photoShareMode
+    ?
+    ""
+
+    :
+
+    `onclick="openPhotoViewer(${p.id})"`
+}
+
+>
+
+
+<!-- 削除選択チェック -->
+
+${
+    photoDeleteMode
+    ?
+    `
+    <div class="photo-delete-check">
+
+        ${
+            selectedDeletePhotoIds.includes(
+                Number(p.id)
+            )
+            ?
+            "✓"
+            :
+            ""
+        }
+
+    </div>
+    `
+    :
+    ""
+}
+
+
+<!-- 共有選択チェック -->
+
+${
+    photoShareMode
+    ?
+    `
+    <div class="photo-delete-check">
+
+        ${
+            selectedSharePhotoIds.includes(
+                Number(p.id)
+            )
+            ?
+            "✓"
+            :
+            ""
+        }
+
+    </div>
+    `
+    :
+    ""
+}
+
+
+</div>
+
+`).join("")
+
+        +
+
+        /* =====================
+           もっと見る
+        ===================== */
+
+        (
+
+            photos.length > photoDisplayCount
+
+            ?
+
+            `
+
+            <div
+                class="favorite-more"
+
+                onclick="
+                    showAllDayPhotos =
+                        !showAllDayPhotos;
+
+                    renderDayPhotos();
+                "
+            >
+
+                ${
+                    showAllDayPhotos
+                    ?
+                    "閉じる"
+                    :
+                    "もっと見る"
+                }
+
+            </div>
+
+            `
+
+            :
+
+            ""
+
+        );
+
+
+    }else{
+
+
+        photoArea.innerHTML =
+            "写真はありません";
+
+
+    }
+
+}
+
+
+function getPhotoToolbar(type){
+
+    return `
+
+<div class="photo-toolbar">
+
+    <button
+        class="photo-sort-btn"
+        onclick="openPhotoSortMenu('${type}')">
+
+        並べ替え ▼
+
+    </button>
+
+</div>
+
+`;
+
+}
+
+
+function openPhotoSortMenu(type){
+
+    // 削除モード解除
+    photoDeleteMode = false;
+    selectedDeletePhotoIds = [];
+
+    // 共有モード解除
+    photoShareMode = false;
+    selectedSharePhotoIds = [];
+
+    // 並べ替えモード解除状態からメニューを開く
+    photoSortMode = false;
+
+    // 画面を更新
+    renderDayPhotos();
+
+    const menu =
+        document.getElementById("photoSortMenu");
+
+    if(!menu) return;
+
+    menu.dataset.type = type;
+
+    menu.style.display = "block";
+
+}
+
+function closePhotoSortMenu(){
+
+    document.getElementById(
+        "photoSortMenu"
+    ).style.display = "none";
+
+}
+
+function setPhotoSort(mode){
+
+    const menu =
+        document.getElementById("photoSortMenu");
+
+
+    if(!menu) return;
+
+
+    const type =
+        menu.dataset.type;
+
+
+    const data =
+        db.load();
+
+
+        localStorage.setItem(
+    "calendarPhotoSort",
+    mode
+);
+
+if(mode !== "free"){
+
+    photoSortMode = false;
+
+}
+
+if(mode === "free"){
+
+    photoSortMode = true;
+
+    photoDeleteMode = false;
+    selectedDeletePhotoIds = [];
+
+    photoShareMode = false;
+    selectedSharePhotoIds = [];
+
+    currentSortType = type;
+    
+    closePhotoSortMenu();
+
+    if(type === "calendar"){
+
+        renderDayPhotos();
+
+    }
+
+    if(type === "favorite"){
+
+        displayFavorites();
+
+    }
+
+    return;
+
+}
+
+
+    // カレンダー写真
+    if(type === "calendar"){
+
+
+        const photos =
+            data.dayMemories?.[selectedCalendarDate]?.photos;
+
+
+        if(!photos) return;
+
+
+
+        if(mode === "new"){
+
+            photos.sort(
+                (a,b)=> b.id - a.id
+            );
+
+        }
+
+
+        if(mode === "old"){
+
+            photos.sort(
+                (a,b)=> a.id - b.id
+            );
+
+        }
+
+
+        if(mode === "favoriteNew"){
+
+            photos.sort(
+                (a,b)=>{
+
+                    if(a.favorite !== b.favorite){
+
+                        return b.favorite - a.favorite;
+
+                    }
+
+                    return b.id - a.id;
+
+                }
+            );
+
+        }
+
+
+        if(mode === "favoriteOld"){
+
+            photos.sort(
+                (a,b)=>{
+
+                    if(a.favorite !== b.favorite){
+
+                        return b.favorite - a.favorite;
+
+                    }
+
+                    return a.id - b.id;
+
+                }
+            );
+
+        }
+
+
+        db.save(data);
+
+
+        renderDayPhotos();
+
+
+    }
+
+
+
+    // お気に入り写真
+if(type === "favorite"){
+
+    localStorage.setItem(
+        "favoritePhotoSort",
+        mode
+    );
+
+    displayFavorites();
+
+}
+
+
+    closePhotoSortMenu();
+
+}
+
+
+
+/* =====================
+   長押し自由並べ替え
+   長押しのみドラッグ
+   短い操作はスクロール
+===================== */
+
+let photoTouchMoved = false;
+
+let photoTouchStartX = 0;
+let photoTouchStartY = 0;
+
+
+/* 指を置いた時 */
+document.addEventListener(
+"touchstart",
+function(e){
+
+    if(!photoSortMode){
+        return;
+    }
+
+
+    const box =
+        e.target.closest(
+            ".memory-photo-box"
+        );
+
+
+    if(!box){
+        return;
+    }
+
+
+    draggingPhotoId =
+        Number(
+            box.dataset.photoId
+        );
+
+
+    draggingPhotoElement = box;
+
+
+    photoTouchMoved = false;
+
+
+    photoTouchStartX =
+        e.touches[0].clientX;
+
+    photoTouchStartY =
+        e.touches[0].clientY;
+
+
+    photoLongPressTimer =
+        setTimeout(()=>{
+
+
+            // 長押し成功
+            if(photoTouchMoved){
+                return;
+            }
+
+
+            isPhotoDragging = true;
+
+
+            box.classList.add(
+                "photo-dragging"
+            );
+
+
+            if(navigator.vibrate){
+
+                navigator.vibrate(30);
+
+            }
+
+
+        },70);
+
+
+},
+{
+    passive:true
+}
+);
+
+
+
+/* =====================
+   写真移動
+   画面上の「一番近い枠」へ移動
+===================== */
+
+/* =====================
+   指が入った写真の枠と位置交換
+===================== */
+
+document.addEventListener(
+"touchmove",
+function(e){
+
+    if(!photoSortMode){
+        return;
+    }
+
+
+    /* ドラッグ開始前
+       → 普通にスクロール */
+    if(!isPhotoDragging){
+
+        const dx =
+            Math.abs(
+                e.touches[0].clientX -
+                photoTouchStartX
+            );
+
+        const dy =
+            Math.abs(
+                e.touches[0].clientY -
+                photoTouchStartY
+            );
+
+
+        if(dx > 10 || dy > 10){
+
+            photoTouchMoved = true;
+
+            clearTimeout(
+                photoLongPressTimer
+            );
+
+            draggingPhotoId = null;
+
+        }
+
+        return;
+    }
+
+
+    /* ドラッグ中だけスクロール停止 */
+    e.preventDefault();
+
+
+    const touch =
+        e.touches[0];
+
+
+    /* 指が入っている写真枠を取得 */
+
+    const boxes =
+        [
+            ...document.querySelectorAll(
+                ".memory-photo-box"
+            )
+        ];
+
+
+    let targetBox = null;
+
+
+    boxes.forEach(box=>{
+
+        if(
+            box === draggingPhotoElement
+        ){
+            return;
+        }
+
+
+        const rect =
+            box.getBoundingClientRect();
+
+
+        if(
+
+            touch.clientX >= rect.left &&
+            touch.clientX <= rect.right &&
+            touch.clientY >= rect.top &&
+            touch.clientY <= rect.bottom
+
+        ){
+
+            targetBox = box;
+
+        }
+
+    });
+
+
+    if(!targetBox){
+        return;
+    }
+
+
+    /* =====================
+       位置を完全に交換
+    ===================== */
+
+    const parent =
+        draggingPhotoElement.parentNode;
+
+
+    const targetParent =
+        targetBox.parentNode;
+
+
+    const nextAfterTarget =
+        targetBox.nextSibling;
+
+
+    const nextAfterDragging =
+        draggingPhotoElement.nextSibling;
+
+
+    if(
+        nextAfterDragging === targetBox
+    ){
+
+        parent.insertBefore(
+            targetBox,
+            draggingPhotoElement
+        );
+
+    }else if(
+        nextAfterTarget === draggingPhotoElement
+    ){
+
+        parent.insertBefore(
+            draggingPhotoElement,
+            targetBox
+        );
+
+    }else{
+
+        parent.insertBefore(
+            draggingPhotoElement,
+            targetBox
+        );
+
+        parent.insertBefore(
+            targetBox,
+            nextAfterDragging
+        );
+
+    }
+
+},
+{
+    passive:false
+}
+);
+
+
+
+/* 指を離した時 */
+document.addEventListener(
+"touchend",
+function(){
+
+
+    clearTimeout(
+        photoLongPressTimer
+    );
+
+
+    if(draggingPhotoElement){
+
+        draggingPhotoElement.classList.remove(
+            "photo-dragging"
+        );
+
+    }
+
+
+    isPhotoDragging = false;
+
+
+    draggingPhotoId = null;
+
+
+},
+{
+    passive:true
+}
+);
+
+
+function getPhotoFreeModeBar(){
+
+return `
+
+<div class="photo-free-bar">
+
+    <div>
+        📷 自由変更中<br>
+        <small>
+        写真をドラッグして並べ替えてください
+        </small>
+    </div>
+
+
+    <button
+    onclick="finishPhotoSort()">
+
+        完了
+
+    </button>
+
+
+</div>
+
+`;
+
+}
+
+function finishPhotoSort(){
+
+    const data = db.load();
+
+    const photos =
+        data.dayMemories?.[selectedCalendarDate]?.photos;
+
+    if(photos){
+
+        document
+        .querySelectorAll(".memory-photo-box")
+        .forEach((box,index)=>{
+
+            const id =
+                Number(box.dataset.photoId);
+
+            const photo =
+                photos.find(
+                    p => p.id === id
+                );
+
+            if(photo){
+
+                photo.order = index + 1;
+
+            }
+
+        });
+
+        db.save(data);
+
+    }
+
+    photoSortMode = false;
+
+    renderDayPhotos();
+
+    alert("✅ 並び順を保存しました");
+
+}
+
+
+
+function startPhotoDeleteMode(){
+
+    photoDeleteMode = true;
+
+    photoShareMode = false;
+    selectedSharePhotoIds = [];
+
+    photoSortMode = false;
+
+    selectedDeletePhotoIds = [];
+
+    renderDayPhotos();
+
+}
+
+
+function toggleDeletePhoto(id){
+
+    id = Number(id);
+
+    const index =
+        selectedDeletePhotoIds.indexOf(id);
+
+
+    if(index >= 0){
+
+        selectedDeletePhotoIds.splice(
+            index,
+            1
+        );
+
+    }else{
+
+        selectedDeletePhotoIds.push(id);
+
+    }
+
+
+    renderDayPhotos();
+
+}
+
+function getPhotoDeleteModeBar(){
+
+    return `
+
+<div class="photo-delete-bar">
+
+    <span class="photo-delete-title">
+        🗑 写真を選択中
+    </span>
+
+    <span class="photo-delete-count">
+        ${selectedDeletePhotoIds.length}枚選択
+    </span>
+
+    <button
+        onclick="cancelPhotoDeleteMode()">
+        キャンセル
+    </button>
+
+    <button
+        onclick="deleteSelectedPhotos()"
+        ${selectedDeletePhotoIds.length === 0 ? "disabled" : ""}>
+        🗑 削除
+    </button>
+
+</div>
+
+`;
+
+}
+
+function cancelPhotoDeleteMode(){
+
+    photoDeleteMode = false;
+
+    selectedDeletePhotoIds = [];
+
+    renderDayPhotos();
+
+}
+
+
+async function deleteSelectedPhotos(){
+
+    if(
+        selectedDeletePhotoIds.length === 0
+    ){
+        return;
+    }
+
+
+    const count =
+        selectedDeletePhotoIds.length;
+
+
+    if(
+        !confirm(
+            `${count}枚の写真を削除しますか？`
+        )
+    ){
+        return;
+    }
+
+
+    const data = db.load();
+
+
+    const day =
+        data.dayMemories?.[
+            selectedCalendarDate
+        ];
+
+
+    if(!day || !day.photos){
+        return;
+    }
+
+
+    /*
+    =====================
+    削除対象を取得
+    =====================
+    */
+
+    const deletePhotos =
+        day.photos.filter(
+            photo =>
+                selectedDeletePhotoIds.includes(
+                    Number(photo.id)
+                )
+        );
+
+
+    try{
+
+        /*
+        =====================
+        IndexedDBから
+        写真本体を削除
+        =====================
+        */
+
+        for(
+            const photo of deletePhotos
+        ){
+
+            await deleteMediaFile(
+                photo.id
+            );
+
+        }
+
+
+        /*
+        =====================
+        dbから写真情報を削除
+        =====================
+        */
+
+        day.photos =
+            day.photos.filter(
+                photo =>
+                    !selectedDeletePhotoIds.includes(
+                        Number(photo.id)
+                    )
+            );
+
+
+        db.save(data);
+
+
+        /*
+        =====================
+        モード解除
+        =====================
+        */
+
+        photoDeleteMode = false;
+
+        selectedDeletePhotoIds = [];
+
+
+        /*
+        =====================
+        画面更新
+        =====================
+        */
+
+        renderDayMemory();
+
+
+    }catch(error){
+
+        console.error(
+            "複数写真削除エラー:",
+            error
+        );
+
+        alert(
+            "写真の削除に失敗しました"
+        );
+
+    }
+
+}

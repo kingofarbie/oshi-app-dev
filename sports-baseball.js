@@ -1,0 +1,2910 @@
+/* =====================================================
+   ⚾ 野球
+   sports-baseball.js
+
+   野球専用処理。
+===================================================== */
+
+
+
+
+/* =====================================================
+   ⚾ 閲覧画面 → 編集画面
+===================================================== */
+
+function editBaseballGame(){
+
+    if(!sportsSelectedDate){
+
+        return;
+
+    }
+
+    const date =
+        sportsSelectedDate;
+
+    openBaseballGameEditPage(
+        date
+    );
+
+}
+
+
+/* =====================================================
+   リアルタイム合計
+===================================================== */
+
+function updateBaseballLiveScore(){
+
+    const teamInputs =
+        document.querySelectorAll(
+            "[data-team-inning]"
+        );
+
+
+    const opponentInputs =
+        document.querySelectorAll(
+            "[data-opponent-inning]"
+        );
+
+
+    const teamScores =
+        Array.from(
+            teamInputs
+        ).map(
+            input =>
+                input.value
+        );
+
+
+    const opponentScores =
+        Array.from(
+            opponentInputs
+        ).map(
+            input =>
+                input.value
+        );
+
+
+    const teamTotal =
+        calculateBaseballTotal(
+            teamScores
+        );
+
+
+    const opponentTotal =
+        calculateBaseballTotal(
+            opponentScores
+        );
+
+
+    const teamTotalElement =
+        document.getElementById(
+            "baseballTeamTotal"
+        );
+
+
+    const opponentTotalElement =
+        document.getElementById(
+            "baseballOpponentTotal"
+        );
+
+
+    const finalScore =
+        document.getElementById(
+            "baseballFinalScore"
+        );
+
+
+    if(teamTotalElement){
+
+        teamTotalElement.textContent =
+            teamTotal;
+
+    }
+
+
+    if(opponentTotalElement){
+
+        opponentTotalElement.textContent =
+            opponentTotal;
+
+    }
+
+
+    if(finalScore){
+
+        finalScore.textContent =
+            `${teamTotal} - ${opponentTotal}`;
+
+    }
+
+
+    const opponentInput =
+        document.getElementById(
+            "baseballOpponent"
+        );
+
+
+    const opponentLabel =
+        document.getElementById(
+            "baseballOpponentLabel"
+        );
+
+
+    const finalOpponent =
+        document.getElementById(
+            "baseballFinalOpponent"
+        );
+
+
+    const opponent =
+        opponentInput
+        ? opponentInput.value.trim()
+        : "";
+
+
+    if(opponentLabel){
+
+        opponentLabel.textContent =
+            opponent ||
+            "対戦相手";
+
+    }
+
+
+    if(finalOpponent){
+
+        finalOpponent.textContent =
+            opponent ||
+            "対戦相手";
+
+    }
+
+}
+
+
+/* =====================================================
+   野球データ削除
+===================================================== */
+function deleteBaseballGame(){
+
+    if(!sportsSelectedDate){
+
+        return;
+
+    }
+
+
+    const data =
+        db.load();
+
+
+    if(!data.sportsCalendar){
+
+        return;
+
+    }
+
+
+    /*
+       ================================================
+       現在選択中のお気に入りの試合データを取得
+       ================================================
+    */
+
+    const games =
+        getCurrentSportsGames();
+
+
+    if(
+        !games ||
+        !games[sportsSelectedDate]
+    ){
+
+        return;
+
+    }
+
+
+    /*
+       ================================================
+       削除確認
+       ================================================
+    */
+
+    if(
+        !confirm(
+            "この試合記録を削除しますか？"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    /*
+       ================================================
+       現在選択中のお気に入りの
+       指定日の試合だけ削除
+       ================================================
+    */
+
+    delete games[
+        sportsSelectedDate
+    ];
+
+
+    /*
+       ================================================
+       現在選択中のお気に入りへ保存
+       
+       saveCurrentSportsGames() 側で
+       selectedIndex を使って保存する。
+       ================================================
+    */
+
+    saveCurrentSportsGames(
+        games
+    );
+
+
+
+    /*
+       ================================================
+       カレンダー再描画
+       ================================================
+    */
+
+    renderSportsCalendar();
+
+
+    /*
+       ================================================
+       選択日を解除
+       ================================================
+    */
+
+    sportsSelectedDate =
+        null;
+
+}
+
+/* =====================================================
+   ⚾ 野球編集フォーム
+===================================================== */
+
+/* =====================================================
+   ⚾ 野球編集画面
+   リアルタイム合計更新
+===================================================== */
+
+function updateBaseballEditScoreSummary(){
+
+    const form =
+        document.getElementById(
+            "baseballGameEditForm"
+        );
+
+
+    if(!form){
+
+        return;
+
+    }
+
+
+    /* =================================================
+       チーム名
+    ================================================= */
+
+    const teamInput =
+        document.getElementById(
+            "baseballEditTeam"
+        );
+
+
+    const opponentInput =
+        document.getElementById(
+            "baseballEditOpponent"
+        );
+
+
+    const team =
+        teamInput
+        ?
+        teamInput.value.trim()
+        :
+        "";
+
+
+    const opponent =
+        opponentInput
+        ?
+        opponentInput.value.trim()
+        :
+        "";
+
+
+    /* =================================================
+       12イニングの合計
+    ================================================= */
+
+    let teamTotal = 0;
+
+    let opponentTotal = 0;
+
+
+    for(
+        let i = 1;
+        i <= 12;
+        i++
+    ){
+
+        const teamScore =
+            document.getElementById(
+                `baseballEditTeamScore${i}`
+            );
+
+
+        const opponentScore =
+            document.getElementById(
+                `baseballEditOpponentScore${i}`
+            );
+
+
+        if(
+            teamScore &&
+            teamScore.value.trim() !== ""
+        ){
+
+            const value =
+                Number(
+                    teamScore.value
+                );
+
+
+            if(
+                Number.isFinite(value)
+            ){
+
+                teamTotal +=
+                    value;
+
+            }
+
+        }
+
+
+        if(
+            opponentScore &&
+            opponentScore.value.trim() !== ""
+        ){
+
+            const value =
+                Number(
+                    opponentScore.value
+                );
+
+
+            if(
+                Number.isFinite(value)
+            ){
+
+                opponentTotal +=
+                    value;
+
+            }
+
+        }
+
+    }
+
+
+    /* =================================================
+       ⚾ 上部スコア表示
+    ================================================= */
+
+    const scoreSummary =
+        form.querySelector(
+            ".baseball-edit-score-summary"
+        );
+
+
+    if(scoreSummary){
+
+        const nameElements =
+            scoreSummary.querySelectorAll(
+                ".baseball-edit-summary-team-name"
+            );
+
+
+        const scoreElements =
+            scoreSummary.querySelectorAll(
+                ".baseball-edit-summary-score"
+            );
+
+
+        if(nameElements[0]){
+
+            nameElements[0].textContent =
+                team ||
+                "応援チーム";
+
+        }
+
+
+        if(nameElements[1]){
+
+            nameElements[1].textContent =
+                opponent ||
+                "相手チーム";
+
+        }
+
+
+        if(scoreElements[0]){
+
+            scoreElements[0].textContent =
+                teamTotal;
+
+        }
+
+
+        if(scoreElements[1]){
+
+            scoreElements[1].textContent =
+                opponentTotal;
+
+        }
+
+    }
+
+
+    /* =================================================
+       ⚾ スコアボード右端「計」
+       チームごとの行に直接反映
+    ================================================= */
+
+    const teamFirstScore =
+        document.getElementById(
+            "baseballEditTeamScore1"
+        );
+
+
+    const opponentFirstScore =
+        document.getElementById(
+            "baseballEditOpponentScore1"
+        );
+
+
+    const teamRow =
+        teamFirstScore
+        ?
+        teamFirstScore.closest("tr")
+        :
+        null;
+
+
+    const opponentRow =
+        opponentFirstScore
+        ?
+        opponentFirstScore.closest("tr")
+        :
+        null;
+
+
+    if(teamRow){
+
+        const totalCell =
+            teamRow.querySelector(
+                ".baseball-score-total"
+            );
+
+
+        if(totalCell){
+
+            totalCell.textContent =
+                teamTotal;
+
+        }
+
+    }
+
+
+    if(opponentRow){
+
+        const totalCell =
+            opponentRow.querySelector(
+                ".baseball-score-total"
+            );
+
+
+        if(totalCell){
+
+            totalCell.textContent =
+                opponentTotal;
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   ⚾ 野球試合結果編集画面
+===================================================== */
+
+function renderBaseballGameEditForm(){
+
+    const form =
+        document.getElementById(
+            "baseballGameEditForm"
+        );
+
+
+    if(!form){
+
+        console.error(
+            "baseballGameEditForm が見つかりません"
+        );
+
+        return;
+
+    }
+
+
+    if(!sportsSelectedDate){
+
+        console.error(
+            "sportsSelectedDate が設定されていません"
+        );
+
+        return;
+
+    }
+
+
+    const games =
+        getCurrentBaseballGameForEdit();
+
+
+    const game =
+        games[sportsSelectedDate] ||
+        {};
+
+
+    const currentTeam =
+        getCurrentBaseballTeamForEdit();
+
+
+    /* =================================================
+       タイトル
+    ================================================= */
+
+    const title =
+        document.getElementById(
+            "baseballGameEditTitle"
+        );
+
+
+    if(title){
+
+        const dateObject =
+            new Date(
+                `${sportsSelectedDate}T00:00:00`
+            );
+
+
+        const weekdays = [
+            "日",
+            "月",
+            "火",
+            "水",
+            "木",
+            "金",
+            "土"
+        ];
+
+
+        title.textContent =
+            `⚾ ${dateObject.getFullYear()}年` +
+            `${dateObject.getMonth() + 1}月` +
+            `${dateObject.getDate()}日` +
+            `（${weekdays[dateObject.getDay()]}） 試合結果編集`;
+
+    }
+
+
+    /* =================================================
+       入力欄
+    ================================================= */
+
+    const teamInput =
+        document.getElementById(
+            "baseballEditTeam"
+        );
+
+
+    const opponentInput =
+        document.getElementById(
+            "baseballEditOpponent"
+        );
+
+
+    const resultSelect =
+        document.getElementById(
+            "baseballEditResult"
+        );
+
+
+    const battingOrderSelect =
+        document.getElementById(
+            "baseballEditBattingOrder"
+        );
+
+
+    const memoInput =
+        document.getElementById(
+            "baseballEditMemo"
+        );
+
+
+    const locationInput =
+        document.getElementById(
+            "baseballEditLocation"
+        );
+
+
+    const startingPitcherInput =
+        document.getElementById(
+            "baseballEditStartingPitcher"
+        );
+
+
+    const opponentPitcherInput =
+        document.getElementById(
+            "baseballEditOpponentPitcher"
+        );
+
+
+    /* =================================================
+       応援チーム
+    ================================================= */
+
+    if(teamInput){
+
+        teamInput.value =
+            currentTeam.team ||
+            game.team ||
+            "";
+
+    }
+
+
+    /* =================================================
+       対戦相手
+    ================================================= */
+
+    if(opponentInput){
+
+        opponentInput.value =
+            game.opponent ||
+            "";
+
+    }
+
+
+    /* =================================================
+       勝敗
+    ================================================= */
+
+    if(resultSelect){
+
+        resultSelect.value =
+            game.result ||
+            "";
+
+    }
+
+
+    /* =================================================
+       先攻・後攻
+    ================================================= */
+
+    if(battingOrderSelect){
+
+        battingOrderSelect.value =
+            game.battingOrder ||
+            "";
+
+    }
+
+
+    /* =================================================
+       メモ
+    ================================================= */
+
+    if(memoInput){
+
+        memoInput.value =
+            game.memo ||
+            "";
+
+    }
+
+
+    /* =================================================
+       場所
+    ================================================= */
+
+    if(locationInput){
+
+        locationInput.value =
+            game.location ||
+            "";
+
+    }
+
+
+    /* =================================================
+       応援チーム先発投手
+    ================================================= */
+
+    if(startingPitcherInput){
+
+        startingPitcherInput.value =
+            game.startingPitcher ||
+            "";
+
+    }
+
+
+    /* =================================================
+       相手チーム先発投手
+    ================================================= */
+
+    if(opponentPitcherInput){
+
+        opponentPitcherInput.value =
+            game.opponentStartingPitcher ||
+            "";
+
+    }
+
+
+    /* =================================================
+       イニングスコア
+    ================================================= */
+
+    const teamScores =
+        Array.isArray(
+            game.teamScores
+        )
+        ?
+        game.teamScores
+        :
+        [];
+
+
+    const opponentScores =
+        Array.isArray(
+            game.opponentScores
+        )
+        ?
+        game.opponentScores
+        :
+        [];
+
+
+    for(
+        let i = 0;
+        i < 12;
+        i++
+    ){
+
+        const teamScore =
+            document.getElementById(
+                `baseballEditTeamScore${i + 1}`
+            );
+
+
+        const opponentScore =
+            document.getElementById(
+                `baseballEditOpponentScore${i + 1}`
+            );
+
+
+        if(teamScore){
+
+            teamScore.value =
+                teamScores[i] ??
+                "";
+
+        }
+
+
+        if(opponentScore){
+
+            opponentScore.value =
+                opponentScores[i] ??
+                "";
+
+        }
+
+    }
+
+
+    /* =================================================
+       ⚾ スコアボード上部
+       チーム名 ＋ 現在の合計
+    ================================================= */
+
+    let scoreSummary =
+        form.querySelector(
+            ".baseball-edit-score-summary"
+        );
+
+
+    const inningBoard =
+        form.querySelector(
+            ".baseball-view-inning-board"
+        );
+
+
+    if(inningBoard){
+
+        if(!scoreSummary){
+
+            scoreSummary =
+                document.createElement(
+                    "div"
+                );
+
+
+            scoreSummary.className =
+                "baseball-edit-score-summary";
+
+
+            scoreSummary.innerHTML = `
+
+                <div class="baseball-edit-summary-team">
+
+                    <div class="baseball-edit-summary-team-name">
+                    </div>
+
+                    <div class="baseball-edit-summary-score">
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="baseball-edit-summary-separator">
+                    -
+                </div>
+
+
+                <div class="baseball-edit-summary-team">
+
+                    <div class="baseball-edit-summary-team-name">
+                    </div>
+
+                    <div class="baseball-edit-summary-score">
+                        0
+                    </div>
+
+                </div>
+
+            `;
+
+
+            inningBoard.parentNode.insertBefore(
+                scoreSummary,
+                inningBoard
+            );
+
+        }
+
+    }
+
+
+    /* =================================================
+       ⚾ スコア入力
+       入力するたびにリアルタイム更新
+    ================================================= */
+
+    for(
+        let i = 1;
+        i <= 12;
+        i++
+    ){
+
+        const teamScore =
+            document.getElementById(
+                `baseballEditTeamScore${i}`
+            );
+
+
+        const opponentScore =
+            document.getElementById(
+                `baseballEditOpponentScore${i}`
+            );
+
+
+        if(teamScore){
+
+            teamScore.oninput =
+                updateBaseballEditScoreSummary;
+
+        }
+
+
+        if(opponentScore){
+
+            opponentScore.oninput =
+                updateBaseballEditScoreSummary;
+
+        }
+
+    }
+
+
+    /* =================================================
+       チーム名変更
+    ================================================= */
+
+    if(teamInput){
+
+        teamInput.oninput =
+            function(){
+
+                updateBaseballEditScoreSummary();
+
+                updateBaseballEditBattingOrder();
+
+            };
+
+    }
+
+
+    if(opponentInput){
+
+        opponentInput.oninput =
+            function(){
+
+                updateBaseballEditScoreSummary();
+
+                updateBaseballEditBattingOrder();
+
+            };
+
+    }
+
+
+    /* =================================================
+       先攻・後攻変更
+    ================================================= */
+
+    if(battingOrderSelect){
+
+        battingOrderSelect.onchange =
+            function(){
+
+                updateBaseballEditBattingOrder();
+
+                updateBaseballEditScoreSummary();
+
+            };
+
+    }
+
+
+    /* =================================================
+       初期表示
+    ================================================= */
+
+    updateBaseballEditBattingOrder();
+
+    updateBaseballEditScoreSummary();
+
+
+    /* =================================================
+       編集画面を表示
+    ================================================= */
+
+    const editPage =
+        document.getElementById(
+            "baseballGameEditPage"
+        );
+
+
+    if(editPage){
+
+        editPage.classList.add(
+            "active"
+        );
+
+        editPage.style.display =
+            "block";
+
+    }
+
+}
+
+/* =====================================================
+   ⚾ 編集画面スコアボード
+   先攻・後攻変更
+===================================================== */
+
+function updateBaseballEditBattingOrder(){
+
+    const battingOrderSelect =
+        document.getElementById(
+            "baseballEditBattingOrder"
+        );
+
+    if(!battingOrderSelect){
+
+        return;
+
+    }
+
+
+    const teamInput =
+        document.getElementById(
+            "baseballEditTeam"
+        );
+
+    const opponentInput =
+        document.getElementById(
+            "baseballEditOpponent"
+        );
+
+
+    const team =
+        teamInput
+        ?
+        teamInput.value.trim()
+        :
+        "応援チーム";
+
+
+    const opponent =
+        opponentInput
+        ?
+        opponentInput.value.trim()
+        :
+        "相手チーム";
+
+
+    /* =================================================
+       スコアボードの行
+    ================================================= */
+
+    const teamScoreInput =
+        document.getElementById(
+            "baseballEditTeamScore1"
+        );
+
+    const opponentScoreInput =
+        document.getElementById(
+            "baseballEditOpponentScore1"
+        );
+
+
+    if(
+        !teamScoreInput ||
+        !opponentScoreInput
+    ){
+
+        return;
+
+    }
+
+
+    const teamRow =
+        teamScoreInput.closest(
+            "tr"
+        );
+
+
+    const opponentRow =
+        opponentScoreInput.closest(
+            "tr"
+        );
+
+
+    if(
+        !teamRow ||
+        !opponentRow
+    ){
+
+        return;
+
+    }
+
+
+    const tbody =
+        teamRow.parentElement;
+
+
+    if(!tbody){
+
+        return;
+
+    }
+
+
+    /* =================================================
+       現在の表示順を確認
+    ================================================= */
+
+    const rows =
+        Array.from(
+            tbody.querySelectorAll("tr")
+        );
+
+
+    if(rows.length < 2){
+
+        return;
+
+    }
+
+
+    const firstRow =
+        rows[0];
+
+
+    const secondRow =
+        rows[1];
+
+
+    /* =================================================
+       応援チームが後攻
+    ================================================= */
+
+    if(
+        battingOrderSelect.value ===
+        "opponent_first"
+    ){
+
+        /*
+           相手チーム
+           ↓
+           応援チーム
+        */
+
+        if(firstRow !== opponentRow){
+
+            tbody.insertBefore(
+                opponentRow,
+                teamRow
+            );
+
+        }
+
+    }
+
+
+    /* =================================================
+       応援チームが先攻
+    ================================================= */
+
+    else{
+
+        /*
+           応援チーム
+           ↓
+           相手チーム
+        */
+
+        if(firstRow !== teamRow){
+
+            tbody.insertBefore(
+                teamRow,
+                opponentRow
+            );
+
+        }
+
+    }
+
+
+    /* =================================================
+       行を入れ替えた後の名前
+    ================================================= */
+
+    const currentRows =
+        tbody.querySelectorAll("tr");
+
+
+    if(currentRows.length < 2){
+
+        return;
+
+    }
+
+
+    const firstName =
+        currentRows[0].querySelector(
+            ".baseball-score-team"
+        );
+
+
+    const secondName =
+        currentRows[1].querySelector(
+            ".baseball-score-team"
+        );
+
+
+    if(
+        battingOrderSelect.value ===
+        "opponent_first"
+    ){
+
+        if(firstName){
+
+            firstName.textContent =
+                opponent ||
+                "相手チーム";
+
+        }
+
+
+        if(secondName){
+
+            secondName.textContent =
+                team ||
+                "応援チーム";
+
+        }
+
+    }else{
+
+        if(firstName){
+
+            firstName.textContent =
+                team ||
+                "応援チーム";
+
+        }
+
+
+        if(secondName){
+
+            secondName.textContent =
+                opponent ||
+                "相手チーム";
+
+        }
+
+    }
+
+}
+
+
+
+/* =====================================================
+   ⚾ 編集画面リアルタイム更新
+===================================================== */
+
+function updateBaseballEditLive(){
+
+    const opponentInput =
+        document.getElementById(
+            "baseballEditOpponent"
+        );
+
+
+    const opponent =
+        opponentInput
+        ?
+        opponentInput.value.trim()
+        :
+        "";
+
+
+    const opponentLabel =
+        document.getElementById(
+            "baseballEditOpponentLabel"
+        );
+
+
+    if(opponentLabel){
+
+        opponentLabel.textContent =
+            opponent ||
+            "対戦相手";
+
+    }
+
+
+    const teamInputs =
+        document.querySelectorAll(
+            "[data-team-inning]"
+        );
+
+
+    const opponentInputs =
+        document.querySelectorAll(
+            "[data-opponent-inning]"
+        );
+
+
+    const teamScores =
+        Array.from(
+            teamInputs
+        ).map(
+            input =>
+                input.value
+        );
+
+
+    const opponentScores =
+        Array.from(
+            opponentInputs
+        ).map(
+            input =>
+                input.value
+        );
+
+
+    const teamTotal =
+        calculateBaseballTotal(
+            teamScores
+        );
+
+
+    const opponentTotal =
+        calculateBaseballTotal(
+            opponentScores
+        );
+
+
+    const teamTotalElement =
+        document.getElementById(
+            "baseballEditTeamTotal"
+        );
+
+
+    const opponentTotalElement =
+        document.getElementById(
+            "baseballEditOpponentTotal"
+        );
+
+
+    if(teamTotalElement){
+
+        teamTotalElement.textContent =
+            teamTotal;
+
+    }
+
+
+    if(opponentTotalElement){
+
+        opponentTotalElement.textContent =
+            opponentTotal;
+
+    }
+
+
+    const preview =
+        document.querySelector(
+            "#baseballEditScorePreview strong"
+        );
+
+
+    if(preview){
+
+        preview.textContent =
+            `${teamTotal} - ${opponentTotal}`;
+
+    }
+
+
+    /*
+       表・裏による表示順変更
+    */
+
+    updateBaseballEditSideDisplay();
+
+}
+
+
+/* =====================================================
+   ⚾ 表・裏表示
+===================================================== */
+
+function updateBaseballEditSideDisplay(){
+
+    const side =
+        document.querySelector(
+            'input[name="baseballInningSide"]:checked'
+        )?.value ||
+        "";
+
+
+    const teamLabel =
+        document.getElementById(
+            "baseballEditTeamLabel"
+        );
+
+
+    const opponentLabel =
+        document.getElementById(
+            "baseballEditOpponentLabel"
+        );
+
+
+    const data =
+        db.load();
+
+
+    const settings =
+        data.sportsCalendar || {};
+
+
+    const selectedIndex =
+        typeof settings.selectedIndex === "number"
+        ?
+        settings.selectedIndex
+        :
+        0;
+
+
+    const current =
+        settings.favoriteSports?.[
+            selectedIndex
+        ];
+
+
+    const team =
+        current?.team ||
+        "自分のチーム";
+
+
+    const opponent =
+        document.getElementById(
+            "baseballEditOpponent"
+        )?.value.trim() ||
+        "対戦相手";
+
+
+    if(side === "top"){
+
+        if(teamLabel){
+
+            teamLabel.textContent =
+                `${team}（表）`;
+
+        }
+
+
+        if(opponentLabel){
+
+            opponentLabel.textContent =
+                `${opponent}（裏）`;
+
+        }
+
+    }else if(side === "bottom"){
+
+        if(teamLabel){
+
+            teamLabel.textContent =
+                `${team}（裏）`;
+
+        }
+
+
+        if(opponentLabel){
+
+            opponentLabel.textContent =
+                `${opponent}（表）`;
+
+        }
+
+    }else{
+
+        if(teamLabel){
+
+            teamLabel.textContent =
+                team;
+
+        }
+
+
+        if(opponentLabel){
+
+            opponentLabel.textContent =
+                opponent;
+
+        }
+
+    }
+
+}
+
+
+
+/* =====================================================
+   ⚾ 編集画面から野球試合を保存
+===================================================== */
+
+function saveBaseballGameFromEditPage(){
+
+    console.log(
+        "saveBaseballGameFromEditPage 実行"
+    );
+
+
+    /* =====================
+       試合日チェック
+    ===================== */
+
+    if(!sportsSelectedDate){
+
+        alert(
+            "試合日が選択されていません。"
+        );
+
+        return;
+
+    }
+
+
+    /* =====================
+       入力値取得
+    ===================== */
+
+    const teamInput =
+        document.getElementById(
+            "baseballEditTeam"
+        );
+
+
+    const opponentInput =
+        document.getElementById(
+            "baseballEditOpponent"
+        );
+
+
+    const battingOrderSelect =
+        document.getElementById(
+            "baseballEditBattingOrder"
+        );
+
+
+    const locationInput =
+        document.getElementById(
+            "baseballEditLocation"
+        );
+
+
+    const startingPitcherInput =
+        document.getElementById(
+            "baseballEditStartingPitcher"
+        );
+
+
+    const opponentPitcherInput =
+        document.getElementById(
+            "baseballEditOpponentPitcher"
+        );
+
+
+    const resultSelect =
+        document.getElementById(
+            "baseballEditResult"
+        );
+
+
+    const memoInput =
+        document.getElementById(
+            "baseballEditMemo"
+        );
+
+
+    /* =====================
+       値
+    ===================== */
+
+    const team =
+        teamInput
+        ?
+        teamInput.value.trim()
+        :
+        "";
+
+
+    const opponent =
+        opponentInput
+        ?
+        opponentInput.value.trim()
+        :
+        "";
+
+
+    const battingOrder =
+        battingOrderSelect
+        ?
+        battingOrderSelect.value
+        :
+        "";
+
+
+    const location =
+        locationInput
+        ?
+        locationInput.value.trim()
+        :
+        "";
+
+
+    const startingPitcher =
+        startingPitcherInput
+        ?
+        startingPitcherInput.value.trim()
+        :
+        "";
+
+
+    const opponentStartingPitcher =
+        opponentPitcherInput
+        ?
+        opponentPitcherInput.value.trim()
+        :
+        "";
+
+
+    const result =
+        resultSelect
+        ?
+        resultSelect.value
+        :
+        "";
+
+
+    const memo =
+        memoInput
+        ?
+        memoInput.value.trim()
+        :
+        "";
+
+
+    /* =====================
+       対戦相手チェック
+    ===================== */
+
+    if(!opponent){
+
+        alert(
+            "相手チームを入力してください。"
+        );
+
+        if(opponentInput){
+
+            opponentInput.focus();
+
+        }
+
+        return;
+
+    }
+
+
+    /* =====================
+       イニングスコア取得
+    ===================== */
+
+    const teamInputs =
+        document.querySelectorAll(
+            "#baseballGameEditForm [id^='baseballEditTeamScore']"
+        );
+
+
+    const opponentInputs =
+        document.querySelectorAll(
+            "#baseballGameEditForm [id^='baseballEditOpponentScore']"
+        );
+
+
+    const teamScores =
+        Array.from(
+            teamInputs
+        ).map(
+            input => {
+
+                if(input.value === ""){
+
+                    return "";
+
+                }
+
+                return Number(
+                    input.value
+                );
+
+            }
+        );
+
+
+    const opponentScores =
+        Array.from(
+            opponentInputs
+        ).map(
+            input => {
+
+                if(input.value === ""){
+
+                    return "";
+
+                }
+
+                return Number(
+                    input.value
+                );
+
+            }
+        );
+
+
+    /* =====================
+       12回分を必ず保持
+    ===================== */
+
+    while(teamScores.length < 12){
+
+        teamScores.push("");
+
+    }
+
+
+    while(opponentScores.length < 12){
+
+        opponentScores.push("");
+
+    }
+
+
+    /* =====================
+       合計
+    ===================== */
+
+    const teamTotal =
+        calculateBaseballTotal(
+            teamScores
+        );
+
+
+    const opponentTotal =
+        calculateBaseballTotal(
+            opponentScores
+        );
+
+
+    /* =====================
+       保存データ
+    ===================== */
+
+    const game = {
+
+        sport:
+            "baseball",
+
+        team:
+            team,
+
+        opponent:
+            opponent,
+
+        battingOrder:
+            battingOrder,
+
+        location:
+            location,
+
+        startingPitcher:
+            startingPitcher,
+
+        opponentStartingPitcher:
+            opponentStartingPitcher,
+
+        teamScores:
+            teamScores,
+
+        opponentScores:
+            opponentScores,
+
+        teamTotal:
+            teamTotal,
+
+        opponentTotal:
+            opponentTotal,
+
+        result:
+            result,
+
+        memo:
+            memo,
+
+        updatedAt:
+            new Date().toISOString()
+
+    };
+
+
+    console.log(
+        "保存する野球データ:",
+        game
+    );
+
+
+    /* =====================
+       保存
+    ===================== */
+
+    saveSportsGameData(
+        sportsSelectedDate,
+        game
+    );
+
+
+    console.log(
+        "野球試合データ保存完了"
+    );
+
+
+
+    console.log(
+    "★★ 保存後 games:",
+    getCurrentSportsGames()
+);
+
+console.log(
+    "★★ 保存後 date:",
+    sportsSelectedDate
+);
+
+console.log(
+    "★★ 保存後 game:",
+    getCurrentSportsGames()[sportsSelectedDate]
+);
+
+
+    /* =====================
+       保存日を保持
+    ===================== */
+
+    const savedDate =
+        sportsSelectedDate;
+
+
+    /* =====================
+       編集画面を閉じる
+    ===================== */
+
+    closeSportsGameEditPage();
+
+
+    /* =====================
+       保存した試合の詳細画面
+    ===================== */
+
+    if(savedDate){
+
+        openSportGameDetailPage(
+            savedDate
+        );
+
+    }
+
+}
+
+
+
+async function loadBaseballGameEditHTML(){
+
+    const container =
+        document.getElementById(
+            "sportsGameEditContainer"
+        );
+
+
+    if(!container){
+
+        console.error(
+            "❌ sportsGameEditContainer が見つかりません"
+        );
+
+        return false;
+
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                "./sports-baseball-edit.html"
+            );
+
+
+        if(!response.ok){
+
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+
+        }
+
+
+        const html =
+            await response.text();
+
+
+        container.innerHTML =
+            html;
+
+
+        console.log(
+            "sports-baseball-edit.html（野球）読み込み成功"
+        );
+
+
+        return true;
+
+    }
+    catch(error){
+
+        console.error(
+            "sports-baseball-edit.html（野球）の読み込みに失敗:",
+            error
+        );
+
+        return false;
+
+    }
+
+}
+
+
+async function openBaseballGameEditPage(date){
+
+        hideSportsSubPages();
+
+    sportsSelectedDate =
+        date;
+
+
+    const sportsPage =
+        document.getElementById(
+            "sportsCalendarPage"
+        );
+
+
+    const editPage =
+        document.getElementById(
+            "sportsGameEditPage"
+        );
+
+
+    if(
+        !sportsPage ||
+        !editPage
+    ){
+
+        console.error(
+            "❌ 野球スポーツカレンダーまたは編集ページが見つかりません"
+        );
+
+        return;
+
+    }
+
+
+    sportsPage.style.display =
+        "none";
+
+    sportsPage.classList.remove(
+        "active"
+    );
+
+
+    editPage.style.display =
+        "block";
+
+    editPage.classList.add(
+        "active"
+    );
+
+
+    const loaded =
+        await loadBaseballGameEditHTML();
+
+
+    if(!loaded){
+
+        return;
+
+    }
+
+
+    renderBaseballGameEditForm();
+
+
+}
+
+
+
+
+/* =====================================================
+   ⚾ 現在の試合データ取得
+===================================================== */
+
+function getCurrentBaseballGameForEdit(){
+
+    const data =
+        db.load();
+
+
+    const settings =
+        data.sportsCalendar ||
+        {};
+
+
+    const games =
+        settings.games;
+
+
+    if(
+        !games ||
+        typeof games !== "object" ||
+        Array.isArray(games)
+    ){
+
+        return {};
+
+    }
+
+
+    /*
+       ================================================
+       現在選択中のお気に入り番号
+       ================================================
+    */
+
+    const selectedIndex =
+        typeof settings.selectedIndex === "number"
+        ?
+        settings.selectedIndex
+        :
+        0;
+
+
+    /*
+       ================================================
+       現在選択中のお気に入りの
+       試合データを取得
+       
+       games[0] → 野球（中日）
+       games[1] → サッカー（グランパス）
+       games[2] → 野球（サムライJAPAN）
+       ================================================
+    */
+
+    const baseballGames =
+        games[selectedIndex];
+
+
+    if(
+        !baseballGames ||
+        typeof baseballGames !== "object" ||
+        Array.isArray(baseballGames)
+    ){
+
+        return {};
+
+    }
+
+
+    return baseballGames;
+
+}
+
+
+/* =====================================================
+   ⚾ 現在の応援チーム取得
+===================================================== */
+
+function getCurrentBaseballTeamForEdit(){
+
+    const data =
+        db.load();
+
+
+    const settings =
+        data.sportsCalendar ||
+        {};
+
+
+    const selectedIndex =
+        typeof settings.selectedIndex === "number"
+        ?
+        settings.selectedIndex
+        :
+        0;
+
+
+    const favoriteSports =
+        Array.isArray(
+            settings.favoriteSports
+        )
+        ?
+        settings.favoriteSports
+        :
+        [];
+
+
+    const current =
+        favoriteSports[selectedIndex] ||
+        {};
+
+
+    return {
+
+        sport:
+            current.sport ||
+            "baseball",
+
+        team:
+            current.team ||
+            ""
+
+    };
+
+}
+
+
+
+/* =====================================================
+   ⚾ 野球試合 閲覧画面
+===================================================== */
+
+function showBaseballGameDetail(date){
+
+    console.log("★★ showBaseballGameDetail 本体に入った", date);
+
+    sportsSelectedDate =
+        date;
+
+
+    const games =
+        getCurrentSportsGames();
+
+
+    const game =
+        games[date] ||
+        null;
+
+        console.log("★★ game:", game);
+console.log("★★ battingOrder:", game?.battingOrder);
+
+
+    if(!game){
+
+        return;
+
+    }
+
+
+    const title =
+        document.getElementById(
+            "sportsGameDetailTitle"
+        );
+
+
+    const detail =
+        document.getElementById(
+            "sportsGameDetail"
+        );
+
+console.log("★★ detail =", detail);
+
+
+    if(!detail){
+
+        return;
+
+    }
+
+
+    const data =
+        db.load();
+
+
+    const selectedIndex =
+        typeof data.sportsCalendar?.selectedIndex === "number"
+        ?
+        data.sportsCalendar.selectedIndex
+        :
+        0;
+
+
+    const favoriteSports =
+        Array.isArray(
+            data.sportsCalendar?.favoriteSports
+        )
+        ?
+        data.sportsCalendar.favoriteSports
+        :
+        [];
+
+
+    const current =
+        favoriteSports[selectedIndex];
+
+
+    const team =
+        current?.team ||
+        game.team ||
+        data.sportsCalendar?.team ||
+        "自分のチーム";
+
+
+    const opponent =
+        game.opponent ||
+        "対戦相手";
+
+const battingOrder =
+    game.battingOrder ||
+    "";
+
+    const location =
+        game.location ||
+        "";
+
+
+    const startingPitcher =
+        game.startingPitcher ||
+        "";
+
+
+    const opponentStartingPitcher =
+        game.opponentStartingPitcher ||
+        "";
+
+    const opponentFirst =
+    game.battingOrder === "opponent_first";
+
+    console.log(
+    "★ battingOrder:",
+    game.battingOrder
+);
+
+    const teamScores =
+        Array.isArray(game.teamScores)
+        ?
+        game.teamScores
+        :
+        [];
+
+
+    const opponentScores =
+        Array.isArray(game.opponentScores)
+        ?
+        game.opponentScores
+        :
+        [];
+
+
+    const teamTotal =
+        calculateBaseballTotal(
+            teamScores
+        );
+
+
+    const opponentTotal =
+        calculateBaseballTotal(
+            opponentScores
+        );
+
+
+    /* =================================================
+       日付
+    ================================================= */
+
+    const dateObject =
+        new Date(
+            `${date}T00:00:00`
+        );
+
+
+    const weekdays = [
+        "日",
+        "月",
+        "火",
+        "水",
+        "木",
+        "金",
+        "土"
+    ];
+
+
+    const dateText =
+        `${dateObject.getFullYear()}年` +
+        `${dateObject.getMonth() + 1}月` +
+        `${dateObject.getDate()}日` +
+        `（${weekdays[dateObject.getDay()]}）`;
+
+
+    if(title){
+
+        title.innerHTML =
+            `⚾ ${dateText} 試合結果`;
+
+    }
+
+
+    /* =================================================
+       結果表示
+    ================================================= */
+
+let resultHTML = "";
+
+
+if(game.result === "win"){
+
+    resultHTML = `
+        <div class="baseball-view-result win">
+            〇 勝ち
+        </div>
+    `;
+
+}else if(game.result === "lose"){
+
+    resultHTML = `
+        <div class="baseball-view-result lose">
+            ✕ 負け
+        </div>
+    `;
+
+}else if(game.result === "draw"){
+
+    resultHTML = `
+        <div class="baseball-view-result draw">
+            △ 引分
+        </div>
+    `;
+
+}else if(game.result === "scheduled"){
+
+    resultHTML = `
+        <div class="baseball-view-result scheduled">
+            － 予定
+        </div>
+    `;
+
+}else if(game.result === "cancelled"){
+
+    resultHTML = `
+        <div class="baseball-view-result cancelled">
+            中止
+        </div>
+    `;
+
+}else if(game.result === "postponed"){
+
+    resultHTML = `
+        <div class="baseball-view-result postponed">
+            延期
+        </div>
+    `;
+
+}
+
+
+    /* =================================================
+       メモ
+    ================================================= */
+
+    const memoHTML =
+        game.memo
+        ?
+        `
+        <div class="baseball-view-memo">
+
+            <div class="baseball-view-section-title">
+                📝 メモ
+            </div>
+
+            <div class="baseball-view-memo-text">
+                ${escapeSportsHTML(game.memo)}
+            </div>
+
+        </div>
+        `
+        :
+        "";
+
+
+    /* =================================================
+       閲覧画面
+    ================================================= */
+
+    detail.innerHTML = `
+
+        <div class="baseball-game-view">
+
+
+<div class="baseball-stadium-bg">
+
+    <!-- 空 -->
+    <div class="stadium-bg-sky"></div>
+
+    <!-- 雲 -->
+    <div class="stadium-bg-cloud stadium-bg-cloud-left"></div>
+    <div class="stadium-bg-cloud stadium-bg-cloud-right"></div>
+
+    <!-- 照明塔：スタンドより奥 -->
+    <div class="stadium-bg-light stadium-bg-light-left">
+        <div class="stadium-bg-light-head"></div>
+    </div>
+
+    <div class="stadium-bg-light stadium-bg-light-right">
+        <div class="stadium-bg-light-head"></div>
+    </div>
+
+    <!-- スタンド -->
+    <div class="stadium-bg-stands">
+
+        <!-- 観客 -->
+        <div class="stadium-bg-crowd"></div>
+
+        <!-- スタンドの段差 -->
+        <div class="stadium-bg-stand-row row-1"></div>
+        <div class="stadium-bg-stand-row row-2"></div>
+        <div class="stadium-bg-stand-row row-3"></div>
+
+    </div>
+
+    <!-- 外野フェンス -->
+    <div class="stadium-bg-fence"></div>
+
+    <!-- 外野芝 -->
+    <div class="stadium-bg-outfield"></div>
+
+<!-- =================================================
+     ⚾ 内野
+================================================= -->
+
+<div class="stadium-bg-infield">
+
+    <!-- 内野の土 -->
+    <div class="stadium-infield-diamond"></div>
+
+    <!-- 内野芝 -->
+    <div class="stadium-infield-grass-area"></div>
+
+    <!-- ファウルライン -->
+    <div class="stadium-foul-line stadium-foul-line-left"></div>
+    <div class="stadium-foul-line stadium-foul-line-right"></div>
+
+    <!-- ベースライン -->
+    <div class="stadium-base-line base-line-first"></div>
+    <div class="stadium-base-line base-line-third"></div>
+
+    <!-- 1塁 -->
+    <div class="stadium-base-new stadium-first-base"></div>
+
+    <!-- 2塁 -->
+    <div class="stadium-base-new stadium-second-base"></div>
+
+    <!-- 3塁 -->
+    <div class="stadium-base-new stadium-third-base"></div>
+
+    <!-- ホーム -->
+    <div class="stadium-home-base-new"></div>
+
+</div>
+    <!-- 手前の芝 -->
+    <div class="stadium-bg-foreground"></div>
+
+</div>
+
+            <!-- =========================
+                 日付
+            ========================== -->
+
+            <div class="baseball-view-date">
+
+                ${dateText}
+
+            </div>
+
+
+            <!-- =========================
+                 対戦カード
+            ========================== -->
+
+<div class="baseball-view-match">
+
+    <div class="baseball-view-team">
+
+        <div class="baseball-view-team-name">
+            ${escapeSportsHTML(team)}
+        </div>
+
+        <div class="baseball-view-team-score">
+            ${teamTotal}
+        </div>
+
+    </div>
+
+
+    <div class="baseball-view-score-separator">
+        -
+    </div>
+
+
+    <div class="baseball-view-team">
+
+        <div class="baseball-view-team-name">
+            ${escapeSportsHTML(opponent)}
+        </div>
+
+        <div class="baseball-view-team-score">
+            ${opponentTotal}
+        </div>
+
+    </div>
+
+</div>
+            <!-- =========================
+                 試合情報
+            ========================== -->
+
+            <div class="baseball-view-info">
+
+                ${
+                    location
+                    ?
+                    `📍 ${escapeSportsHTML(location)}`
+                    :
+                    ""
+                }
+
+                ${
+                    startingPitcher
+                    ?
+                    `<div>
+                        ⚾ ${escapeSportsHTML(team)}
+                        先発：
+                        ${escapeSportsHTML(startingPitcher)}
+                    </div>`
+                    :
+                    ""
+                }
+
+                ${
+                    opponentStartingPitcher
+                    ?
+                    `<div>
+                        ⚾ ${escapeSportsHTML(opponent)}
+                        先発：
+                        ${escapeSportsHTML(
+                            opponentStartingPitcher
+                        )}
+                    </div>`
+                    :
+                    ""
+                }
+
+            </div>
+
+
+            <!-- =========================
+                 結果
+            ========================== -->
+
+            ${resultHTML}
+
+
+            <!-- =========================
+                 イニングスコア
+            ========================== -->
+
+            <div class="baseball-view-section-title">
+
+                ⚾ イニング別スコア
+
+            </div>
+
+
+            <div class="baseball-score-wrapper">
+
+                <div class="baseball-score-scroll">
+
+                    <table class="baseball-score-table">
+
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="baseball-score-team">
+
+                                    チーム
+
+                                </th>
+
+
+                                <th>1</th>
+                                <th>2</th>
+                                <th>3</th>
+                                <th>4</th>
+                                <th>5</th>
+                                <th>6</th>
+                                <th>7</th>
+                                <th>8</th>
+                                <th>9</th>
+                                <th>10</th>
+                                <th>11</th>
+                                <th>12</th>
+
+
+                                <th class="baseball-score-total">
+
+                                    計
+
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+<tbody>
+
+${
+    opponentFirst
+    ?
+        `
+        <!-- =====================
+             応援チームが後攻
+             相手チーム → 応援チーム
+        ====================== -->
+
+        <tr>
+
+            <th class="baseball-score-team">
+                ${escapeSportsHTML(opponent)}
+            </th>
+
+            ${
+                Array.from(
+                    { length: 12 },
+                    (_, i) => {
+
+                        const score =
+                            opponentScores[i];
+
+                        return `
+                            <td>
+                                ${
+                                    score === "" ||
+                                    score === undefined
+                                    ?
+                                    "-"
+                                    :
+                                    escapeSportsHTML(score)
+                                }
+                            </td>
+                        `;
+
+                    }
+                ).join("")
+            }
+
+            <td class="baseball-score-total">
+                ${opponentTotal}
+            </td>
+
+        </tr>
+
+
+        <tr>
+
+            <th class="baseball-score-team">
+                ${escapeSportsHTML(team)}
+            </th>
+
+            ${
+                Array.from(
+                    { length: 12 },
+                    (_, i) => {
+
+                        const score =
+                            teamScores[i];
+
+                        return `
+                            <td>
+                                ${
+                                    score === "" ||
+                                    score === undefined
+                                    ?
+                                    "-"
+                                    :
+                                    escapeSportsHTML(score)
+                                }
+                            </td>
+                        `;
+
+                    }
+                ).join("")
+            }
+
+            <td class="baseball-score-total">
+                ${teamTotal}
+            </td>
+
+        </tr>
+        `
+
+    :
+
+        `
+        <!-- =====================
+             応援チームが先攻
+             応援チーム → 相手チーム
+        ====================== -->
+
+        <tr>
+
+            <th class="baseball-score-team">
+                ${escapeSportsHTML(team)}
+            </th>
+
+            ${
+                Array.from(
+                    { length: 12 },
+                    (_, i) => {
+
+                        const score =
+                            teamScores[i];
+
+                        return `
+                            <td>
+                                ${
+                                    score === "" ||
+                                    score === undefined
+                                    ?
+                                    "-"
+                                    :
+                                    escapeSportsHTML(score)
+                                }
+                            </td>
+                        `;
+
+                    }
+                ).join("")
+            }
+
+            <td class="baseball-score-total">
+                ${teamTotal}
+            </td>
+
+        </tr>
+
+
+        <tr>
+
+            <th class="baseball-score-team">
+                ${escapeSportsHTML(opponent)}
+            </th>
+
+            ${
+                Array.from(
+                    { length: 12 },
+                    (_, i) => {
+
+                        const score =
+                            opponentScores[i];
+
+                        return `
+                            <td>
+                                ${
+                                    score === "" ||
+                                    score === undefined
+                                    ?
+                                    "-"
+                                    :
+                                    escapeSportsHTML(score)
+                                }
+                            </td>
+                        `;
+
+                    }
+                ).join("")
+            }
+
+            <td class="baseball-score-total">
+                ${opponentTotal}
+            </td>
+
+        </tr>
+        `
+}
+
+</tbody>
+
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 メモ
+            ========================== -->
+
+            ${memoHTML}
+
+
+            <!-- =========================
+                 ボタン
+            ========================== -->
+
+            <div class="baseball-view-buttons">
+
+
+                <button
+                    type="button"
+                    onclick="openBaseballGameEditPage(sportsSelectedDate)"
+                >
+
+                    ✏️ 編集
+
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="deleteBaseballGame()"
+                >
+
+                    🗑️ 削除
+
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="closeSportsGameDetailPage()"
+                >
+
+                    ❌ 閉じる
+
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+    `;
+    console.log(
+    "★★ 結果画面HTML描画完了",
+    detail.innerHTML.length
+);
+
+}
+

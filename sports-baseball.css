@@ -1,0 +1,2269 @@
+/* =====================================================
+   ⚾ 野球専用CSS
+   スコアボード
+   編集画面・結果画面 共通
+===================================================== */
+
+
+/* =====================================================
+   ⚾ 編集画面 スコアボード
+===================================================== */
+
+.baseball-score-wrapper {
+    width: 100%;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+
+.baseball-score-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+
+    border: 1px solid #ccc;
+    border-radius: 10px;
+
+    box-sizing: border-box;
+}
+
+
+/* -----------------------------------------------------
+   スコアボード本体
+   必ず横長
+----------------------------------------------------- */
+
+.baseball-score-table {
+    border-collapse: collapse;
+
+    width: max-content;
+    min-width: 620px;
+
+    table-layout: fixed;
+
+    background: #fff;
+}
+
+
+/* -----------------------------------------------------
+   全セル
+----------------------------------------------------- */
+
+.baseball-score-table th,
+.baseball-score-table td {
+    width: 42px;
+    min-width: 42px;
+
+    height: 42px;
+
+    padding: 0;
+
+    border: 1px solid #ccc;
+
+    text-align: center;
+    vertical-align: middle;
+
+    box-sizing: border-box;
+
+    white-space: nowrap;
+}
+
+
+/* -----------------------------------------------------
+   上段「1 2 3 ... 12 計」
+----------------------------------------------------- */
+
+.baseball-score-table thead th {
+    height: 38px;
+
+    background: #222;
+    color: #fff;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    text-align: center;
+}
+
+
+/* -----------------------------------------------------
+   チーム名
+----------------------------------------------------- */
+
+.baseball-score-table th.baseball-score-team {
+    width: 110px;
+    min-width: 110px;
+    max-width: 110px;
+
+    padding: 0 6px;
+
+    background: #f3f3f3;
+    color: #222;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    text-align: left;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* -----------------------------------------------------
+   ヘッダー左端「チーム」
+----------------------------------------------------- */
+
+.baseball-score-table thead th.baseball-score-team {
+    background: #222;
+    color: #fff;
+
+    text-align: center;
+}
+
+
+/* -----------------------------------------------------
+   スコア入力
+----------------------------------------------------- */
+
+.baseball-score-table .baseball-score-input {
+    display: block;
+
+    width: 42px;
+    min-width: 42px;
+
+    height: 42px;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+    border-radius: 0;
+
+    background: #fff;
+    color: #222;
+
+    text-align: center;
+
+    font-size: 17px;
+    font-weight: bold;
+
+    box-sizing: border-box;
+}
+
+
+/* -----------------------------------------------------
+   入力フォーカス
+----------------------------------------------------- */
+
+.baseball-score-table .baseball-score-input:focus {
+    outline: 2px solid #555;
+    outline-offset: -2px;
+
+    background: #f7f7f7;
+}
+
+
+/* -----------------------------------------------------
+   合計
+----------------------------------------------------- */
+
+.baseball-score-table th.baseball-score-total,
+.baseball-score-table td.baseball-score-total {
+    width: 55px;
+    min-width: 55px;
+    max-width: 55px;
+
+    background: #f1f1f1;
+
+    color: #222;
+
+    font-size: 17px;
+    font-weight: bold;
+
+    text-align: center;
+}
+
+
+/* -----------------------------------------------------
+   合計ヘッダー
+----------------------------------------------------- */
+
+.baseball-score-table thead th.baseball-score-total {
+    background: #444;
+    color: #fff;
+}
+
+
+/* =====================================================
+   ⚾ 結果画面
+   イニング別スコア
+===================================================== */
+
+.baseball-view-inning-board {
+    width: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+
+    border: 1px solid #ccc;
+    border-radius: 10px;
+
+    box-sizing: border-box;
+
+    background: #fff;
+}
+
+
+/* -----------------------------------------------------
+   ヘッダー
+   回 | 1 | 2 | 3 ... 12
+----------------------------------------------------- */
+
+.baseball-view-inning-header {
+    display: grid;
+
+    grid-template-columns:
+        110px
+        repeat(12, 42px);
+
+    width: max-content;
+    min-width: 614px;
+}
+
+
+/* -----------------------------------------------------
+   各イニング
+----------------------------------------------------- */
+
+.baseball-view-inning {
+    display: grid;
+
+    grid-template-columns:
+        110px
+        repeat(12, 42px);
+
+    width: max-content;
+    min-width: 614px;
+}
+
+
+/* -----------------------------------------------------
+   結果画面セル
+----------------------------------------------------- */
+
+.baseball-view-inning-header > div,
+.baseball-view-inning > div {
+    width: 42px;
+    min-width: 42px;
+
+    height: 42px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+
+    text-align: center;
+
+    white-space: nowrap;
+}
+
+
+/* -----------------------------------------------------
+   左端
+----------------------------------------------------- */
+
+.baseball-view-inning-header > div:first-child,
+.baseball-view-inning > div:first-child {
+    width: 110px;
+    min-width: 110px;
+
+    padding: 0 6px;
+
+    box-sizing: border-box;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* -----------------------------------------------------
+   結果画面ヘッダー
+----------------------------------------------------- */
+
+.baseball-view-inning-header {
+    background: #222;
+    color: #fff;
+
+    font-weight: bold;
+}
+
+
+.baseball-view-inning-header > div:first-child {
+    background: #222;
+    color: #fff;
+}
+
+
+/* -----------------------------------------------------
+   回数
+----------------------------------------------------- */
+
+.baseball-view-inning-number {
+    background: #f5f5f5;
+    color: #222;
+
+    font-weight: bold;
+}
+
+
+/* -----------------------------------------------------
+   自分のチーム
+----------------------------------------------------- */
+
+.baseball-view-inning-team {
+    background: #fff;
+    color: #222;
+
+    font-weight: bold;
+}
+
+
+/* -----------------------------------------------------
+   相手チーム
+----------------------------------------------------- */
+
+.baseball-view-inning-opponent {
+    background: #fff;
+    color: #222;
+
+    font-weight: bold;
+}
+
+
+/* =====================================================
+   ⚾ 結果画面
+   チーム名
+   スコア
+   チーム名
+   スコア
+===================================================== */
+
+.baseball-view-match {
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto
+        minmax(0, 1fr);
+
+    grid-template-rows:
+        auto
+        auto;
+
+    align-items: start;
+    justify-items: center;
+
+    column-gap: 18px;
+    row-gap: 4px;
+
+    width: 100%;
+
+    margin: 16px 0;
+
+    padding: 18px 12px;
+
+    box-sizing: border-box;
+
+}
+
+
+/* =========================
+   チーム
+========================= */
+
+.baseball-view-team {
+
+    display: contents;
+
+}
+
+
+/* =========================
+   チーム名
+========================= */
+
+.baseball-view-team-name {
+
+    grid-row: 1;
+
+    font-size: 2.2rem;
+
+    font-weight: 800;
+
+    line-height: 1.2;
+
+    text-align: center;
+
+    word-break: break-word;
+
+}
+
+
+/* 左チーム */
+
+.baseball-view-team:first-child
+.baseball-view-team-name {
+
+    grid-column: 1;
+
+}
+
+
+/* 右チーム */
+
+.baseball-view-team:last-child
+.baseball-view-team-name {
+
+    grid-column: 3;
+
+}
+
+
+/* =========================
+   スコア
+========================= */
+
+.baseball-view-team-score {
+
+    grid-row: 2;
+
+    font-size: 4rem;
+
+    font-weight: 900;
+
+    line-height: 1;
+
+    text-align: center;
+
+}
+
+
+/* 左スコア */
+
+.baseball-view-team:first-child
+.baseball-view-team-score {
+
+    grid-column: 1;
+
+}
+
+
+/* 右スコア */
+
+.baseball-view-team:last-child
+.baseball-view-team-score {
+
+    grid-column: 3;
+
+}
+
+
+/* =========================
+   ハイフン
+========================= */
+
+.baseball-view-score-separator {
+
+    grid-column: 2;
+
+    grid-row: 2;
+
+    align-self: center;
+
+    font-size: 3rem;
+
+    font-weight: 800;
+
+    line-height: 1;
+
+    text-align: center;
+
+}
+
+
+/* =====================================================
+   📱 スマホ
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .baseball-view-match {
+
+        column-gap: 8px;
+
+        row-gap: 4px;
+
+        padding: 16px 6px;
+
+    }
+
+
+    .baseball-view-team-name {
+
+        font-size: 1.5rem;
+
+        line-height: 1.2;
+
+    }
+
+
+    .baseball-view-team-score {
+
+        font-size: 4rem;
+
+    }
+
+
+    .baseball-view-score-separator {
+
+        font-size: 3rem;
+
+    }
+
+}
+
+
+/* =====================================================
+   ⚾ 結果画面ボタン
+   編集・削除・閉じる
+   縦3つ
+===================================================== */
+
+.baseball-view-buttons {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    width: 100%;
+
+    max-width: 420px;
+
+    margin: 24px auto 0;
+
+}
+
+
+.baseball-view-buttons button {
+
+    width: 100%;
+
+    min-height: 54px;
+
+    padding: 12px 16px;
+
+    box-sizing: border-box;
+
+    border: 1px solid rgba(128,128,128,0.28);
+
+    border-radius: 11px;
+
+    background: rgba(128,128,128,0.12);
+
+    color: inherit;
+
+    font: inherit;
+
+    font-size: 18px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        opacity 0.15s ease,
+        background 0.15s ease;
+
+}
+
+
+/* PCなど本当にhoverできる環境だけhoverを適用 */
+
+@media (hover: hover) and (pointer: fine) {
+
+    .baseball-view-buttons button:hover {
+
+        background: rgba(128,128,128,0.20);
+
+        opacity: 1;
+
+    }
+
+}
+
+
+.baseball-view-buttons button:active {
+
+    transform: scale(0.97);
+
+}
+
+
+/* =====================================================
+   ⚾ スクロールバー
+===================================================== */
+
+.baseball-score-scroll::-webkit-scrollbar,
+.baseball-view-inning-board::-webkit-scrollbar {
+    height: 6px;
+}
+
+
+.baseball-score-scroll::-webkit-scrollbar-thumb,
+.baseball-view-inning-board::-webkit-scrollbar-thumb {
+    background: #aaa;
+
+    border-radius: 10px;
+}
+
+
+.baseball-score-scroll::-webkit-scrollbar-track,
+.baseball-view-inning-board::-webkit-scrollbar-track {
+    background: #eee;
+}
+
+
+/* =====================================================
+   📱 スマホ
+===================================================== */
+
+@media (max-width: 480px) {
+
+
+    /* -------------------------------------------------
+       編集画面
+    ------------------------------------------------- */
+
+    .baseball-score-table {
+        min-width: 566px;
+    }
+
+
+    .baseball-score-table th,
+    .baseball-score-table td {
+        width: 38px;
+        min-width: 38px;
+
+        height: 40px;
+    }
+
+
+    .baseball-score-table th.baseball-score-team {
+        width: 90px;
+        min-width: 90px;
+        max-width: 90px;
+    }
+
+
+    .baseball-score-table .baseball-score-input {
+        width: 38px;
+        min-width: 38px;
+
+        height: 40px;
+
+        font-size: 16px;
+    }
+
+
+    .baseball-score-table th.baseball-score-total,
+    .baseball-score-table td.baseball-score-total {
+        width: 48px;
+        min-width: 48px;
+        max-width: 48px;
+    }
+
+
+    /* -------------------------------------------------
+       結果画面
+    ------------------------------------------------- */
+
+    .baseball-view-inning-header,
+    .baseball-view-inning {
+
+        grid-template-columns:
+            90px
+            repeat(12, 38px);
+
+        min-width: 546px;
+    }
+
+
+    .baseball-view-inning-header > div,
+    .baseball-view-inning > div {
+
+        width: 38px;
+        min-width: 38px;
+
+        height: 40px;
+    }
+
+
+    .baseball-view-inning-header > div:first-child,
+    .baseball-view-inning > div:first-child {
+
+        width: 90px;
+        min-width: 90px;
+    }
+
+
+    /* -------------------------------------------------
+       最終スコア
+    ------------------------------------------------- */
+
+    .baseball-view-match {
+
+        gap: 8px;
+
+        padding: 16px 6px;
+    }
+
+
+
+
+    .baseball-view-score {
+
+        gap: 10px;
+    }
+
+
+    .baseball-view-score strong {
+
+        font-size: 4rem;
+
+        font-weight: 900;
+    }
+
+
+    .baseball-view-score span {
+
+        font-size: 3rem;
+
+        font-weight: 800;
+    }
+
+}
+
+
+/* =====================================================
+   ⚾ 試合結果編集画面
+   スコアボードを縦型にする
+   ※編集画面だけに適用
+===================================================== */
+
+#sportsGameEditScreen .baseball-view-inning-board {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
+
+    border: 1px solid #ccc;
+    border-radius: 10px;
+
+    box-sizing: border-box;
+
+    background: #fff;
+}
+
+
+/* -----------------------------------------------------
+   ヘッダー
+   回 | 応援チーム | 相手チーム
+----------------------------------------------------- */
+
+#sportsGameEditScreen .baseball-view-inning-header {
+
+    display: grid;
+
+    grid-template-columns:
+        50px
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* -----------------------------------------------------
+   各イニング
+----------------------------------------------------- */
+
+#sportsGameEditScreen .baseball-view-inning {
+
+    display: grid;
+
+    grid-template-columns:
+        50px
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* -----------------------------------------------------
+   セル
+----------------------------------------------------- */
+
+#sportsGameEditScreen
+.baseball-view-inning-header > div,
+
+#sportsGameEditScreen
+.baseball-view-inning > div {
+
+    width: auto;
+    min-width: 0;
+
+    height: 42px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+
+    text-align: center;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+}
+
+
+/* -----------------------------------------------------
+   左端「回」
+----------------------------------------------------- */
+
+#sportsGameEditScreen
+.baseball-view-inning-header > div:first-child,
+
+#sportsGameEditScreen
+.baseball-view-inning > div:first-child {
+
+    width: 50px;
+    min-width: 50px;
+
+    padding: 0;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+
+/* -----------------------------------------------------
+   ヘッダー
+----------------------------------------------------- */
+
+#sportsGameEditScreen
+.baseball-view-inning-header {
+
+    background: #222;
+    color: #fff;
+
+    font-weight: bold;
+}
+
+
+/* -----------------------------------------------------
+   回数
+----------------------------------------------------- */
+
+#sportsGameEditScreen
+.baseball-view-inning-number {
+
+    background: #f5f5f5;
+    color: #222;
+
+    font-weight: bold;
+}
+
+
+/* -----------------------------------------------------
+   スコア入力欄
+----------------------------------------------------- */
+
+#sportsGameEditScreen
+.baseball-view-inning-team input,
+
+#sportsGameEditScreen
+.baseball-view-inning-opponent input {
+
+    width: 100%;
+    height: 42px;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+    border-radius: 0;
+
+    background: #fff;
+    color: #222;
+
+    text-align: center;
+
+    font-size: 17px;
+    font-weight: bold;
+
+    box-sizing: border-box;
+}
+
+
+/* -----------------------------------------------------
+   入力フォーカス
+----------------------------------------------------- */
+
+#sportsGameEditScreen
+.baseball-view-inning-team input:focus,
+
+#sportsGameEditScreen
+.baseball-view-inning-opponent input:focus {
+
+    outline: 2px solid #555;
+    outline-offset: -2px;
+
+    background: #f7f7f7;
+}
+
+
+/* -----------------------------------------------------
+   スマホ
+----------------------------------------------------- */
+
+@media (max-width: 480px) {
+
+    #sportsGameEditScreen
+    .baseball-view-inning-header,
+
+    #sportsGameEditScreen
+    .baseball-view-inning {
+
+        grid-template-columns:
+            45px
+            minmax(0, 1fr)
+            minmax(0, 1fr);
+
+        width: 100%;
+        min-width: 0;
+    }
+
+
+    #sportsGameEditScreen
+    .baseball-view-inning-header > div,
+
+    #sportsGameEditScreen
+    .baseball-view-inning > div {
+
+        width: auto;
+        min-width: 0;
+
+        height: 40px;
+    }
+
+
+    #sportsGameEditScreen
+    .baseball-view-inning-header > div:first-child,
+
+    #sportsGameEditScreen
+    .baseball-view-inning > div:first-child {
+
+        width: 45px;
+        min-width: 45px;
+    }
+
+
+    #sportsGameEditScreen
+    .baseball-view-inning-team input,
+
+    #sportsGameEditScreen
+    .baseball-view-inning-opponent input {
+
+        width: 100%;
+        height: 40px;
+
+        font-size: 16px;
+    }
+
+}
+
+
+
+
+/* =====================================================
+   ⚾ 野球編集画面
+   スコアボード上部の現在スコア
+===================================================== */
+
+.baseball-edit-score-summary {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto
+        minmax(0, 1fr);
+
+    align-items: start;
+
+    width: 100%;
+    margin: 0 0 10px;
+    padding: 14px 8px 10px;
+
+    box-sizing: border-box;
+    text-align: center;
+}
+
+
+.baseball-edit-summary-team {
+    min-width: 0;
+}
+
+
+.baseball-edit-summary-team-name {
+    min-width: 0;
+
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1.2;
+
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+
+.baseball-edit-summary-score {
+    margin-top: 4px;
+
+    font-size: 3.4rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+
+.baseball-edit-summary-separator {
+    align-self: end;
+
+    margin: 0 8px 4px;
+
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+
+@media (max-width: 600px) {
+
+    .baseball-edit-score-summary {
+        padding: 12px 4px 8px;
+    }
+
+
+    .baseball-edit-summary-team-name {
+        font-size: 1.15rem;
+    }
+
+
+    .baseball-edit-summary-score {
+        font-size: 3.2rem;
+    }
+
+
+    .baseball-edit-summary-separator {
+        margin-left: 5px;
+        margin-right: 5px;
+        font-size: 2.3rem;
+    }
+
+}
+
+
+
+
+
+
+/* =====================================================
+   ⚾ CSS野球場背景
+   画像・写真・SVGなし
+===================================================== */
+
+.baseball-stadium-bg {
+
+    position: absolute;
+
+    inset: -8px;
+
+    z-index: 0;
+
+    overflow: hidden;
+
+    pointer-events: none;
+
+    background: #79acd0;
+
+    /*
+       ⚾ 背景を薄くぼかす
+       文字・スコア側には影響しない
+    */
+    filter: blur(5px);
+
+    opacity: .35;
+
+}
+
+/* =====================================================
+   結果画面を背景の上に表示
+===================================================== */
+
+.baseball-game-view {
+
+    position: relative;
+
+    isolation: isolate;
+
+    /*
+       ⚾ 野球場全体の下地
+
+       縦長画面でも白くならないように
+       結果画面そのものを空〜外野芝の
+       グラデーションで埋める
+    */
+
+    background:
+        linear-gradient(
+            to bottom,
+            #4388bd 0%,
+            #72add5 24%,
+            #b8d8e7 40%,
+            #6fa968 58%,
+            #438e4d 72%,
+            #286f38 100%
+        );
+
+}
+
+/* 背景以外を前面へ */
+
+.baseball-game-view > :not(.baseball-stadium-bg) {
+
+    position: relative;
+
+    z-index: 20;
+
+}
+
+
+/* =====================================================
+   空
+===================================================== */
+
+.stadium-bg-sky {
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 1;
+
+    background:
+        linear-gradient(
+            to bottom,
+            #4388bd 0%,
+            #72add5 35%,
+            #b8d8e7 58%,
+            #8bb67b 100%
+        );
+
+}
+
+
+/* =====================================================
+   雲
+===================================================== */
+
+.stadium-bg-cloud {
+
+    position: absolute;
+
+    z-index: 2;
+
+    width: 210px;
+    height: 55px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            ellipse at 20% 70%,
+            rgba(255,255,255,.92) 0 24px,
+            transparent 25px
+        ),
+        radial-gradient(
+            ellipse at 42% 45%,
+            rgba(255,255,255,.95) 0 35px,
+            transparent 36px
+        ),
+        radial-gradient(
+            ellipse at 66% 55%,
+            rgba(255,255,255,.92) 0 30px,
+            transparent 31px
+        ),
+        radial-gradient(
+            ellipse at 85% 72%,
+            rgba(255,255,255,.82) 0 21px,
+            transparent 22px
+        );
+
+    filter: blur(1.5px);
+
+    opacity: .75;
+
+}
+
+
+.stadium-bg-cloud-left {
+
+    top: 35px;
+
+    left: -60px;
+
+    transform: scale(.9);
+
+}
+
+
+.stadium-bg-cloud-right {
+
+    top: 70px;
+
+    right: -80px;
+
+    transform: scale(.7);
+
+}
+
+
+/* =====================================================
+   照明塔
+   ★ スタンドより後ろ
+===================================================== */
+
+.stadium-bg-light {
+
+    position: absolute;
+
+    z-index: 3;
+
+    top: 15px;
+
+    width: 9px;
+
+    height: 175px;
+
+    background:
+        linear-gradient(
+            to right,
+            #26282a 0%,
+            #777b7d 45%,
+            #292b2d 100%
+        );
+
+    box-shadow:
+        2px 4px 6px rgba(0,0,0,.25);
+
+}
+
+
+.stadium-bg-light-left {
+
+    left: 13%;
+
+    transform: rotate(3deg);
+
+}
+
+
+.stadium-bg-light-right {
+
+    right: 13%;
+
+    transform: rotate(-3deg);
+
+}
+
+
+/* 照明部分 */
+
+.stadium-bg-light-head {
+
+    position: absolute;
+
+    top: -7px;
+
+    left: -18px;
+
+    width: 45px;
+
+    height: 17px;
+
+    border-radius: 5px;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #fdfdfd 0 4px,
+            #c7c7c7 4px 7px
+        );
+
+    box-shadow:
+        0 0 18px rgba(255,244,190,.75);
+
+}
+
+
+/* =====================================================
+   スタンド
+===================================================== */
+
+.stadium-bg-stands {
+
+    position: absolute;
+
+    z-index: 4;
+
+    left: -8%;
+
+    right: -8%;
+
+    top: 105px;
+
+    height: 125px;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            to bottom,
+            #555b61 0%,
+            #363a3e 35%,
+            #202326 100%
+        );
+
+    border-radius:
+        50% 50% 0 0 / 30% 30% 0 0;
+
+    box-shadow:
+        0 -8px 20px rgba(0,0,0,.2),
+        inset 0 10px 18px rgba(255,255,255,.07);
+
+}
+
+
+/* =====================================================
+   観客
+===================================================== */
+
+.stadium-bg-crowd {
+
+    position: absolute;
+
+    left: 4%;
+
+    right: 4%;
+
+    top: 13px;
+
+    height: 68px;
+
+    background:
+
+        radial-gradient(
+            circle,
+            rgba(245,245,245,.9) 0 2px,
+            transparent 2.7px
+        ) 0 0 / 9px 9px,
+
+        radial-gradient(
+            circle,
+            rgba(100,145,180,.9) 0 2px,
+            transparent 2.7px
+        ) 4px 4px / 11px 11px,
+
+        radial-gradient(
+            circle,
+            rgba(210,160,130,.8) 0 2px,
+            transparent 2.5px
+        ) 2px 5px / 13px 12px;
+
+    opacity: .72;
+
+}
+
+
+/* =====================================================
+   スタンドの段差
+===================================================== */
+
+.stadium-bg-stand-row {
+
+    position: absolute;
+
+    left: 0;
+
+    right: 0;
+
+    height: 4px;
+
+    background:
+        rgba(0,0,0,.35);
+
+}
+
+
+.stadium-bg-stand-row.row-1 {
+
+    top: 36px;
+
+}
+
+
+.stadium-bg-stand-row.row-2 {
+
+    top: 67px;
+
+}
+
+
+.stadium-bg-stand-row.row-3 {
+
+    top: 98px;
+
+}
+
+
+/* =====================================================
+   外野フェンス
+===================================================== */
+
+.stadium-bg-fence {
+
+    position: absolute;
+
+    z-index: 5;
+
+    left: -5%;
+
+    right: -5%;
+
+    top: 214px;
+
+    height: 28px;
+
+    background:
+        linear-gradient(
+            to bottom,
+            #4c7654,
+            #31543b
+        );
+
+    box-shadow:
+        0 3px 7px rgba(0,0,0,.3);
+
+}
+
+
+/* フェンス上部 */
+
+.stadium-bg-fence::before {
+
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+
+    right: 0;
+
+    top: 4px;
+
+    height: 2px;
+
+    background:
+        rgba(220,220,220,.5);
+
+}
+
+
+/* =====================================================
+   外野芝
+===================================================== */
+
+.stadium-bg-outfield {
+    position: absolute;
+
+    z-index: 6;
+
+    left: -20%;
+    right: -20%;
+
+    top: 225px;
+    bottom: 0;
+
+    background:
+        repeating-linear-gradient(
+            100deg,
+            rgba(255,255,255,.045) 0 18px,
+            rgba(0,0,0,.035) 18px 36px
+        ),
+
+        linear-gradient(
+            to bottom,
+            #438e4d 0%,
+            #327f40 35%,
+            #286f38 70%,
+            #1d5e31 100%
+        );
+}
+
+/* =====================================================
+   内野全体
+===================================================== */
+
+.stadium-bg-infield {
+
+    position: absolute;
+
+    z-index: 7;
+
+    left: 50%;
+
+    bottom: -125px;
+
+    width: 410px;
+
+    height: 330px;
+
+    transform:
+        translateX(-50%)
+        perspective(500px)
+        rotateX(12deg);
+
+}
+
+
+/* =====================================================
+   内野の土
+===================================================== */
+
+.stadium-bg-diamond-dirt {
+
+    position: absolute;
+
+    left: 50%;
+
+    top: 5px;
+
+    width: 245px;
+
+    height: 245px;
+
+    transform:
+        translateX(-50%)
+        rotate(45deg);
+
+    background:
+
+        repeating-linear-gradient(
+            25deg,
+            rgba(255,255,255,.035) 0 5px,
+            rgba(0,0,0,.025) 5px 10px
+        ),
+
+        linear-gradient(
+            135deg,
+            #bd7745,
+            #c9824f 50%,
+            #a85d35
+        );
+
+    box-shadow:
+        inset 0 0 30px rgba(75,35,15,.2);
+
+}
+
+
+/* =====================================================
+   内野芝
+===================================================== */
+
+.stadium-bg-diamond-grass {
+
+    position: absolute;
+
+    z-index: 1;
+
+    left: 50%;
+
+    top: 74px;
+
+    width: 112px;
+
+    height: 112px;
+
+    transform:
+        translateX(-50%)
+        rotate(45deg);
+
+    background:
+
+        repeating-linear-gradient(
+            90deg,
+            #3f914b 0 9px,
+            #348441 9px 18px
+        );
+
+    box-shadow:
+        0 0 15px rgba(0,0,0,.15);
+
+}
+
+
+/* =====================================================
+   ファウルライン
+===================================================== */
+
+.stadium-bg-foul-line {
+
+    position: absolute;
+
+    z-index: 12;
+
+    top: 115px;
+
+    width: 230px;
+
+    height: 5px;
+
+    background: rgba(255,255,255,.95);
+
+    box-shadow:
+        0 1px 3px rgba(0,0,0,.3);
+
+}
+
+
+/* 左ファウルライン */
+
+.stadium-bg-foul-line-left {
+
+    left: calc(50% - 230px);
+
+    transform:
+        rotate(27deg);
+
+    transform-origin: right center;
+
+}
+
+
+/* 右ファウルライン */
+
+.stadium-bg-foul-line-right {
+
+    left: 50%;
+
+    transform:
+        rotate(-27deg);
+
+    transform-origin: left center;
+
+}
+
+
+/* =====================================================
+   ベース
+===================================================== */
+
+.stadium-bg-base {
+
+    position: absolute;
+
+    z-index: 14;
+
+    width: 18px;
+
+    height: 18px;
+
+    background: #fff;
+
+    transform: rotate(45deg);
+
+    box-shadow:
+        1px 2px 4px rgba(0,0,0,.35);
+
+}
+
+
+/* 3塁 */
+
+.stadium-bg-third-base {
+
+    left: calc(50% - 92px);
+
+    top: 133px;
+
+}
+
+
+/* 1塁 */
+
+.stadium-bg-first-base {
+
+    left: calc(50% + 74px);
+
+    top: 133px;
+
+}
+
+
+/* =====================================================
+   ホームベース
+===================================================== */
+
+.stadium-bg-home-base {
+
+    position: absolute;
+
+    z-index: 15;
+
+    left: 50%;
+
+    top: 218px;
+
+    width: 28px;
+
+    height: 28px;
+
+    transform:
+        translateX(-50%)
+        rotate(45deg);
+
+    background: #fff;
+
+    box-shadow:
+        1px 3px 5px rgba(0,0,0,.35);
+
+}
+
+
+/* =====================================================
+   手前の芝
+===================================================== */
+
+.stadium-bg-foreground {
+    display: none;
+}
+
+/* =====================================================
+   スマホ
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .stadium-bg-stands {
+
+        top: 90px;
+
+        height: 115px;
+
+    }
+
+
+    .stadium-bg-fence {
+
+        top: 195px;
+
+    }
+
+
+    .stadium-bg-infield {
+
+        width: 340px;
+
+        height: 300px;
+
+        bottom: -120px;
+
+    }
+
+
+    .stadium-bg-diamond-dirt {
+
+        width: 210px;
+
+        height: 210px;
+
+    }
+
+
+    .stadium-bg-diamond-grass {
+
+        width: 96px;
+
+        height: 96px;
+
+    }
+
+
+    .stadium-bg-foul-line {
+
+        width: 195px;
+
+    }
+
+
+    .stadium-bg-foul-line-left {
+
+        left: calc(50% - 195px);
+
+    }
+
+
+    .stadium-bg-first-base {
+
+        left: calc(50% + 65px);
+
+    }
+
+
+    .stadium-bg-third-base {
+
+        left: calc(50% - 83px);
+
+    }
+
+}
+
+
+
+
+
+/* =====================================================
+   ⚾ 野球場・内野 完全配置
+   ホーム → 1塁 → 2塁 → 3塁 → ホーム
+===================================================== */
+
+
+/* =====================================================
+   内野エリア
+===================================================== */
+
+.stadium-bg-infield {
+
+    position: absolute;
+
+    z-index: 7;
+
+    left: 50%;
+
+    bottom: -65px;
+
+    width: 360px;
+
+    height: 300px;
+
+    transform: translateX(-50%);
+
+}
+
+
+/* =====================================================
+   内野の土
+   ダイヤモンドの外側
+===================================================== */
+
+.stadium-infield-diamond {
+
+    position: absolute;
+
+    left: 50%;
+
+    top: 28px;
+
+    width: 245px;
+
+    height: 245px;
+
+    transform:
+        translateX(-50%)
+        rotate(45deg);
+
+    background:
+        repeating-linear-gradient(
+            25deg,
+            rgba(255,255,255,.035) 0 5px,
+            rgba(0,0,0,.025) 5px 10px
+        ),
+        linear-gradient(
+            135deg,
+            #bd7545 0%,
+            #c9824e 50%,
+            #a95d35 100%
+        );
+
+    box-shadow:
+        inset 0 0 30px rgba(70,30,10,.22);
+
+}
+
+
+/* =====================================================
+   内野中央の芝
+===================================================== */
+
+.stadium-infield-grass-area {
+
+    position: absolute;
+
+    z-index: 1;
+
+    left: 50%;
+
+    top: 95px;
+
+    width: 105px;
+
+    height: 105px;
+
+    transform:
+        translateX(-50%)
+        rotate(45deg);
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #438f4b 0 8px,
+            #34823f 8px 16px
+        );
+
+}
+
+
+/* =====================================================
+   ベースライン
+   1塁 ↔ 2塁 ↔ 3塁 ↔ ホーム
+===================================================== */
+
+.stadium-base-line {
+
+    position: absolute;
+
+    z-index: 10;
+
+    height: 4px;
+
+    background: rgba(255,255,255,.9);
+
+    box-shadow:
+        0 1px 3px rgba(0,0,0,.2);
+
+    transform-origin: left center;
+
+}
+
+
+/* ホーム → 1塁 */
+
+.base-line-first {
+
+    left: 50%;
+
+    top: 228px;
+
+    width: 155px;
+
+    transform: rotate(-40deg);
+
+}
+
+
+/* ホーム → 3塁 */
+
+.base-line-third {
+
+    left: 50%;
+
+    top: 228px;
+
+    width: 155px;
+
+    transform: rotate(-140deg);
+
+}
+
+
+/* =====================================================
+   ファウルライン
+   ホームから外野方向へ延長
+===================================================== */
+
+.stadium-foul-line {
+
+    position: absolute;
+
+    z-index: 11;
+
+    width: 250px;
+
+    height: 4px;
+
+    background: rgba(255,255,255,.92);
+
+    box-shadow:
+        0 1px 3px rgba(0,0,0,.2);
+
+    transform-origin: left center;
+
+}
+
+
+/* 1塁側ファウルライン */
+
+.stadium-foul-line-right {
+
+    left: 50%;
+
+    top: 228px;
+
+    transform:
+        rotate(-40deg);
+
+}
+
+
+/* 3塁側ファウルライン */
+
+.stadium-foul-line-left {
+
+    left: 50%;
+
+    top: 228px;
+
+    transform:
+        rotate(-140deg);
+
+}
+
+
+/* =====================================================
+   ベース
+===================================================== */
+
+.stadium-base-new {
+
+    position: absolute;
+
+    z-index: 14;
+
+    width: 17px;
+
+    height: 17px;
+
+    background: #fff;
+
+    transform: rotate(45deg);
+
+    box-shadow:
+        1px 2px 4px rgba(0,0,0,.35);
+
+}
+
+
+/* =====================================================
+   1塁
+===================================================== */
+
+.stadium-first-base {
+
+    left: calc(50% + 91px);
+
+    top: 168px;
+
+}
+
+
+/* =====================================================
+   2塁
+===================================================== */
+
+.stadium-second-base {
+
+    left: calc(50% - 8px);
+
+    top: 68px;
+
+}
+
+
+/* =====================================================
+   3塁
+===================================================== */
+
+.stadium-third-base {
+
+    left: calc(50% - 108px);
+
+    top: 168px;
+
+}
+
+
+/* =====================================================
+   ホームベース
+===================================================== */
+
+.stadium-home-base-new {
+
+    position: absolute;
+
+    z-index: 15;
+
+    left: 50%;
+
+    top: 228px;
+
+    width: 25px;
+
+    height: 25px;
+
+    transform:
+        translateX(-50%)
+        rotate(45deg);
+
+    background: #fff;
+
+    box-shadow:
+        1px 3px 5px rgba(0,0,0,.35);
+
+}
+
+
+/* =====================================================
+   スマホ
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .stadium-bg-infield {
+
+        width: 320px;
+
+        height: 280px;
+
+        bottom: -60px;
+
+    }
+
+
+    .stadium-infield-diamond {
+
+        width: 220px;
+
+        height: 220px;
+
+        top: 28px;
+
+    }
+
+
+    .stadium-infield-grass-area {
+
+        width: 94px;
+
+        height: 94px;
+
+        top: 91px;
+
+    }
+
+
+    .stadium-first-base {
+
+        left: calc(50% + 82px);
+
+        top: 163px;
+
+    }
+
+
+    .stadium-second-base {
+
+        left: calc(50% - 8px);
+
+        top: 72px;
+
+    }
+
+
+    .stadium-third-base {
+
+        left: calc(50% - 98px);
+
+        top: 163px;
+
+    }
+
+
+    .stadium-home-base-new {
+
+        top: 221px;
+
+    }
+
+
+    .stadium-base-line {
+
+        width: 140px;
+
+    }
+
+
+    .stadium-foul-line {
+
+        width: 220px;
+
+    }
+
+}

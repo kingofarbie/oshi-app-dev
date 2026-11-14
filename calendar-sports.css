@@ -1,0 +1,1718 @@
+/* =====================================================
+   🏟️ スポーツカレンダー
+   calendar-sports.css
+
+   通常カレンダーの見た目・色・文字サイズに合わせる
+   ※レイアウト・配置は現在のスポーツカレンダーを維持
+===================================================== */
+
+
+/* =====================================================
+   画面
+===================================================== */
+
+.sports-calendar-screen {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+
+/* =====================================================
+   ヘッダー
+===================================================== */
+
+.sports-calendar-header {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    max-width: 100%;
+
+    gap: 8px;
+    padding: 8px 10px;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   スポーツカレンダータイトル
+===================================================== */
+
+.sports-calendar-title {
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    margin: 0;
+
+    font-size: 22px;
+    font-weight: bold;
+
+    line-height: 1.3;
+
+    color: var(--text);
+
+    text-align: left;
+
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* チーム名 */
+
+.sports-calendar-title span {
+    display: inline;
+
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
+
+    color: var(--text);
+}
+
+
+/* =====================================================
+   ⚙️ 設定 ＋ 🗓 通常カレンダーへ戻る
+===================================================== */
+
+.sports-calendar-header-buttons {
+
+    flex: 0 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    margin-left: auto;
+}
+
+
+/* 共通：⚙️・🗓 */
+
+.sports-calendar-header .sports-settings-button,
+.sports-calendar-header .sports-back-button {
+
+    flex: 0 0 46px;
+
+    width: 46px;
+    height: 46px;
+    max-width: 46px;
+
+    margin: 0;
+
+    padding: 0;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 12px;
+
+    background: var(--surface) !important;
+    color: var(--text) !important;
+
+    font-size: 25px;
+    font-weight: 400;
+    line-height: 1;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 5px rgba(0,0,0,.12);
+
+    box-sizing: border-box;
+
+    white-space: nowrap;
+}
+
+
+
+/* =====================================================
+   🏟️ スポーツ設定
+===================================================== */
+
+.sports-calendar-settings {
+
+    width: calc(100% - 16px);
+
+    margin: 4px 8px 6px;
+
+    padding: 10px 12px;
+
+    border-radius: 10px;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   設定タイトル
+===================================================== */
+
+.sports-setting-title {
+
+    margin-bottom: 9px;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    color: var(--text);
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   設定項目
+   左：項目名
+   右：入力欄
+===================================================== */
+
+.sports-form-row {
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        200px;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 7px;
+
+    width: 100%;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   項目名
+===================================================== */
+
+.sports-form-row label {
+
+    display: block;
+
+    min-width: 0;
+
+    text-align: left;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    color: var(--text);
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   入力欄
+===================================================== */
+
+.sports-form-row select,
+.sports-form-row input {
+
+    width: 200px;
+    max-width: 100%;
+
+    min-width: 0;
+
+    height: 36px;
+
+    padding: 6px 9px;
+
+    box-sizing: border-box;
+
+    justify-self: end;
+
+    background: var(--card);
+
+    color: var(--text);
+
+    border: 1px solid var(--border);
+
+    border-radius: 7px;
+
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   保存ボタン
+===================================================== */
+
+.sports-save-settings-button {
+
+    display: block;
+
+    margin: 6px 0 0 auto;
+
+    padding: 7px 12px;
+
+    border-radius: 7px;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   📅 カレンダー操作
+===================================================== */
+
+.sports-calendar-controls {
+
+    position: relative;
+
+    width: 100%;
+    max-width: 100%;
+
+    padding: 4px 6px 4px;
+
+    box-sizing: border-box;
+}
+
+/* =====================================================
+   月変更ボタン
+===================================================== */
+
+.sports-month-arrow {
+
+    flex: 0 0 38px;
+
+    width: 38px;
+    height: 34px;
+
+    padding: 0;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    box-sizing: border-box;
+
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
+/* =====================================================
+   年月ボタン
+===================================================== */
+
+.sports-month-title-button {
+
+    display: block;
+
+    width: 100%;
+
+    height: auto;
+
+    margin: 0 auto;
+    padding: 0;
+
+    background: transparent;
+
+    color: var(--text);
+
+    border: none;
+    border-radius: 0;
+
+    box-sizing: border-box;
+
+    font-size: 28px;
+    font-weight: bold;
+
+    line-height: 1.2;
+
+    text-align: center;
+
+    white-space: nowrap;
+}
+
+/* =====================================================
+   今日ボタン
+===================================================== */
+.sports-today-button {
+
+    position: absolute;
+
+    right: 6px;
+    bottom: 4px;
+
+    transform: none;
+
+    width: 90px;
+    height: 34px;
+
+    padding: 0 8px;
+
+    border-radius: 8px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    white-space: nowrap;
+}
+
+/* =====================================================
+   カレンダー本体
+===================================================== */
+
+.sports-calendar {
+
+    width: 100%;
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 2px 4px 5px;
+
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   JS側の月ヘッダー
+===================================================== */
+
+.sports-month-header {
+    display: none;
+}
+
+
+/* =====================================================
+   曜日
+===================================================== */
+
+.sports-week-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(7, minmax(0, 1fr));
+
+    width: 100%;
+    max-width: 100%;
+
+    gap: 0;
+
+    box-sizing: border-box;
+
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+
+    overflow: hidden;
+
+    border-radius: 8px 8px 0 0;
+}
+
+
+.sports-week {
+
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    color: var(--text);
+
+    background: var(--surface);
+
+    border-right: 1px solid var(--border);
+    border-bottom: 2px solid var(--border-strong);
+
+    padding: 9px 2px;
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+}
+
+
+/* 日曜日 */
+
+.sports-week.sunday {
+    color: #e74b67;
+}
+
+
+/* 土曜日 */
+
+.sports-week.saturday {
+    color: #4285e8;
+}
+
+
+/* =====================================================
+   日付グリッド
+===================================================== */
+
+.sports-day-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(7, minmax(0, 1fr));
+
+    width: 100%;
+    max-width: 100%;
+
+    gap: 0;
+
+    box-sizing: border-box;
+
+    border-left: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+
+    overflow: hidden;
+
+    border-radius: 0 0 8px 8px;
+}
+
+
+/* =====================================================
+   空白セル
+===================================================== */
+
+.sports-empty-day {
+
+    min-width: 0;
+
+    height: 83px;
+
+    background: var(--surface);
+
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+
+    opacity: .65;
+}
+
+
+/* =====================================================
+   日付セル
+===================================================== */
+
+.sports-day {
+
+    min-width: 0;
+
+    height: 83px;
+
+    background: var(--card);
+
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+
+    border-radius: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: flex-start;
+    align-items: flex-start;
+
+    padding: 4px;
+
+    box-sizing: border-box;
+
+    cursor: pointer;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+
+/* ホバー */
+
+.sports-day:hover {
+    background: var(--surface);
+}
+
+
+/* =====================================================
+   日付
+===================================================== */
+
+.sports-day-number {
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    color: inherit;
+
+    margin-bottom: 1px;
+
+    margin-left: -2px;
+
+    line-height: 1;
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   📅 土日・祝祭日
+   通常カレンダーと同じ配色ルール
+===================================================== */
+
+
+/* =========================
+   日曜日
+   赤文字 ＋ 薄い赤背景
+========================= */
+
+.sports-day.sunday {
+
+    color: #e74b67;
+
+    background:
+        color-mix(
+            in srgb,
+            #e74b67 8%,
+            var(--card)
+        );
+}
+
+
+/* =========================
+   土曜日
+   青文字 ＋ 薄い青背景
+========================= */
+
+.sports-day.saturday {
+
+    color: #4285e8;
+
+    background:
+        color-mix(
+            in srgb,
+            #4285e8 8%,
+            var(--card)
+        );
+}
+
+
+/* =========================
+   祝祭日
+   赤文字 ＋ 薄い赤背景
+========================= */
+
+.sports-day.holiday {
+
+    color: #e74b67;
+
+    background:
+        color-mix(
+            in srgb,
+            #e74b67 8%,
+            var(--card)
+        );
+}
+
+
+/* =========================
+   平日
+========================= */
+
+.sports-day:not(.sunday):not(.saturday):not(.holiday) {
+
+    color: var(--text);
+
+    background: var(--card);
+}
+
+/* =====================================================
+   🏟️ 試合表示
+===================================================== */
+
+.sports-game-preview {
+
+    width: 100%;
+
+    margin-top: 2px;
+
+    padding: 2px 4px;
+
+    background: var(--surface);
+
+    color: var(--text);
+
+    border: 1px solid var(--border);
+
+    border-radius: 3px;
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+    line-height: 1.15;
+
+    min-height: 15px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+}
+
+
+/* 対戦相手 */
+
+.sports-game-preview div {
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* スコア */
+.sports-game-preview strong {
+    display: block;
+    margin-top: 2px;
+    text-align: center;
+    white-space: nowrap;
+    color: var(--text);
+    font-size: 12px;
+}
+
+
+/* =====================================================
+   🏟️ 試合結果
+===================================================== */
+
+.sports-result-mark {
+
+    display: block;
+
+    width: 100%;
+
+    margin-top: 2px;
+
+    text-align: center;
+
+    font-size: 18px;
+
+    line-height: 1;
+
+    font-weight: 900;
+
+    white-space: nowrap;
+}
+
+
+/* 勝ち・負け・引分 */
+
+.sports-result-mark.win,
+.sports-result-mark.lose,
+.sports-result-mark.draw {
+
+    color: #e74b67;
+
+    font-size: 18px;
+
+    font-weight: 900;
+
+    font-family:
+        Arial,
+        "Noto Sans JP",
+        sans-serif;
+}
+
+
+/* ○と△を×と同じくらい太く見せる */
+
+.sports-result-mark.win,
+.sports-result-mark.draw {
+
+    text-shadow:
+        0.5px 0 0 #e74b67,
+        -0.5px 0 0 #e74b67,
+        0 0.5px 0 #e74b67,
+        0 -0.5px 0 #e74b67;
+}
+
+
+/* 予定・中止・延期 */
+
+.sports-result-mark.scheduled,
+.sports-result-mark.cancelled,
+.sports-result-mark.postponed {
+
+    color: var(--text);
+
+    font-size: 13px;
+
+    font-weight: 900;
+}
+
+
+/* =====================================================
+   📅 祝日
+===================================================== */
+
+.sports-holiday-label,
+.holiday-label {
+
+    font-size: 8px;
+
+    color: #ff6b81;
+
+    margin-left: 2px;
+
+    line-height: 1;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+
+.sports-holiday-name,
+.holiday-name {
+
+    font-size: 11px;
+
+    color: #e53935;
+
+    font-weight: bold;
+
+    line-height: 1.2;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    margin-top: 2px;
+}
+
+
+/* =====================================================
+   📸 記念日・写真などのアイコン
+===================================================== */
+
+.sports-calendar-day-icon,
+.calendar-day-icon {
+
+    font-size: 12px;
+
+    margin-left: 2px;
+
+    line-height: 1;
+
+    vertical-align: middle;
+}
+
+
+/* =====================================================
+   📅 今日
+   土日・祝日の背景色を維持しつつ
+   今日だけアクセント枠を表示
+===================================================== */
+
+.sports-day.today {
+
+    border: 2px solid var(--accent);
+
+    font-weight: bold;
+
+    /* 今日の背景色は土日・祝日を優先 */
+}
+
+
+/* 今日 ＋ 日曜日 */
+
+.sports-day.today.sunday {
+
+    background:
+        color-mix(
+            in srgb,
+            #e74b67 8%,
+            var(--card)
+        );
+}
+
+
+/* 今日 ＋ 土曜日 */
+
+.sports-day.today.saturday {
+
+    background:
+        color-mix(
+            in srgb,
+            #4285e8 8%,
+            var(--card)
+        );
+}
+
+
+/* 今日 ＋ 祝日 */
+
+.sports-day.today.holiday {
+
+    background:
+        color-mix(
+            in srgb,
+            #e74b67 8%,
+            var(--card)
+        );
+}
+
+
+/* 今日 ＋ 平日 */
+
+.sports-day.today:not(.sunday):not(.saturday):not(.holiday) {
+
+    background:
+        color-mix(
+            in srgb,
+            var(--accent) 8%,
+            var(--card)
+        );
+}
+
+/* =====================================================
+   モーダル
+===================================================== */
+
+.sports-modal {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    background: rgba(0,0,0,0.5);
+
+    padding: 12px;
+
+    box-sizing: border-box;
+
+    /* ★ モーダル全体を縦スクロール可能にする */
+    overflow-y: auto;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+
+.sports-modal-content {
+    width: 100%;
+
+    max-width: 500px;
+
+    margin: 20px auto;
+
+    padding: 16px;
+
+    border-radius: 12px;
+
+    background: var(--card);
+
+    color: var(--text);
+
+    box-sizing: border-box;
+
+    border: 1px solid var(--border);
+
+    /* ★ 内容が多くても画面内に収める */
+    max-height: calc(100vh - 40px);
+
+    overflow-y: auto;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+
+.sports-modal-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+
+.sports-modal-title {
+
+    font-weight: bold;
+
+    font-size: 18px;
+}
+
+
+.sports-modal-buttons {
+
+    display: flex;
+
+    gap: 10px;
+
+    justify-content: flex-end;
+
+    margin-top: 15px;
+}
+
+
+.sports-date-picker {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 15px;
+}
+
+
+.sports-date-picker select {
+
+    padding: 8px;
+
+    background: var(--card);
+
+    color: var(--text);
+
+    border: 1px solid var(--border);
+
+    border-radius: 7px;
+
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   📱 スマホ
+===================================================== */
+
+@media (max-width: 600px) {
+
+
+    /* =====================
+       ヘッダー
+    ===================== */
+
+    .sports-calendar-header {
+
+        gap: 5px;
+
+        padding: 6px 7px;
+    }
+
+
+.sports-calendar-title {
+    font-size: 22px;
+}
+
+
+    /* =====================
+       設定
+    ===================== */
+
+    .sports-calendar-settings {
+
+        width: calc(100% - 14px);
+
+        margin: 3px 7px 5px;
+
+        padding: 8px 9px;
+    }
+
+
+    .sports-setting-title {
+
+        margin-bottom: 6px;
+
+        font-size: 15px;
+    }
+
+
+    .sports-form-row {
+
+        grid-template-columns:
+            minmax(0, 1fr)
+            160px;
+
+        gap: 6px;
+
+        margin-bottom: 6px;
+    }
+
+
+    .sports-form-row select,
+    .sports-form-row input {
+
+        width: 160px;
+
+        height: 34px;
+
+        padding: 5px 7px;
+
+        font-size: 13px;
+    }
+
+
+    .sports-form-row label {
+
+        font-size: 14px;
+    }
+
+
+    .sports-save-settings-button {
+
+        margin-top: 5px;
+
+        padding: 6px 10px;
+
+        font-size: 12px;
+    }
+
+
+    /* =====================
+       カレンダー操作
+    ===================== */
+
+    .sports-calendar-controls {
+
+        gap: 3px;
+
+        padding: 3px 3px 6px;
+    }
+
+
+    .sports-month-arrow {
+
+        flex: 0 0 32px;
+
+        width: 32px;
+
+        height: 32px;
+
+        border-radius: 6px;
+
+        font-size: 13px;
+    }
+
+.sports-month-title-button {
+
+    flex: none;
+
+    width: 100%;
+
+    max-width: none;
+
+    height: auto;
+
+    padding: 0;
+
+    border-radius: 0;
+
+    font-size: 28px;
+
+    line-height: 1.2;
+
+    text-align: center;
+}
+
+
+.sports-today-button {
+    position: absolute;
+
+    right: 6px;
+    bottom: 4px;
+
+    transform: none;
+
+    width: 82px;
+    height: 34px;
+
+    padding: 0 8px;
+
+    border-radius: 8px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    white-space: nowrap;
+}
+
+    /* =====================
+       曜日
+    ===================== */
+
+    .sports-week {
+
+        font-size: 13px;
+
+        padding: 8px 1px;
+    }
+
+
+    /* =====================
+       日付
+    ===================== */
+
+    .sports-day {
+
+        height: 83px;
+
+        min-height: 83px;
+
+        padding: 4px;
+    }
+
+
+    .sports-empty-day {
+
+        height: 83px;
+
+        min-height: 83px;
+    }
+
+
+    .sports-day-number {
+
+        font-size: 14px;
+    }
+
+
+    /* =====================
+       試合
+    ===================== */
+
+    .sports-game-preview {
+
+        padding: 2px 3px;
+
+        font-size: 10px;
+
+        min-height: 14px;
+    }
+
+
+    .sports-game-preview strong {
+
+        font-size: 11px;
+    }
+
+
+    .sports-result-mark {
+
+    font-size: 20px;
+
+    font-weight: 900;
+
+    line-height: 1;
+
+}
+
+
+.sports-result-mark.lose {
+    font-size: 23px;
+    font-weight: 900;
+}
+
+/* ○と△をさらに太く見せる */
+
+.sports-result-mark.win,
+.sports-result-mark.draw {
+
+    text-shadow:
+        0.6px 0 0 #e74b67,
+        -0.6px 0 0 #e74b67,
+        0 0.6px 0 #e74b67,
+        0 -0.6px 0 #e74b67;
+}
+
+
+/* 中止・延期・予定 */
+
+.sports-result-mark.scheduled,
+.sports-result-mark.cancelled,
+.sports-result-mark.postponed {
+
+    font-size: 13px;
+
+    font-weight: 900;
+
+}
+
+
+    /* =====================
+       祝日
+    ===================== */
+
+    .sports-holiday-label,
+    .holiday-label {
+
+        font-size: 8px;
+    }
+
+
+    .sports-holiday-name,
+    .holiday-name {
+
+        font-size: 10px;
+    }
+
+
+    /* =====================
+       モーダル
+    ===================== */
+
+    .sports-modal {
+
+        padding: 12px;
+    }
+
+
+    .sports-modal-content {
+
+        margin: 30px auto;
+
+        padding: 14px;
+    }
+
+
+    .sports-modal-title {
+
+        font-size: 17px;
+    }
+
+}
+
+
+/* =====================================================
+   🏟️ 応援スポーツ設定
+===================================================== */
+
+.favorite-sports-settings-content {
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+
+.favorite-sports-help {
+    margin: 10px 0 12px;
+
+    font-size: 13px;
+
+    color: var(--text);
+
+    line-height: 1.5;
+}
+
+
+.favorite-sports-settings-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    width: 100%;
+}
+
+
+.favorite-sports-row {
+    display: grid;
+
+    grid-template-columns: 24px minmax(120px, 1fr) minmax(0, 1.4fr);
+
+    align-items: center;
+
+    gap: 6px;
+
+    width: 100%;
+
+    box-sizing: border-box;
+}
+
+
+.favorite-sports-number {
+    text-align: center;
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+    color: var(--text);
+}
+
+
+.favorite-sports-row select,
+.favorite-sports-row input {
+    width: 100%;
+
+    min-width: 0;
+
+    height: 36px;
+
+    padding: 5px 7px;
+
+    box-sizing: border-box;
+
+    background: var(--card);
+
+    color: var(--text);
+
+    border: 1px solid var(--border);
+
+    border-radius: 7px;
+
+    font-size: 13px;
+}
+
+
+.favorite-sports-save-top-button {
+    flex: 0 0 auto;
+
+    padding: 7px 12px;
+
+    border-radius: 7px;
+
+    font-size: 13px;
+
+    font-weight: bold;
+}
+
+
+/* =====================================================
+   📱 応援スポーツ設定・スマホ
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .favorite-sports-settings-content {
+        margin: 10px auto;
+
+        padding: 12px;
+
+        max-height: calc(100vh - 20px);
+    }
+
+
+    .favorite-sports-row {
+        grid-template-columns:
+            22px
+            minmax(105px, 1fr)
+            minmax(0, 1.3fr);
+
+        gap: 5px;
+    }
+
+
+    .favorite-sports-row select,
+    .favorite-sports-row input {
+        height: 35px;
+
+        font-size: 12px;
+
+        padding: 5px 6px;
+    }
+
+
+    .favorite-sports-number {
+        font-size: 12px;
+    }
+
+}
+
+
+
+/* =====================================================
+   🏟️ 応援スポーツ設定ヘッダー
+===================================================== */
+
+.favorite-sports-settings-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    width: 100%;
+
+    gap: 8px;
+
+    box-sizing: border-box;
+}
+
+
+/* タイトル */
+
+.favorite-sports-settings-header
+.sports-modal-title {
+
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    white-space: nowrap;
+
+    writing-mode: horizontal-tb;
+
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+
+/* 右側ボタン */
+
+.favorite-sports-header-buttons {
+
+    flex: 0 0 auto;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 5px;
+}
+
+
+/* 保存・閉じる */
+
+.favorite-sports-icon-button {
+
+    width: 36px;
+    height: 36px;
+
+    padding: 0;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 36px;
+
+    border-radius: 7px;
+
+    font-size: 17px;
+
+    box-sizing: border-box;
+
+    white-space: nowrap;
+}
+
+
+/* スマホ */
+
+@media (max-width: 600px) {
+
+    .favorite-sports-settings-header
+    .sports-modal-title {
+
+        font-size: 16px;
+    }
+
+
+    .favorite-sports-icon-button {
+
+        width: 34px;
+        height: 34px;
+
+        flex-basis: 34px;
+
+        font-size: 16px;
+    }
+
+}
+
+
+.baseball-view-info {
+    margin: 12px 0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(128, 128, 128, 0.08);
+    line-height: 1.8;
+}
+
+
+/* =====================================================
+   🏟️ 現在の応援スポーツ
+===================================================== */
+
+.sports-current-setting {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: calc(100% - 16px);
+    margin: 4px 8px 8px;
+    box-sizing: border-box;
+}
+
+.sports-current-sport-name {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: 8px;
+    row-gap: 0;
+    align-items: end;
+    box-sizing: border-box;
+}
+
+.sports-current-sport-label {
+    grid-column: 1;
+    grid-row: 1;
+
+    display: block;
+    min-width: 0;
+
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1.2;
+    color: var(--text);
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.sports-current-select {
+    grid-column: 2;
+    grid-row: 1;
+
+    align-self: end;
+
+    min-width: 130px;
+    max-width: 180px;
+    height: 36px;
+
+    padding: 5px 9px;
+    box-sizing: border-box;
+
+    background: var(--card);
+    color: var(--text);
+
+    border: 1px solid var(--border);
+    border-radius: 7px;
+
+    font-size: 14px;
+}
+
+.sports-current-team-name {
+    grid-column: 1 / -1;
+    grid-row: 2;
+
+    display: block;
+
+    width: 100%;
+
+    margin-top: 8px;
+    padding-left: 24px;
+    box-sizing: border-box;
+
+    font-size: 30px;
+    font-weight: bold;
+    line-height: 1.1;
+    color: var(--text);
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+
+
+.sports-open-settings-button {
+    justify-self: end;
+
+    margin-top: 8px;
+
+    padding: 6px 10px;
+    border-radius: 7px;
+
+    font-size: 13px;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+
+    .sports-current-setting {
+        width: calc(100% - 14px);
+        margin: 3px 7px 6px;
+    }
+
+    .sports-current-sport-label {
+        font-size: 17px;
+    }
+
+    .sports-current-select {
+        min-width: 120px;
+        max-width: 155px;
+        height: 34px;
+        font-size: 13px;
+    }
+
+    .sports-open-settings-button {
+        padding: 5px 9px;
+        font-size: 12px;
+    }
+}
+

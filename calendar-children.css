@@ -1,0 +1,2129 @@
+/* =====================================================
+👶 こどもカレンダー
+calendar-children.css
+
+・こどもカレンダー専用
+・通常カレンダー / 健康管理 / スポーツには影響しない
+・既存機能を維持
+・通常カレンダーと同じ7列カレンダー構造
+===================================================== */
+
+
+/* =====================================================
+   アプリ全体
+===================================================== */
+
+.children-calendar-app {
+    width: min(100%, 700px);
+    margin: 0 auto;
+    padding: 0 10px 30px;
+    box-sizing: border-box;
+
+    background: #eef8fc;
+    border-radius: 20px;
+    min-height: 100%;
+}
+
+
+/* 男の子 */
+
+.children-calendar-app.boy {
+    background: #eef8fc;
+}
+
+
+/* 女の子 */
+
+.children-calendar-app.girl {
+    background: #fff0f5;
+}
+
+/* =====================================================
+   👶 こどもカレンダー カラー設定
+===================================================== */
+
+:root {
+    --children-boy-color: #6495ED;
+    --children-boy-border: #4169E1;
+
+    --children-girl-color: #FF69B4;
+    --children-girl-border: #FF1493;
+}
+
+
+/* =====================================================
+   ヘッダー
+===================================================== */
+
+.children-calendar-header {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 10px 4px;
+}
+
+.children-calendar-title {
+    min-width: 0;
+
+    margin: 0;
+
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.2;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.children-calendar-header .children-calendar-back-button {
+    flex-shrink: 0;
+
+    width: 46px;
+    height: 46px;
+
+    min-height: 46px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 12px;
+
+    background: var(--surface) !important;
+    color: var(--text) !important;
+
+    font-size: 25px;
+    font-weight: 400;
+    line-height: 1;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 5px rgba(0,0,0,.12);
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   子ども選択
+===================================================== */
+
+.children-selector-section {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin: 0 4px 12px;
+}
+
+.children-selector-label {
+    flex-shrink: 0;
+
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.children-selector {
+    flex: 1;
+
+    min-width: 0;
+    min-height: 44px;
+
+    padding: 8px 12px;
+
+    border: 1px solid rgba(120,150,160,.20);
+    border-radius: 12px;
+
+    background: rgba(255,255,255,.84);
+    color: var(--text,#333);
+
+    font-size: 15px;
+    font-weight: 700;
+}
+
+
+/* =====================================================
+   プロフィール ＋ 成長・定期記録
+===================================================== */
+
+.children-profile-row {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0,1fr)
+        132px;
+
+    gap: 9px;
+
+    margin: 0 4px 14px;
+
+    align-items: stretch;
+}
+
+
+/* プロフィール */
+
+.children-profile {
+    margin: 0;
+
+    padding: 12px 14px;
+
+    border: 1px solid rgba(120,150,160,.18);
+    border-radius: 15px;
+
+    background: rgba(255,255,255,.84);
+
+    box-sizing: border-box;
+}
+
+
+/* 成長・定期記録入口 */
+
+.children-growth-entry {
+    width: 100%;
+    min-height: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 3px;
+
+    padding: 10px 8px;
+
+    border: 1px solid rgba(120,150,160,.18);
+    border-radius: 15px;
+
+    background: rgba(255,255,255,.84);
+
+    color: var(--text,#333);
+
+    text-align: center;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+.children-growth-entry:active {
+    opacity: .65;
+}
+
+.children-growth-entry-icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.children-growth-entry-text {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 2px;
+}
+
+.children-growth-entry-title {
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.children-growth-entry-description {
+    color: var(--muted,#777);
+
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+.children-growth-entry-arrow {
+    font-size: 22px;
+
+    color: #999;
+
+    line-height: 1;
+}
+
+
+
+.children-calendar-app.boy
+.children-growth-entry-title,
+.children-calendar-app.boy
+.children-growth-entry-description,
+.children-calendar-app.boy
+.children-growth-entry-arrow,
+.children-calendar-app.girl
+.children-growth-entry-title,
+.children-calendar-app.girl
+.children-growth-entry-description,
+.children-calendar-app.girl
+.children-growth-entry-arrow {
+    color: #fff !important;
+}
+
+/* =====================================================
+   プロフィール内部
+===================================================== */
+
+.children-profile-empty {
+    padding: 10px 4px;
+
+    text-align: center;
+
+    color: var(--muted,#888);
+
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.children-profile-name {
+    margin: 0 0 4px;
+
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.children-profile-birthday {
+    margin: 0;
+
+    color: var(--muted,#777);
+
+    font-size: 13px;
+}
+
+.children-profile-age {
+    margin-top: 6px;
+
+    font-size: 15px;
+    font-weight: 800;
+}
+
+
+/* =====================================================
+   カレンダー
+===================================================== */
+
+.children-calendar-section {
+    margin: 8px 4px 0;
+
+    border-radius: 17px;
+
+    background: #fff;
+
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   月移動
+===================================================== */
+
+.children-month-navigation {
+    display: grid;
+
+    grid-template-columns:
+        44px
+        minmax(0,1fr)
+        44px;
+
+    align-items: center;
+
+    gap: 6px;
+
+    margin-bottom: 0;
+
+    padding: 10px 10px 7px;
+}
+
+.children-month-button {
+    width: 44px;
+    height: 44px;
+
+    padding: 0;
+
+    border: 1px solid rgba(120,150,160,.20);
+    border-radius: 10px;
+
+    background: rgba(120,180,200,.10);
+    color: var(--text,#333);
+
+    font-size: 18px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+.children-month-title-button {
+    width: 100%;
+    min-height: 44px;
+
+    padding: 8px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: transparent;
+    color: var(--text,#333);
+
+    font-size: 20px;
+    font-weight: 900;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   カレンダー本体
+
+   JS:
+   .children-calendar
+       └ .children-calendar-grid
+           ├ .children-calendar-week
+           └ .children-calendar-day
+===================================================== */
+
+.children-calendar {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 4px 8px 12px;
+}
+
+
+/* =====================================================
+   7列グリッド
+===================================================== */
+
+.children-calendar-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(7,minmax(0,1fr));
+
+    gap: 1px;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    border-left: 1px solid #e5e5e5;
+    border-top: 1px solid #e5e5e5;
+
+    border-radius: 8px 8px 0 0;
+
+    overflow: hidden;
+
+    background: #e5e5e5;
+}
+
+
+/* =====================================================
+   曜日
+
+   通常カレンダーと同じ
+   日 → 月 → 火 → 水 → 木 → 金 → 土
+===================================================== */
+
+.children-calendar-week {
+    min-width: 0;
+
+    padding: 11px 2px;
+
+    border-right: 1px solid #e5e5e5;
+    border-bottom: 2px solid #e5e5e5;
+
+    background: #fff;
+
+    color: #333 !important;
+
+    font-size: 15px;
+    font-weight: 800;
+
+    line-height: 1.2;
+
+    text-align: center;
+
+    box-sizing: border-box;
+}
+
+.children-calendar-week.sunday {
+    color: #e74b67 !important;
+}
+
+.children-calendar-week.saturday {
+    color: #4285e8 !important;
+}
+
+
+/* =====================================================
+   月初の空白
+===================================================== */
+
+.children-calendar-day.empty {
+    min-width: 0;
+    min-height: 64px;
+
+    box-sizing: border-box;
+
+    border-right: 1px solid #e5e5e5;
+    border-bottom: 1px solid #e5e5e5;
+
+    background: #fff !important;
+
+    cursor: default;
+}
+
+
+/* =====================================================
+   日付セル
+
+   通常カレンダーと同じく
+   divで構成
+===================================================== */
+
+.children-calendar-day {
+    position: relative;
+
+    min-width: 0;
+    min-height: 64px;
+
+    padding: 5px 4px;
+
+    border-right: 1px solid #e5e5e5;
+    border-bottom: 1px solid #e5e5e5;
+
+    border-radius: 0;
+
+    background: #fff !important;
+    color: #333 !important;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    overflow: hidden;
+
+    box-sizing: border-box;
+
+    cursor: pointer;
+}
+
+
+/* =====================================================
+   日付数字
+===================================================== */
+
+.children-calendar-date {
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto;
+
+    border-radius: 50%;
+
+    background: transparent;
+
+    color: #333 !important;
+
+    font-size: 14px;
+    font-weight: 800;
+
+    line-height: 1.2;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   日曜日
+===================================================== */
+
+.children-calendar-date.sunday {
+    color: #e74b67 !important;
+}
+
+
+/* =====================================================
+   土曜日
+===================================================== */
+
+.children-calendar-date.saturday {
+    color: #4285e8 !important;
+}
+
+
+/* =====================================================
+   今日
+===================================================== */
+
+.children-calendar-day.today
+.children-calendar-date {
+
+    outline:
+        2px solid
+        rgba(143,207,227,.65);
+
+    outline-offset: 1px;
+}
+
+
+/* =====================================================
+   選択中の日
+===================================================== */
+
+.children-calendar-day.selected-day
+.children-calendar-date {
+
+    background: transparent;
+
+    color: #333 !important;
+
+    outline:
+        2px solid
+        #8fcfe3;
+
+    outline-offset: 1px;
+
+    font-weight: 900;
+}
+
+
+/* =====================================================
+   女の子の選択円
+===================================================== */
+
+.children-calendar-app.girl
+.children-calendar-day.selected-day
+.children-calendar-date {
+
+    background: transparent;
+
+    color: #333 !important;
+
+    outline:
+        2px solid
+        #e99ab7;
+
+    outline-offset: 1px;
+}
+
+
+/* =====================================================
+   男の子の選択円
+===================================================== */
+
+.children-calendar-app.boy
+.children-calendar-day.selected-day
+.children-calendar-date {
+
+    outline-color: #72a9d8;
+}
+
+
+/* =====================================================
+   日付タップ
+===================================================== */
+
+.children-calendar-day:active {
+    opacity: .65;
+}
+
+
+/* =====================================================
+   記録マーク
+===================================================== */
+
+.children-calendar-record-mark {
+
+    width: 100%;
+
+    margin-top: 3px;
+
+    text-align: center;
+
+    font-size: 8px;
+
+    line-height: 1;
+
+    color: #78a9bd;
+}
+
+
+/* 女の子 */
+
+.children-calendar-app.girl
+.children-calendar-record-mark {
+
+    color: #d98da5;
+}
+
+
+/* 男の子 */
+
+.children-calendar-app.boy
+.children-calendar-record-mark {
+
+    color: #6f9fc8;
+}
+
+
+/* =====================================================
+   こどもカレンダー入口
+===================================================== */
+
+.calendar-title-row .calendar-children-button {
+    flex-shrink: 0;
+
+    width: auto;
+
+    padding: 8px 14px;
+
+    border: none;
+    border-radius: 10px;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+
+/* =====================================================
+   1日の記録
+===================================================== */
+
+.children-daily-section {
+    width: 100%;
+
+    margin-top: 16px;
+}
+
+.children-daily-header {
+    margin: 0 4px 10px;
+}
+
+.children-daily-header h2 {
+    margin: 0;
+
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.children-daily-basic-section {
+    width: 100%;
+
+    margin-top: 12px;
+}
+
+.children-daily-basic-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin: 0 4px;
+}
+
+.children-daily-basic-title {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.children-daily-section-title {
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.children-daily-add-button {
+    flex-shrink: 0;
+
+    width: auto;
+    min-height: 44px;
+
+    padding: 8px 14px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: rgba(120,180,200,.14);
+    color: var(--text,#333);
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.children-calendar-app.boy
+.children-daily-add-button {
+    background: var(--children-boy-color) !important;
+    border: 1px solid var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+.children-calendar-app.girl
+.children-daily-add-button {
+    background: var(--children-girl-color) !important;
+    border: 1px solid var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+
+/* =====================================================
+   この日の記録
+===================================================== */
+
+.children-daily-records-section {
+    width: 100%;
+
+    margin-top: 18px;
+}
+
+.children-daily-records-title {
+    margin-bottom: 8px;
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.children-daily-table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+.children-daily-table {
+    width: 100%;
+    min-width: 430px;
+
+    border-collapse: collapse;
+
+    table-layout: fixed;
+
+    background: rgba(255,255,255,.70);
+}
+
+.children-daily-table th,
+.children-daily-table td {
+    padding: 10px 8px;
+
+    border-bottom:
+        1px solid
+        rgba(128,128,128,.25);
+
+    text-align: left;
+    vertical-align: middle;
+}
+
+.children-daily-table th {
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.children-daily-table th:nth-child(1),
+.children-daily-table td:nth-child(1) {
+    width: 70px;
+
+    text-align: center;
+}
+
+.children-daily-table th:nth-child(2),
+.children-daily-table td:nth-child(2) {
+    width: 45%;
+}
+
+.children-daily-table-row {
+    cursor: pointer;
+}
+
+.children-daily-table-row:active {
+    opacity: .65;
+}
+
+.children-daily-time {
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.children-daily-label {
+    font-weight: 600;
+}
+
+.children-daily-memo {
+    color: #777;
+
+    word-break: break-word;
+}
+
+.children-daily-empty {
+    padding: 18px 10px;
+
+    text-align: center;
+
+    color: #888;
+}
+
+.children-daily-table-hint {
+    margin-top: 7px;
+
+    padding-right: 4px;
+
+    font-size: 12px;
+
+    color: #888;
+
+    text-align: right;
+}
+
+
+/* =====================================================
+   成長・定期記録
+===================================================== */
+
+.children-growth-section {
+    width: 100%;
+
+    margin-top: 18px;
+
+    padding: 0 0 4px;
+}
+
+.children-growth-section-header {
+    margin: 0 4px 9px;
+}
+
+.children-growth-back-button {
+    min-height: 44px;
+
+    margin-bottom: 10px;
+
+    padding: 8px 14px;
+
+    border:
+        1px solid
+        rgba(120,150,160,.20);
+
+    border-radius: 10px;
+
+    background: rgba(255,255,255,.82);
+    color: var(--text,#333);
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+
+.children-growth-section-title {
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.children-growth-category-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.children-growth-category {
+    width: 100%;
+    min-height: 58px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 9px 11px;
+
+    border:
+        1px solid
+        rgba(120,150,160,.18);
+
+    border-radius: 13px;
+
+    background: rgba(255,255,255,.84);
+    color: var(--text,#333);
+
+    text-align: left;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+.children-growth-category:active {
+    opacity: .65;
+}
+
+.children-growth-category-icon {
+    flex-shrink: 0;
+
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: rgba(255,255,255,.9);
+
+    font-size: 21px;
+}
+
+.children-growth-category-text {
+    flex: 1;
+
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 2px;
+}
+
+.children-growth-category-name {
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.children-growth-category-description {
+    color: var(--muted,#777);
+
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.children-growth-category-arrow {
+    flex-shrink: 0;
+
+    font-size: 25px;
+
+    color: #999;
+}
+
+.children-calendar-app.boy
+.children-growth-category {
+    background: var(--children-boy-color) !important;
+    border-color: var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+.children-calendar-app.girl
+.children-growth-category {
+    background: var(--children-girl-color) !important;
+    border-color: var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+.children-calendar-app.boy
+.children-growth-category-name,
+.children-calendar-app.boy
+.children-growth-category-description,
+.children-calendar-app.boy
+.children-growth-category-arrow,
+.children-calendar-app.girl
+.children-growth-category-name,
+.children-calendar-app.girl
+.children-growth-category-description,
+.children-calendar-app.girl
+.children-growth-category-arrow {
+    color: #fff !important;
+}
+
+.children-calendar-app.boy
+.children-growth-category-icon,
+.children-calendar-app.girl
+.children-growth-category-icon {
+    background: rgba(255,255,255,.18) !important;
+    color: #fff !important;
+}
+
+
+/* =====================================================
+   モーダル
+===================================================== */
+
+.children-modal {
+    position: relative;
+
+    z-index: 1000;
+}
+
+.children-modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0,0,0,.35);
+}
+
+.children-modal-content {
+    position: fixed;
+
+    top: 50%;
+    left: 50%;
+
+    width: min(92%,500px);
+    max-height: 86vh;
+
+    overflow-y: auto;
+
+    transform:
+        translate(-50%,-50%);
+
+    box-sizing: border-box;
+
+    padding: 20px;
+
+    border-radius: 18px;
+
+    background: var(--surface,#fff);
+    color: var(--text,#333);
+
+    box-shadow:
+        0 8px 30px
+        rgba(0,0,0,.18);
+}
+
+
+
+.children-modal-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 18px;
+}
+
+.children-modal-header h2 {
+    margin: 0;
+
+    font-size: 22px;
+}
+
+.children-modal-close-button {
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    border: none;
+    border-radius: 10px;
+
+    background: transparent;
+    color: var(--text,#333);
+
+    font-size: 30px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+
+/* =====================================================
+   子ども一覧
+===================================================== */
+
+.children-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin-bottom: 16px;
+}
+
+.children-list-empty {
+    padding: 20px 8px;
+
+    text-align: center;
+
+    color: var(--muted,#888);
+
+    font-size: 16px;
+}
+
+.children-list-item {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 12px;
+
+    border:
+        1px solid
+        var(--border,#ddd);
+
+    border-radius: 12px;
+
+    background: var(--surface,#fff);
+}
+
+.children-list-info {
+    flex: 1;
+
+    min-width: 0;
+}
+
+.children-list-name {
+    margin: 0;
+
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.children-list-birthday {
+    margin: 3px 0 0;
+
+    color: var(--muted,#777);
+
+    font-size: 13px;
+}
+
+.children-list-actions {
+    display: flex;
+
+    gap: 6px;
+}
+
+.children-list-action-button {
+    min-width: 44px;
+    min-height: 44px;
+
+    padding: 7px 10px;
+
+    border:
+        1px solid
+        var(--border,#ddd);
+
+    border-radius: 9px;
+
+    background: var(--surface,#fff);
+    color: var(--text,#333);
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+/* =====================================================
+   追加ボタン
+===================================================== */
+
+.children-add-button {
+    width: 100%;
+    min-height: 50px;
+
+    padding: 10px 14px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: var(--accent,#e58);
+    color: #fff;
+
+    font-size: 17px;
+    font-weight: 900;
+
+    cursor: pointer;
+}
+
+
+/* =====================================================
+   入力フォーム
+===================================================== */
+
+.children-form-field {
+    margin-bottom: 16px;
+}
+
+.children-form-field label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.children-form-field input,
+.children-gender-input {
+    width: 100%;
+    min-height: 48px;
+
+    padding: 9px 12px;
+
+    border:
+        1px solid
+        var(--border,#ddd);
+
+    border-radius: 10px;
+
+    background: var(--surface,#fff);
+    color: var(--text,#333);
+
+    font-size: 17px;
+
+    box-sizing: border-box;
+}
+
+.children-form-actions {
+    display: grid;
+
+    grid-template-columns:
+        1fr
+        1fr;
+
+    gap: 10px;
+
+    margin-top: 22px;
+}
+
+.children-cancel-button,
+.children-save-button {
+    min-height: 48px;
+
+    padding: 9px 12px;
+
+    border-radius: 10px;
+
+    font-size: 16px;
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+.children-cancel-button {
+    border:
+        1px solid
+        var(--border,#ddd);
+
+    background: var(--surface,#fff);
+    color: var(--text,#333);
+}
+
+.children-save-button {
+    border: none;
+
+    background: var(--accent,#e58);
+    color: #fff;
+}
+
+
+/* =====================================================
+   項目選択モーダル
+===================================================== */
+
+.children-record-type-modal,
+.children-record-edit-modal {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 10000;
+}
+
+.children-record-type-overlay,
+.children-record-edit-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    background: rgba(0,0,0,.45);
+}
+
+.children-record-type-dialog,
+.children-record-edit-dialog {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width:
+        min(
+            calc(100% - 32px),
+            430px
+        );
+
+    max-height:
+        calc(100% - 32px);
+
+    overflow-y: auto;
+
+    transform:
+        translate(-50%,-50%);
+
+    border-radius: 18px;
+
+    background: var(--viz-card,#fff);
+    color: var(--viz-text,#222);
+
+    box-sizing: border-box;
+}
+
+.children-record-type-header,
+.children-record-edit-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 14px 16px;
+
+    border-bottom:
+        1px solid
+        rgba(128,128,128,.2);
+}
+
+.children-record-type-header h2,
+.children-record-edit-header h2 {
+    margin: 0;
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.children-record-type-close,
+.children-record-edit-close {
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    border: none;
+
+    background: transparent;
+
+    font-size: 28px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.children-record-type-list {
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 8px;
+
+    padding: 14px;
+}
+
+.children-record-type-button {
+    width: 100%;
+    min-height: 52px;
+
+    padding: 10px 14px;
+
+    border:
+        1px solid
+        rgba(128,128,128,.25);
+
+    border-radius: 12px;
+
+    background: transparent;
+
+    text-align: left;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.children-record-type-button:active {
+    opacity: .65;
+}
+
+.children-record-type-button.other {
+    margin-top: 4px;
+}
+
+
+.children-calendar-app.boy
+.children-record-type-button {
+    background: var(--children-boy-color) !important;
+    border-color: var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+.children-calendar-app.girl
+.children-record-type-button {
+    background: var(--children-girl-color) !important;
+    border-color: var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+
+/* =====================================================
+   編集モーダル
+===================================================== */
+
+.children-record-edit-current {
+    padding: 18px 16px 10px;
+
+    text-align: center;
+}
+
+.children-record-edit-time {
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.children-record-edit-label {
+    margin-top: 5px;
+
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.children-record-edit-memo {
+    margin-top: 6px;
+
+    color: #777;
+
+    font-size: 14px;
+
+    word-break: break-word;
+}
+
+.children-record-edit-actions {
+    display: grid;
+
+    gap: 8px;
+
+    padding: 14px 16px 18px;
+}
+
+.children-record-edit-action {
+    width: 100%;
+    min-height: 48px;
+
+    padding: 10px 14px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: rgba(128,128,128,.12);
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.children-record-edit-action:active {
+    opacity: .65;
+}
+
+.children-record-edit-action.delete {
+    color: #c62828;
+}
+
+.children-record-edit-action.cancel {
+    background: transparent;
+}
+
+
+/* =====================================================
+   スマホ
+===================================================== */
+
+@media (max-width:600px) {
+
+    .children-calendar-app {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+   .children-calendar-title {
+        font-size: 22px;
+    }
+
+    .children-calendar-back-button {
+        width: 46px;
+        height: 46px;
+        min-height: 46px;
+
+        padding: 0;
+
+        font-size: 25px;
+    }
+
+
+    .children-selector-label {
+        font-size: 14px;
+    }
+
+    .children-selector {
+        font-size: 15px;
+    }
+
+
+    /* =====================
+       カレンダー
+    ===================== */
+
+    .children-calendar-day,
+    .children-calendar-day.empty {
+
+        min-height: 64px;
+
+    }
+
+    .children-calendar-week {
+
+        padding: 10px 2px;
+
+        font-size: 15px;
+
+    }
+
+    .children-calendar-date {
+
+        width: 30px;
+        height: 30px;
+
+        font-size: 14px;
+
+    }
+
+
+    .children-modal-content {
+        padding: 16px;
+    }
+
+    .children-profile-row {
+        grid-template-columns:
+            minmax(0,1fr)
+            135px;
+    }
+
+    .children-growth-entry-title {
+        font-size: 13px;
+    }
+
+    .children-growth-entry-description {
+        font-size: 10px;
+    }
+
+}
+
+
+/* =====================================================
+   スマホ用：1日の記録
+===================================================== */
+
+@media (max-width:480px) {
+
+    .children-daily-basic-title {
+        font-size: 18px;
+    }
+
+    .children-daily-add-button {
+        font-size: 13px;
+
+        padding: 8px 12px;
+    }
+
+    .children-daily-table {
+        min-width: 400px;
+    }
+
+    .children-daily-table th,
+    .children-daily-table td {
+        padding: 9px 6px;
+    }
+
+    .children-record-type-dialog,
+    .children-record-edit-dialog {
+        width:
+            calc(100% - 20px);
+
+        border-radius: 16px;
+    }
+
+}
+
+
+/* =====================================================
+   小さいスマホ
+===================================================== */
+
+@media (max-width:380px) {
+
+    .children-calendar-title {
+        font-size: 22px;
+    }
+
+    .children-calendar-back-button {
+        width: 46px;
+        height: 46px;
+        min-height: 46px;
+
+        padding: 0;
+
+        font-size: 25px;
+    }
+
+    .children-month-navigation {
+        grid-template-columns:
+            40px
+            minmax(0,1fr)
+            40px;
+    }
+
+    .children-month-button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .children-month-title-button {
+        min-height: 40px;
+
+        font-size: 18px;
+    }
+
+    .children-calendar {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .children-calendar-day,
+    .children-calendar-day.empty {
+        min-height: 58px;
+    }
+
+    .children-profile-row {
+        grid-template-columns:
+            minmax(0,1fr)
+            120px;
+    }
+
+}
+
+
+/* =====================================================
+   👶 今日の日付
+   カレンダーの外枠線は通常色のまま
+===================================================== */
+
+.children-calendar-day.today {
+    border-top: 1px solid #e5e5e5 !important;
+    border-left: 1px solid #e5e5e5 !important;
+}
+
+.children-calendar-day.today .children-calendar-date {
+    color: #8e6cc7 !important;
+    font-weight: 700;
+}
+
+
+
+/* =====================================================
+   👶 こどもカレンダー
+   年月表示
+===================================================== */
+
+.children-month-title-button {
+    background: #fff !important;
+    color: #333 !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.children-month-title-button:hover,
+.children-month-title-button:active,
+.children-month-title-button:focus {
+    background: #fff !important;
+    color: #333 !important;
+    box-shadow: none !important;
+}
+
+
+
+.children-month-navigation {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.children-month-title-button {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+
+.children-today-button {
+    position: absolute;
+    right: 0;
+    width: auto !important;
+    min-width: 60px;
+    white-space: nowrap;
+}
+
+
+.children-calendar-app.boy
+.children-today-button {
+    background: var(--children-boy-color) !important;
+    border-color: var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+.children-calendar-app.girl
+.children-today-button {
+    background: var(--children-girl-color) !important;
+    border-color: var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+
+
+/* =============================================
+   👶 子どもカレンダー ボタンカラー
+   ============================================= */
+
+#childrenCalendarApp.boy .children-growth-entry {
+    background: var(--children-boy-color) !important;
+    border-color: var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+#childrenCalendarApp.girl .children-growth-entry {
+    background: var(--children-girl-color) !important;
+    border-color: var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+
+#childrenCalendarApp.boy .children-growth-category {
+    background: var(--children-boy-color) !important;
+    border-color: var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+#childrenCalendarApp.girl .children-growth-category {
+    background: var(--children-girl-color) !important;
+    border-color: var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+#childrenCalendarApp.boy .children-growth-category-name,
+#childrenCalendarApp.boy .children-growth-category-description,
+#childrenCalendarApp.boy .children-growth-category-arrow,
+#childrenCalendarApp.girl .children-growth-category-name,
+#childrenCalendarApp.girl .children-growth-category-description,
+#childrenCalendarApp.girl .children-growth-category-arrow {
+    color: #fff !important;
+}
+
+
+/* =====================================================
+   👶 項目追加モーダル
+   記録項目ボタンだけ性別カラー
+===================================================== */
+
+#childrenRecordTypeModal.boy
+.children-record-type-button {
+    background: var(--children-boy-color) !important;
+    border-color: var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+#childrenRecordTypeModal.girl
+.children-record-type-button {
+    background: var(--children-girl-color) !important;
+    border-color: var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+
+/* =====================================================
+   👶 記録項目モーダル
+   閉じるボタンの性別カラー
+===================================================== */
+
+#childrenRecordTypeModal.boy
+.children-record-type-close {
+    background: var(--children-boy-color) !important;
+    border-color: var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+#childrenRecordTypeModal.girl
+.children-record-type-close {
+    background: var(--children-girl-color) !important;
+    border-color: var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+
+/* ==================================================
+   👶 こどもカレンダー：記録編集モーダル
+   男の子＝青 / 女の子＝ピンク
+================================================== */
+
+.children-record-edit-modal.boy
+.children-record-edit-action {
+    background: var(--children-boy-color) !important;
+    border-color: var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+.children-record-edit-modal.girl
+.children-record-edit-action {
+    background: var(--children-girl-color) !important;
+    border-color: var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+/* =====================================================
+   👶 記録編集モーダル：閉じるボタン
+===================================================== */
+
+.children-record-edit-modal.boy
+.children-record-edit-close {
+    background: var(--children-boy-color) !important;
+    border-color: var(--children-boy-border) !important;
+    color: #fff !important;
+}
+
+.children-record-edit-modal.girl
+.children-record-edit-close {
+    background: var(--children-girl-color) !important;
+    border-color: var(--children-girl-border) !important;
+    color: #fff !important;
+}
+
+
+/* =====================================================
+   👶 成長記録
+   ＋ ✎ × は「ボタン」に見せず
+   アイコン操作として表示
+===================================================== */
+
+.children-height-weight-history-actions {
+    display: flex;
+
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    margin-left: auto;
+}
+
+
+/* ＋ ✎ × 共通 */
+
+.children-height-weight-history-actions
+.children-height-weight-edit,
+.children-height-weight-history-actions
+.children-height-weight-delete {
+
+    width: 32px;
+    height: 32px;
+
+    min-width: 32px;
+    min-height: 32px;
+
+    padding: 0;
+
+    border: none !important;
+    border-radius: 0;
+
+    background: transparent !important;
+
+    color: #777;
+
+    font-size: 22px;
+    font-weight: 700;
+
+    line-height: 1;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    box-shadow: none !important;
+
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+
+/* 編集 */
+
+.children-height-weight-history-actions
+.children-height-weight-edit {
+
+    font-size: 20px;
+
+    color: #777;
+}
+
+
+/* 削除 */
+
+.children-height-weight-history-actions
+.children-height-weight-delete {
+
+    font-size: 25px;
+
+    color: #999;
+}
+
+
+/* タップ時 */
+
+.children-height-weight-history-actions
+.children-height-weight-edit:active,
+.children-height-weight-history-actions
+.children-height-weight-delete:active {
+
+    opacity: .45;
+
+    background: transparent !important;
+}
+
+
+/* フォーカス時も四角いボタン感を出さない */
+
+.children-height-weight-history-actions
+.children-height-weight-edit:focus,
+.children-height-weight-history-actions
+.children-height-weight-delete:focus {
+
+    outline: none;
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+}
+
+
+/* =====================================================
+   👶 さらに表示 / 閉じる
+   こちらは普通のボタンとして表示
+===================================================== */
+
+.children-height-weight-history-more {
+
+    display: block;
+
+    width: 100%;
+
+    min-height: 44px;
+
+    margin-top: 8px;
+
+    padding: 8px 14px;
+
+    border:
+        1px solid
+        rgba(120,150,160,.20);
+
+    border-radius: 10px;
+
+    background: rgba(255,255,255,.82);
+
+    color: var(--text,#333);
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+
+.children-height-weight-history-more:active {
+
+    opacity: .65;
+}
+
+
+.children-calendar-app.boy
+.children-height-weight-history-more {
+
+    background: var(--children-boy-color) !important;
+
+    border-color: var(--children-boy-border) !important;
+
+    color: #fff !important;
+}
+
+
+.children-calendar-app.girl
+.children-height-weight-history-more {
+
+    background: var(--children-girl-color) !important;
+
+    border-color: var(--children-girl-border) !important;
+
+    color: #fff !important;
+}
