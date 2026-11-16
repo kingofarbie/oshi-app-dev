@@ -173,3 +173,18 @@ async function getStorageCapacityInfo(){
     };
 
 }
+
+
+/* =====================================================
+   5. 動作確認
+===================================================== */
+
+async function testStorageCapacity(){
+
+    const info = await getStorageCapacityInfo();
+
+    console.log("保存容量チェック結果", info);
+
+    return info;
+
+}
