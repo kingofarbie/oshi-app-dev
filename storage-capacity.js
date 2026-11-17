@@ -188,3 +188,104 @@ async function testStorageCapacity(){
     return info;
 
 }
+
+
+/* =====================================================
+   6. 設定画面への容量表示
+===================================================== */
+
+function formatStorageSize(bytes){
+
+    if(typeof bytes !== "number"){
+        return "取得できません";
+    }
+
+    if(bytes < 1024 * 1024){
+        return (bytes / 1024).toFixed(1) + " KB";
+    }
+
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+
+}
+
+
+async function refreshStorageCapacity(){
+
+    const result =
+        document.getElementById(
+            "storageCapacityResult"
+        );
+
+    if(!result){
+        return;
+    }
+
+    result.textContent = "容量情報を確認中...";
+
+    try{
+
+        const info =
+            await getStorageCapacityInfo();
+
+        const browser = info.browser;
+        const local = info.localStorage;
+
+        const usage =
+            formatStorageSize(browser.usage);
+
+        const quota =
+            formatStorageSize(browser.quota);
+
+        const localUsage =
+            formatStorageSize(local.bytes);
+
+        let warningText = "容量情報を取得できません";
+
+        if(info.warning === "safe"){
+            warningText = "🟢 保存容量に余裕があります";
+        }
+
+        if(info.warning === "warning"){
+            warningText = "🟡 保存容量が少なくなっています";
+        }
+
+        if(info.warning === "danger"){
+            warningText = "🔴 保存容量に注意が必要です";
+        }
+
+        result.innerHTML = `
+
+            <div>
+                <strong>ブラウザの使用量</strong>
+                <p>${usage}</p>
+            </div>
+
+            <div>
+                <strong>保存容量の目安</strong>
+                <p>${quota}</p>
+            </div>
+
+            <div>
+                <strong>localStorage使用量</strong>
+                <p>${localUsage}</p>
+            </div>
+
+            <hr>
+
+            <p>${warningText}</p>
+
+        `;
+
+    }catch(error){
+
+        console.error(
+            "容量表示エラー",
+            error
+        );
+
+        result.textContent =
+            "容量情報を取得できませんでした。";
+
+    }
+
+}

@@ -725,3 +725,53 @@ placeholder="カテゴリ名（例：推し活、仕事、旅行）">
 
 </div>
 
+
+
+
+
+<!-- =====================
+     💾 保存容量・データ管理
+===================== -->
+
+<div class="card setting-item">
+
+    <button
+        type="button"
+        onclick="toggleSetting('storageCapacityMenu')">
+
+        <span id="storageCapacityIcon">＋</span>
+        💾 保存容量・データ管理
+
+    </button>
+
+    <div
+        id="storageCapacityMenu"
+        class="setting-content"
+        style="display:none;">
+
+        <p>
+            アプリが使用している保存容量を確認できます。
+        </p>
+
+        <div id="storageCapacityResult">
+
+            容量情報を確認中...
+
+        </div>
+
+        <button
+            type="button"
+            onclick="refreshStorageCapacity()">
+
+            🔄 容量を再確認
+
+        </button>
+
+        <p>
+            ※容量はブラウザによる推定値です。
+        </p>
+
+    </div>
+
+</div>
+
