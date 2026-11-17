@@ -2576,7 +2576,10 @@ function toggleSetting(menuId) {
         "favoritePhotoMenu",
         "templateMenu",
         "categoryMenu",
-        "pageBackgroundContent"
+        "pageBackgroundContent",
+        "storageCapacityMenu"
+
+
     ];
 
     // IDに対応するアイコンを取得
