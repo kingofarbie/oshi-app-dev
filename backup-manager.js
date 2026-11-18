@@ -88,6 +88,14 @@ const BACKUP_SOURCES = [
     },
 
     {
+    id:"notifiedEvents",
+    name:"通知済み予定の記録",
+    category:"通知",
+    storage:"localStorage",
+    key:"notifiedEvents"
+},
+
+    {
         id:"favoritePhotoSort",
         name:"お気に入り写真の並び順",
         category:"並び替え設定",
@@ -138,45 +146,137 @@ const BACKUP_SOURCES = [
    ここでは分類用の情報だけを管理する。
 ===================================================== */
 
+
 const MAIN_DATA_ITEMS = [
-
-    {
-        id:"events",
-        name:"予定・カレンダー",
-        path:"events"
-    },
-
-    {
-        id:"dayMemories",
-        name:"1日手帳・日々の記録",
-        path:"dayMemories"
-    },
-
-    {
-        id:"oshiList",
-        name:"推し情報",
-        path:"oshiList"
-    },
-
-    {
-        id:"money",
-        name:"お金・推し活費",
-        path:"money"
-    },
 
     {
         id:"settings",
         name:"アプリ設定",
+        category:"設定",
         path:"settings"
     },
 
     {
+        id:"oshiList",
+        name:"推し一覧",
+        category:"推し情報",
+        path:"oshiList"
+    },
+
+    {
+        id:"oshiDetails",
+        name:"推し詳細情報",
+        category:"推し情報",
+        path:"oshiDetails"
+    },
+
+    {
+        id:"oshiRecords",
+        name:"推しの記録",
+        category:"推し情報",
+        path:"oshiRecords"
+    },
+
+    {
+        id:"events",
+        name:"予定・カレンダー",
+        category:"予定",
+        path:"events"
+    },
+
+    {
         id:"categories",
-        name:"カテゴリー設定",
+        name:"予定カテゴリー",
+        category:"予定",
         path:"categories"
+    },
+
+    {
+        id:"dayMemories",
+        name:"1日手帳の日々の記録",
+        category:"1日手帳",
+        path:"dayMemories"
+    },
+
+    {
+        id:"plannerNotes",
+        name:"1日手帳のメモ",
+        category:"1日手帳",
+        path:"plannerNotes"
+    },
+
+    {
+        id:"plannerStickerPlacements",
+        name:"1日手帳のステッカー配置",
+        category:"1日手帳",
+        path:"plannerStickerPlacements"
+    },
+
+    {
+        id:"memorialDays",
+        name:"記念日・メモリアルデー",
+        category:"記念日",
+        path:"memorialDays"
+    },
+
+    {
+        id:"anniversaryDays",
+        name:"記念日",
+        category:"記念日",
+        path:"anniversaryDays"
+    },
+
+    {
+        id:"favoriteEvents",
+        name:"お気に入り予定",
+        category:"お気に入り",
+        path:"favoriteEvents"
+    },
+
+    {
+        id:"favoritePhotos",
+        name:"お気に入り写真",
+        category:"お気に入り",
+        path:"favoritePhotos"
+    },
+
+    {
+        id:"favorites",
+        name:"お気に入り情報",
+        category:"お気に入り",
+        path:"favorites"
+    },
+
+    {
+        id:"sportsCalendar",
+        name:"スポーツカレンダー",
+        category:"スポーツ",
+        path:"sportsCalendar"
+    },
+
+    {
+        id:"healthCalendar",
+        name:"健康カレンダー",
+        category:"健康",
+        path:"healthCalendar"
+    },
+
+    {
+        id:"familySchedule",
+        name:"家族予定",
+        category:"家族",
+        path:"familySchedule"
+    },
+
+    {
+        id:"money",
+        name:"家計・推し活費",
+        category:"お金",
+        path:"money"
     }
 
 ];
+
 
 
 /* =====================================================
