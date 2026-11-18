@@ -6,6 +6,7 @@
    ・選択済みデータをZIP形式にする
    ・JSONデータと写真・動画をまとめる
    ・写真・動画は無圧縮で格納する
+   ・メディアの実ファイルサイズと形式を記録する
    ・既存の保存データは変更しない
 ===================================================== */
 
@@ -242,7 +243,7 @@ async function createZipBlob(backupData){
 
 
     /* =================================================
-       6-1. JSONデータ
+       6-1. JSONデータとメディア情報
     ================================================= */
 
     const mediaMetadata = [];
@@ -275,6 +276,14 @@ async function createZipBlob(backupData){
 
         }
 
+        /* 実ファイルからサイズと形式を取得 */
+
+        metadata.size = item.file.size;
+
+        metadata.type = item.file.type;
+
+        /* ZIP内の保存先 */
+
         metadata.backupPath = path;
 
         mediaMetadata.push(metadata);
@@ -293,6 +302,10 @@ async function createZipBlob(backupData){
 
     }
 
+
+    /* =================================================
+       6-2. バックアップJSON
+    ================================================= */
 
     const manifest = {
 
@@ -340,7 +353,7 @@ async function createZipBlob(backupData){
 
 
     /* =================================================
-       6-2. ZIPデータ作成
+       6-3. ZIPデータ作成
     ================================================= */
 
     const zipParts = [];
@@ -405,7 +418,7 @@ async function createZipBlob(backupData){
 
 
     /* =================================================
-       6-3. ZIP中央ディレクトリ
+       6-4. ZIP中央ディレクトリ
     ================================================= */
 
     const centralOffset = offset;
