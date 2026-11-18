@@ -3,13 +3,15 @@
    💾 バックアップ管理
    backup-manager.js
 
-   第1段階：
+   第2段階：
    ・バックアップ対象の台帳
    ・保存先の確認
    ・既存データの読み取り
+   ・選択データの収集
+   ・収集結果の確認
 
    ※既存の保存処理は変更しない
-   ※この段階では書き込み・削除・復元を行わない
+   ※この段階ではファイル出力・復元・削除を行わない
 ===================================================== */
 
 (function(){
@@ -88,12 +90,12 @@ const BACKUP_SOURCES = [
     },
 
     {
-    id:"notifiedEvents",
-    name:"通知済み予定の記録",
-    category:"通知",
-    storage:"localStorage",
-    key:"notifiedEvents"
-},
+        id:"notifiedEvents",
+        name:"通知済み予定の記録",
+        category:"通知",
+        storage:"localStorage",
+        key:"notifiedEvents"
+    },
 
     {
         id:"favoritePhotoSort",
@@ -141,11 +143,7 @@ const BACKUP_SOURCES = [
 
 /* =====================================================
    2. メインDB内の確認済み項目
-
-   実際の保存先は oshi_app_data。
-   ここでは分類用の情報だけを管理する。
 ===================================================== */
-
 
 const MAIN_DATA_ITEMS = [
 
@@ -278,7 +276,6 @@ const MAIN_DATA_ITEMS = [
 ];
 
 
-
 /* =====================================================
    3. localStorage の読み取り
 ===================================================== */
@@ -288,10 +285,12 @@ function readLocalStorage(key){
     const value = localStorage.getItem(key);
 
     if(value === null){
+
         return {
             exists:false,
             value:null
         };
+
     }
 
     try{
@@ -331,12 +330,24 @@ function readMainData(){
 async function readMediaData(){
 
     if(typeof getAllMediaFiles !== "function"){
+
         throw new Error(
             "getAllMediaFiles() が見つかりません。"
         );
+
     }
 
-    return await getAllMediaFiles();
+    const media = await getAllMediaFiles();
+
+    if(!Array.isArray(media)){
+
+        throw new Error(
+            "写真・動画の一覧を取得できませんでした。"
+        );
+
+    }
+
+    return media;
 
 }
 
@@ -409,10 +420,264 @@ async function inspectSources(){
 
 
 /* =====================================================
-   7. 外部から利用する機能
+   7. 選択データの収集
+===================================================== */
+
+async function collectSelectedData(selectedIds){
+
+    if(!Array.isArray(selectedIds)){
+
+        throw new Error(
+            "バックアップ項目を配列で指定してください。"
+        );
+
+    }
+
+    const selected = new Set(selectedIds);
+
+    const knownIds = new Set([
+
+        ...BACKUP_SOURCES.map(item=>item.id),
+
+        ...MAIN_DATA_ITEMS.map(item=>item.id)
+
+    ]);
+
+
+    /* -----------------------------
+       未登録項目の確認
+    ----------------------------- */
+
+    for(const id of selected){
+
+        if(!knownIds.has(id)){
+
+            throw new Error(
+                "未登録のバックアップ項目です: " + id
+            );
+
+        }
+
+    }
+
+
+    /* -----------------------------
+       収集結果の入れ物
+    ----------------------------- */
+
+    const result = {
+
+        format:"oshi-app-backup-data",
+
+        version:1,
+
+        createdAt:new Date().toISOString(),
+
+        mainData:{},
+
+        localStorage:{},
+
+        media:[],
+
+        summary:{}
+
+    };
+
+
+    /* =================================================
+       7-1. メインDBの収集
+    ================================================= */
+
+    const mainSelected = selected.has("main");
+
+    const selectedMainItems = MAIN_DATA_ITEMS.filter(item=>
+
+        mainSelected || selected.has(item.id)
+
+    );
+
+    if(selectedMainItems.length > 0){
+
+        const main = readMainData();
+
+        if(
+            !main.exists ||
+            !main.value ||
+            typeof main.value !== "object"
+        ){
+
+            throw new Error(
+                "メインDBを読み取れませんでした。"
+            );
+
+        }
+
+        for(const item of selectedMainItems){
+
+            if(
+                Object.prototype.hasOwnProperty.call(
+                    main.value,
+                    item.path
+                )
+            ){
+
+                result.mainData[item.path] =
+                    main.value[item.path];
+
+            }
+
+        }
+
+    }
+
+
+    /* =================================================
+       7-2. 独立したlocalStorageの収集
+    ================================================= */
+
+    for(const source of BACKUP_SOURCES){
+
+        if(source.storage !== "localStorage"){
+            continue;
+        }
+
+        if(source.id === "main"){
+            continue;
+        }
+
+        if(!selected.has(source.id)){
+            continue;
+        }
+
+        const data = readLocalStorage(source.key);
+
+        result.localStorage[source.key] = {
+
+            id:source.id,
+
+            name:source.name,
+
+            exists:data.exists,
+
+            value:data.value
+
+        };
+
+    }
+
+
+    /* =================================================
+       7-3. 写真・動画の収集
+    ================================================= */
+
+    if(selected.has("media")){
+
+        const media = await readMediaData();
+
+        result.media = media;
+
+    }
+
+
+    /* =================================================
+       7-4. 収集件数
+    ================================================= */
+
+    result.summary = {
+
+        mainDataCount:
+            Object.keys(result.mainData).length,
+
+        localStorageCount:
+            Object.keys(result.localStorage).length,
+
+        mediaCount:
+            result.media.length
+
+    };
+
+
+    return result;
+
+}
+
+
+/* =====================================================
+   8. 収集結果の確認
+===================================================== */
+
+function inspectCollectedData(data){
+
+    if(
+        !data ||
+        data.format !== "oshi-app-backup-data"
+    ){
+
+        throw new Error(
+            "バックアップデータの形式が正しくありません。"
+        );
+
+    }
+
+    const media = Array.isArray(data.media)
+        ? data.media
+        : [];
+
+    const mediaSize = media.reduce(
+
+        (total,item)=>{
+
+            return total + (
+                item.file?.size || 0
+            );
+
+        },
+
+        0
+
+    );
+
+    const mediaTypes = {};
+
+    for(const item of media){
+
+        const type = item.type || "unknown";
+
+        mediaTypes[type] =
+            (mediaTypes[type] || 0) + 1;
+
+    }
+
+    return {
+
+        createdAt:data.createdAt,
+
+        mainDataItems:
+            Object.keys(data.mainData || {}),
+
+        localStorageItems:
+            Object.keys(data.localStorage || {}),
+
+        mediaCount:media.length,
+
+        mediaTypes:mediaTypes,
+
+        mediaSize:mediaSize,
+
+        summary:data.summary || {}
+
+    };
+
+}
+
+
+/* =====================================================
+   9. 外部から利用する機能
 ===================================================== */
 
 window.BackupManager = {
+
+    /* 台帳 */
 
     getSources:function(){
 
@@ -426,13 +691,26 @@ window.BackupManager = {
 
     },
 
+
+    /* 読み取り */
+
     readLocalStorage:readLocalStorage,
 
     readMainData:readMainData,
 
     readMediaData:readMediaData,
 
-    inspectSources:inspectSources
+
+    /* 保存先確認 */
+
+    inspectSources:inspectSources,
+
+
+    /* 選択データ収集 */
+
+    collectSelectedData:collectSelectedData,
+
+    inspectCollectedData:inspectCollectedData
 
 };
 
