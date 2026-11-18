@@ -3,13 +3,13 @@
    💾 推し活・全般データバックアップ
    backup-ui.js
 
-   ・全般データをまとめてバックアップ
-   ・ファイル名を自動設定
-   ・保存前にファイル名を編集
-   ・保存先選択に対応するブラウザでは保存先を選択
-   ・非対応環境では通常ダウンロード
+   ・全般データをまとめて収集
+   ・ZIPファイルを作成
+   ・保存先を先に選択
+   ・保存画面でファイル名を変更可能
+   ・非対応ブラウザでは通常ダウンロード
 
-   ※有料会員データバックアップとは別機能
+   ※有料会員データとは別機能
    ※既存の保存データは変更しない
 ===================================================== */
 
@@ -19,7 +19,7 @@
 
 
 /* =====================================================
-   1. 日付から初期ファイル名を作成
+   1. 初期ファイル名
 ===================================================== */
 
 function createBackupFileName(){
@@ -64,11 +64,11 @@ function normalizeFileName(name){
 
 async function createGeneralBackup(){
 
-    if(!window.BackupManager){
+    const manager = window.BackupManager;
+
+    if(!manager){
         throw new Error("バックアップ機能が読み込まれていません。");
     }
-
-    const manager = window.BackupManager;
 
     if(
         typeof manager.getSources !== "function" ||
@@ -100,40 +100,11 @@ async function createGeneralBackup(){
 
 
 /* =====================================================
-   4. 保存先を選択して保存
+   4. 通常ダウンロード
 ===================================================== */
 
-async function saveBackupFile(blob, fileName){
+function downloadBackup(blob, fileName){
 
-    // ファイル保存先選択に対応するブラウザ
-    if(typeof window.showSaveFilePicker === "function"){
-
-        const handle = await window.showSaveFilePicker({
-
-            suggestedName: fileName,
-
-            types: [
-                {
-                    description: "推し活手帳バックアップ",
-                    accept: {
-                        "application/zip": [".zip"]
-                    }
-                }
-            ]
-
-        });
-
-        const writable = await handle.createWritable();
-
-        await writable.write(blob);
-
-        await writable.close();
-
-        return "picker";
-
-    }
-
-    // 非対応ブラウザでは通常ダウンロード
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
@@ -142,16 +113,12 @@ async function saveBackupFile(blob, fileName){
     link.download = fileName;
 
     document.body.appendChild(link);
-
     link.click();
-
     link.remove();
 
     setTimeout(function(){
         URL.revokeObjectURL(url);
     }, 60000);
-
-    return "download";
 
 }
 
@@ -170,10 +137,40 @@ window.saveAppBackup = async function(){
 
     if(button){
         button.disabled = true;
-        button.textContent = "⏳ バックアップ作成中...";
+        button.textContent = "⏳ バックアップ準備中...";
     }
 
     try{
+
+        let saveHandle = null;
+
+        /*
+         * 保存先選択画面を最初に開く。
+         * ユーザーのボタン操作が有効なうちに呼び出す。
+         */
+
+        if(typeof window.showSaveFilePicker === "function"){
+
+            const handlePromise =
+                window.showSaveFilePicker({
+
+                    suggestedName: createBackupFileName(),
+
+                    types: [
+                        {
+                            description: "推し活手帳バックアップ",
+                            accept: {
+                                "application/zip": [".zip"]
+                            }
+                        }
+                    ]
+
+                });
+
+            // ここで初めて待機する
+            saveHandle = await handlePromise;
+
+        }
 
         if(message){
             message.textContent =
@@ -183,47 +180,47 @@ window.saveAppBackup = async function(){
         // ZIPを作成
         const zipBlob = await createGeneralBackup();
 
-        // 初期ファイル名を設定
-        const defaultName = createBackupFileName();
+        if(message){
+            message.textContent = "ファイルを保存しています...";
+        }
 
-        const inputName = window.prompt(
-            "保存するファイル名を入力してください。",
-            defaultName
-        );
+        if(saveHandle){
 
-        // キャンセルされた場合
-        if(inputName === null){
+            // 選択した保存先へ書き込む
+            const writable = await saveHandle.createWritable();
 
-            if(message){
-                message.textContent = "保存をキャンセルしました。";
+            await writable.write(zipBlob);
+
+            await writable.close();
+
+        }else{
+
+            // 保存先選択に非対応の場合
+            let fileName = window.prompt(
+                "保存するファイル名を入力してください。",
+                createBackupFileName()
+            );
+
+            if(fileName === null){
+                if(message){
+                    message.textContent = "保存をキャンセルしました。";
+                }
+                return;
             }
 
-            return;
+            fileName = normalizeFileName(fileName);
+
+            downloadBackup(zipBlob, fileName);
 
         }
 
-        const fileName = normalizeFileName(inputName);
-
         if(message){
             message.textContent =
-                "保存先を選択してください...";
-        }
-
-        const saveType =
-            await saveBackupFile(zipBlob, fileName);
-
-        if(message){
-
-            message.textContent =
-                saveType === "picker"
-                ? "保存処理が完了しました。"
-                : "ダウンロードを開始しました。保存先を確認してください。";
-
+                "バックアップの保存処理が完了しました。";
         }
 
         alert(
-            "全般データバックアップの保存処理が完了しました。\n\n" +
-            "ファイル名：\n" + fileName
+            "推し活・全般データバックアップの保存処理が完了しました。"
         );
 
     }catch(error){
