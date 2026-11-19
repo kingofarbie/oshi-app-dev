@@ -1459,138 +1459,200 @@ function makeBackupStorageMap(storageData){
        ZIP選択後の処理
     ===================================================== */
 
-    async function handleBackupFileChange(event){
 
-        const input = event.target;
-        const file = input.files && input.files[0];
+async function handleBackupFileChange(event){
 
-        if(!file) return;
+    const input = event.target;
+    const file = input.files && input.files[0];
 
-        selectedBackupFile = file;
+    if(!file) return;
+
+    selectedBackupFile = file;
+    inspectedBackupData = null;
+
+    const nameElement = document.getElementById(
+        "restoreBackupFileName"
+    );
+
+    if(nameElement){
+        nameElement.textContent = file.name;
+    }
+
+    const inspection = document.getElementById(
+        "restoreBackupInspection"
+    );
+
+    if(inspection){
+        inspection.style.display = "none";
+    }
+
+    const button = document.getElementById(
+        "startRestoreBackupButton"
+    );
+
+    if(button){
+        button.disabled = true;
+    }
+
+    try{
+
+        /* =====================
+           ZIPファイル検査
+        ===================== */
+
+        showMessage("ZIPファイルを検査しています…");
+
+        if(
+            !window.BackupManager ||
+            typeof BackupManager.inspectBackupFile !== "function"
+        ){
+            throw new Error(
+                "バックアップ検査機能が読み込まれていません。"
+            );
+        }
+
+        const inspected =
+            await BackupManager.inspectBackupFile(file);
+
+        if(
+            !inspected ||
+            !inspected.report ||
+            !inspected.report.valid
+        ){
+            throw new Error(
+                "ZIPファイルの検査に失敗しました。"
+            );
+        }
+
+        inspectedBackupData = inspected.backupData;
+
+        console.log(
+            "バックアップZIP検査成功:",
+            inspected.report
+        );
+
+
+        /* =====================
+           既存の詳細比較
+        ===================== */
+
+        showMessage("PCデータと比較しています…");
+
+        const comparison = await compareBackupData(
+            inspectedBackupData
+        );
+
+        showInspectionResult(
+            inspected.report,
+            comparison
+        );
+
+
+        /* =====================
+           安全な取り込み予定の作成
+           ※読み取り専用
+        ===================== */
+
+        showMessage(
+            "安全な取り込み予定を確認しています…"
+        );
+
+        if(
+            !window.BackupImport ||
+            typeof BackupImport.createImportPreview !== "function"
+        ){
+            throw new Error(
+                "安全な取り込み準備機能が読み込まれていません。"
+            );
+        }
+
+        const importPreview =
+            await BackupImport.createImportPreview(
+                inspectedBackupData
+            );
+
+        console.log(
+            "🔐 安全な取り込み予定（読み取り専用）:",
+            importPreview
+        );
+
+        console.log(
+            "🔐 取り込み予定の件数:",
+            importPreview.summary
+        );
+
+
+        /* =====================
+           既存の比較結果ログ
+        ===================== */
+
+        console.log(
+            "PC・スマホデータ比較結果:",
+            comparison
+        );
+
+        console.log(
+            "⭐ 推し一覧の詳細比較結果:",
+            comparison.oshiList
+        );
+
+        console.log(
+            "📘 推し詳細情報の比較結果:",
+            comparison.oshiDetails
+        );
+
+        console.log(
+            "📝 推し記録の比較結果:",
+            comparison.oshiRecords
+        );
+
+        console.log(
+            "📱 スマホ側・ID未設定データの実体:",
+            comparison.oshiRecords.noIdBackup
+        );
+
+        console.log(
+            "💻 PC側・ID未設定データの実体:",
+            comparison.oshiRecords.noIdCurrent
+        );
+
+
+        /* =====================
+           完了
+        ===================== */
+
+        if(button){
+            button.disabled = false;
+        }
+
+        showMessage(
+            "ZIP検査・PCデータ比較・安全な取り込み予定の作成が完了しました。\n" +
+            "※この段階ではデータの取り込み・変更は行っていません。"
+        );
+
+    }catch(error){
+
+        selectedBackupFile = null;
         inspectedBackupData = null;
-
-        const nameElement = document.getElementById(
-            "restoreBackupFileName"
-        );
-
-        if(nameElement){
-            nameElement.textContent = file.name;
-        }
-
-        const inspection = document.getElementById(
-            "restoreBackupInspection"
-        );
-
-        if(inspection){
-            inspection.style.display = "none";
-        }
-
-        const button = document.getElementById(
-            "startRestoreBackupButton"
-        );
 
         if(button){
             button.disabled = true;
         }
 
-        try{
+        showMessage(
+            "検査・比較エラー：" + error.message,
+            true
+        );
 
-            showMessage("ZIPファイルを検査しています…");
-
-            if(
-                !window.BackupManager ||
-                typeof BackupManager.inspectBackupFile !== "function"
-            ){
-                throw new Error(
-                    "バックアップ検査機能が読み込まれていません。"
-                );
-            }
-
-            const inspected =
-                await BackupManager.inspectBackupFile(file);
-
-            if(
-                !inspected ||
-                !inspected.report ||
-                !inspected.report.valid
-            ){
-                throw new Error(
-                    "ZIPファイルの検査に失敗しました。"
-                );
-            }
-
-            inspectedBackupData = inspected.backupData;
-
-            console.log(
-                "バックアップZIP検査成功:",
-                inspected.report
-            );
-
-            const comparison = await compareBackupData(
-                inspectedBackupData
-            );
-
-            showInspectionResult(
-                inspected.report,
-                comparison
-            );
-
-            if(button){
-                button.disabled = false;
-            }
-
-            showMessage(
-                "ZIP検査とPCデータとの比較が完了しました。"
-            );
-
-            console.log(
-                "PC・スマホデータ比較結果:",
-                comparison
-            );
-
-            console.log(
-                "⭐ 推し一覧の詳細比較結果:",
-                comparison.oshiList
-            );
-
-            console.log(
-                "📘 推し詳細情報の比較結果:",
-                comparison.oshiDetails
-            );
-
-            console.log(
-                "📝 推し記録の比較結果:",
-                comparison.oshiRecords
-            );
-
-            console.log(
-                "📱 スマホ側・ID未設定データの実体:",
-                comparison.oshiRecords.noIdBackup
-            );
-
-            console.log(
-                "💻 PC側・ID未設定データの実体:",
-                comparison.oshiRecords.noIdCurrent
-            );
-
-        }catch(error){
-
-            selectedBackupFile = null;
-            inspectedBackupData = null;
-
-            showMessage(
-                "検査・比較エラー：" + error.message,
-                true
-            );
-
-            console.error(
-                "バックアップ検査・比較エラー:",
-                error
-            );
-
-        }
+        console.error(
+            "バックアップ検査・比較エラー:",
+            error
+        );
 
     }
+
+}
+
 
 
     /* =====================================================
