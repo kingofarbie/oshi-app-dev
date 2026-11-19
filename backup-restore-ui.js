@@ -1461,6 +1461,7 @@ function makeBackupStorageMap(storageData){
 
 
 
+
 async function handleBackupFileChange(event){
 
     const input = event.target;
@@ -1470,8 +1471,6 @@ async function handleBackupFileChange(event){
 
     selectedBackupFile = file;
     inspectedBackupData = null;
-
-    // 前回の確認結果をリセット
     window.lastBackupImportPreview = null;
 
     const nameElement = document.getElementById(
@@ -1553,6 +1552,58 @@ async function handleBackupFileChange(event){
 
 
         /* =====================
+           推し記録の実データ確認
+           読み取り専用
+        ===================== */
+
+        let currentMainData = {};
+
+        try{
+
+            currentMainData = JSON.parse(
+                localStorage.getItem("oshi_app_data") || "{}"
+            );
+
+        }catch(error){
+
+            throw new Error(
+                "PC側メインデータを読み取れません。"
+            );
+
+        }
+
+        const backupRecords =
+            inspectedBackupData.mainData?.oshiRecords;
+
+        const currentRecords =
+            currentMainData.oshiRecords;
+
+        console.log(
+            "📱 スマホ側oshiRecords実データ:",
+            backupRecords
+        );
+
+        console.log(
+            "📱 スマホ側oshiRecordsの型:",
+            typeof backupRecords,
+            "Array:",
+            Array.isArray(backupRecords)
+        );
+
+        console.log(
+            "💻 PC側oshiRecords実データ:",
+            currentRecords
+        );
+
+        console.log(
+            "💻 PC側oshiRecordsの型:",
+            typeof currentRecords,
+            "Array:",
+            Array.isArray(currentRecords)
+        );
+
+
+        /* =====================
            安全な取り込み予定
            読み取り専用
         ===================== */
@@ -1575,7 +1626,6 @@ async function handleBackupFileChange(event){
                 inspectedBackupData
             );
 
-        // コンソール確認用に保存
         window.lastBackupImportPreview = importPreview;
 
         console.log(
@@ -1590,7 +1640,22 @@ async function handleBackupFileChange(event){
 
 
         /* =====================
-           詳細比較ログ
+           推し記録の比較結果
+        ===================== */
+
+        console.log(
+            "📝 推し記録の詳細比較結果:",
+            comparison.oshiRecords
+        );
+
+        console.log(
+            "🔐 新方式の推し記録比較結果:",
+            importPreview.mainData.oshiRecords
+        );
+
+
+        /* =====================
+           その他の詳細比較ログ
         ===================== */
 
         console.log(
@@ -1606,11 +1671,6 @@ async function handleBackupFileChange(event){
         console.log(
             "📘 推し詳細情報の比較結果:",
             comparison.oshiDetails
-        );
-
-        console.log(
-            "📝 推し記録の比較結果:",
-            comparison.oshiRecords
         );
 
         console.log(
@@ -1641,7 +1701,6 @@ async function handleBackupFileChange(event){
 
         selectedBackupFile = null;
         inspectedBackupData = null;
-
         window.lastBackupImportPreview = null;
 
         if(button){
@@ -1661,6 +1720,7 @@ async function handleBackupFileChange(event){
     }
 
 }
+
 
 
 
