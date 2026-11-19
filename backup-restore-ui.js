@@ -3,13 +3,15 @@
    推し活手帳
    バックアップ復元 UI
 
-   ・ZIP選択
-   ・ZIP内容検査
+   ・ZIP選択、検査
    ・PCデータとの読み取り専用比較
    ・推し一覧の詳細比較
+   ・推し詳細情報の比較
+   ・推し記録の比較
+   ・メディア比較
    ・復元前保護バックアップ作成、保存、再検査
 
-   ※スマホデータの復元・統合はまだ行わない
+   ※スマホデータの復元・統合・削除は行わない
 ========================================================= */
 
 (function(){
@@ -18,9 +20,9 @@
     let inspectedBackupData = null;
 
 
-    /* =====================
-       メッセージ表示
-    ===================== */
+    /* =====================================================
+       メッセージ
+    ===================================================== */
 
     function showMessage(message, isError = false){
 
@@ -35,10 +37,9 @@
     }
 
 
-    /* =====================
-       データ比較用JSON
-       オブジェクトのキー順を統一
-    ===================== */
+    /* =====================================================
+       比較用データ処理
+    ===================================================== */
 
     function normalizeValue(value){
 
@@ -53,10 +54,7 @@
             Object.keys(value)
                 .sort()
                 .forEach(key => {
-
-                    result[key] =
-                        normalizeValue(value[key]);
-
+                    result[key] = normalizeValue(value[key]);
                 });
 
             return result;
@@ -93,9 +91,20 @@
     }
 
 
-    /* =====================
+    function safeString(value){
+
+        if(value === undefined || value === null){
+            return "";
+        }
+
+        return String(value);
+
+    }
+
+
+    /* =====================================================
        メインデータ比較
-    ===================== */
+    ===================================================== */
 
     function compareMainData(backupData, currentData){
 
@@ -148,17 +157,19 @@
     }
 
 
-    /* =====================
-       ⭐ 推し一覧を配列に変換
-    ===================== */
+    /* =====================================================
+       推し一覧の形式を統一
+    ===================================================== */
 
     function convertOshiList(data){
 
         if(Array.isArray(data)){
+
             return data.map(item => ({
                 item,
                 objectKey: ""
             }));
+
         }
 
         if(data && typeof data === "object"){
@@ -177,12 +188,10 @@
                 }));
             }
 
-            return Object.entries(data).map(
-                ([key, item]) => ({
-                    item,
-                    objectKey: key
-                })
-            );
+            return Object.entries(data).map(([key, item]) => ({
+                item,
+                objectKey: key
+            }));
 
         }
 
@@ -191,81 +200,63 @@
     }
 
 
-    /* =====================
-       ⭐ 推し情報を取得
-    ===================== */
-
     function getOshiInfo(entry){
 
         const item = entry.item;
 
         if(!item || typeof item !== "object"){
-
             return {
                 id: "",
                 name: ""
             };
-
         }
 
-        const id =
-            item.id ??
-            item.oshiId ??
-            item.uid ??
-            entry.objectKey ??
-            "";
-
-        const name =
-            item.name ??
-            item.oshiName ??
-            item.title ??
-            item.groupName ??
-            "";
-
         return {
-            id: String(id),
-            name: String(name)
+
+            id: safeString(
+                item.id ??
+                item.oshiId ??
+                item.uid ??
+                entry.objectKey
+            ),
+
+            name: safeString(
+                item.name ??
+                item.oshiName ??
+                item.title ??
+                item.groupName
+            )
+
         };
 
     }
 
 
-    /* =====================
-       ⭐ 推し一覧の詳細比較
-       読み取り専用
-    ===================== */
+    /* =====================================================
+       推し一覧比較
+    ===================================================== */
 
     function compareOshiListDetail(
         backupMainData,
         currentMainData
     ){
 
-        const backupEntries =
+        const backup =
             convertOshiList(
                 backupMainData?.oshiList
-            );
-
-        const currentEntries =
-            convertOshiList(
-                currentMainData?.oshiList
-            );
-
-        const backup =
-            backupEntries.map(getOshiInfo);
+            ).map(getOshiInfo);
 
         const current =
-            currentEntries.map(getOshiInfo);
+            convertOshiList(
+                currentMainData?.oshiList
+            ).map(getOshiInfo);
 
         const backupIds = new Set(
-            backup
-                .filter(item => item.id)
-                .map(item => item.id)
+            backup.filter(item => item.id).map(item => item.id)
         );
 
         const currentIds = new Set(
-            current
-                .filter(item => item.id)
-                .map(item => item.id)
+            current.filter(item => item.id).map(item => item.id)
         );
 
         const backupOnly = [];
@@ -284,18 +275,13 @@
             }else{
 
                 const matched =
-                    current.find(
-                        other => other.id === item.id
-                    );
+                    current.find(other => other.id === item.id);
 
                 if(matched){
 
                     if(item.name === matched.name){
 
-                        identical.push({
-                            id: item.id,
-                            name: item.name
-                        });
+                        identical.push(item);
 
                     }else{
 
@@ -315,25 +301,11 @@
 
         current.forEach(item => {
 
-            if(!item.id){
-
-                return;
-
-            }
-
-            if(!backupIds.has(item.id)){
-
+            if(item.id && !backupIds.has(item.id)){
                 currentOnly.push(item);
-
             }
 
         });
-
-        const missingBackupId =
-            backup.filter(item => !item.id);
-
-        const missingCurrentId =
-            current.filter(item => !item.id);
 
         function findDuplicateIds(items){
 
@@ -352,10 +324,7 @@
 
             return Array.from(counts.entries())
                 .filter(([id, count]) => count > 1)
-                .map(([id, count]) => ({
-                    id,
-                    count
-                }));
+                .map(([id, count]) => ({id, count}));
 
         }
 
@@ -372,8 +341,11 @@
             currentOnly,
             nameDifferent,
 
-            missingBackupId,
-            missingCurrentId,
+            missingBackupId:
+                backup.filter(item => !item.id),
+
+            missingCurrentId:
+                current.filter(item => !item.id),
 
             duplicateBackupIds:
                 findDuplicateIds(backup),
@@ -386,9 +358,347 @@
     }
 
 
-    /* =====================
-       localStorage比較用データ
-    ===================== */
+    /* =====================================================
+       詳細・記録データの共通処理
+
+       対応する形式：
+       ・配列
+       ・IDをキーにしたオブジェクト
+       ・オブジェクト内のlist / items配列
+
+       IDの構造が不明なものは無理に統合しない
+    ===================================================== */
+
+    function convertDataCollection(data){
+
+        if(Array.isArray(data)){
+
+            return data.map((item, index) => ({
+                item,
+                objectKey: "",
+                index
+            }));
+
+        }
+
+        if(data && typeof data === "object"){
+
+            if(Array.isArray(data.list)){
+
+                return data.list.map((item, index) => ({
+                    item,
+                    objectKey: "",
+                    index
+                }));
+
+            }
+
+            if(Array.isArray(data.items)){
+
+                return data.items.map((item, index) => ({
+                    item,
+                    objectKey: "",
+                    index
+                }));
+
+            }
+
+            return Object.entries(data).map(
+                ([key, item], index) => ({
+                    item,
+                    objectKey: key,
+                    index
+                })
+            );
+
+        }
+
+        return [];
+
+    }
+
+
+    /* =====================================================
+       推しIDを取得
+
+       データ形式が違う場合に備えて複数の候補を確認
+    ===================================================== */
+
+    function getRelatedOshiId(item, objectKey){
+
+        if(!item || typeof item !== "object"){
+            return "";
+        }
+
+        const direct =
+            item.oshiId ??
+            item.oshi_id ??
+            item.oshiID ??
+            item.parentOshiId ??
+            item.favoriteOshiId ??
+            item.targetOshiId;
+
+        if(direct !== undefined && direct !== null){
+            return String(direct);
+        }
+
+        if(
+            item.oshi &&
+            typeof item.oshi === "object"
+        ){
+
+            const nestedId =
+                item.oshi.id ??
+                item.oshi.oshiId;
+
+            if(nestedId !== undefined && nestedId !== null){
+                return String(nestedId);
+            }
+
+        }
+
+        return "";
+
+    }
+
+
+    /* =====================================================
+       データの識別情報を取得
+    ===================================================== */
+
+    function getCollectionInfo(entry, type){
+
+        const item = entry.item;
+
+        const ownerId =
+            getRelatedOshiId(
+                item,
+                entry.objectKey
+            );
+
+        let recordId = "";
+
+        if(item && typeof item === "object"){
+
+            recordId = safeString(
+                item.id ??
+                item.recordId ??
+                item.record_id ??
+                item.detailId ??
+                item.photoId ??
+                item.eventId ??
+                item.uid
+            );
+
+        }
+
+        /*
+           oshiDetailsは推しIDをキーにした
+           オブジェクト形式の可能性があるため、
+           オブジェクトキーも識別情報として保持する。
+        */
+
+        if(
+            type === "oshiDetails" &&
+            !recordId &&
+            entry.objectKey
+        ){
+
+            recordId = entry.objectKey;
+
+        }
+
+        /*
+           記録IDがない場合は内容から仮識別する。
+           この場合は完全一致の確認にのみ使用し、
+           別内容の記録を同一IDとは判定しない。
+        */
+
+        const contentKey =
+            JSON.stringify(
+                normalizeValue(item)
+            );
+
+        const matchKey =
+            recordId
+                ? "id:" + recordId
+                : "content:" + contentKey;
+
+        return {
+
+            recordId,
+            ownerId,
+            matchKey,
+
+            name: safeString(
+                item?.name ??
+                item?.title ??
+                item?.label ??
+                ""
+            ),
+
+            item
+
+        };
+
+    }
+
+
+    /* =====================================================
+       詳細・記録の比較
+    ===================================================== */
+
+    function compareDataCollection(
+        backupData,
+        currentData,
+        type
+    ){
+
+        const backup =
+            convertDataCollection(backupData)
+                .map(entry =>
+                    getCollectionInfo(entry, type)
+                );
+
+        const current =
+            convertDataCollection(currentData)
+                .map(entry =>
+                    getCollectionInfo(entry, type)
+                );
+
+        const usedCurrent = new Set();
+
+        const identical = [];
+        const different = [];
+        const backupOnly = [];
+
+        backup.forEach((item, index) => {
+
+            const matchedIndex =
+                current.findIndex(
+                    (other, currentIndex) =>
+                        !usedCurrent.has(currentIndex) &&
+                        other.matchKey === item.matchKey
+                );
+
+            if(matchedIndex === -1){
+
+                backupOnly.push(item);
+
+                return;
+
+            }
+
+            usedCurrent.add(matchedIndex);
+
+            const currentItem =
+                current[matchedIndex];
+
+            if(sameValue(item.item, currentItem.item)){
+
+                identical.push({
+                    backup: item,
+                    current: currentItem
+                });
+
+            }else{
+
+                different.push({
+                    backup: item,
+                    current: currentItem
+                });
+
+            }
+
+        });
+
+        const currentOnly =
+            current.filter(
+                (item, index) =>
+                    !usedCurrent.has(index)
+            );
+
+        const ownerIds = new Set(
+            [...backup, ...current]
+                .map(item => item.ownerId)
+                .filter(Boolean)
+        );
+
+        const backupOwnerIds = new Set(
+            backup.map(item => item.ownerId).filter(Boolean)
+        );
+
+        const currentOwnerIds = new Set(
+            current.map(item => item.ownerId).filter(Boolean)
+        );
+
+        const noOwnerBackup =
+            backup.filter(item => !item.ownerId);
+
+        const noOwnerCurrent =
+            current.filter(item => !item.ownerId);
+
+        return {
+
+            backupCount: backup.length,
+            currentCount: current.length,
+
+            identical,
+            different,
+            backupOnly,
+            currentOnly,
+
+            noOwnerBackup,
+            noOwnerCurrent,
+
+            backupOwnerIds:
+                Array.from(backupOwnerIds),
+
+            currentOwnerIds:
+                Array.from(currentOwnerIds),
+
+            allOwnerIds:
+                Array.from(ownerIds)
+
+        };
+
+    }
+
+
+    /* =====================================================
+       推しIDとの紐づき確認
+    ===================================================== */
+
+    function checkOshiLinks(collection, oshiList){
+
+        const knownIds = new Set(
+            (oshiList || [])
+                .map(item => item.id)
+                .filter(Boolean)
+        );
+
+        const backupOrphans =
+            collection.backupOwnerIds.filter(
+                id => !knownIds.has(id)
+            );
+
+        const currentOrphans =
+            collection.currentOwnerIds.filter(
+                id => !knownIds.has(id)
+            );
+
+        return {
+            backupOrphans,
+            currentOrphans,
+            knownOshiCount: knownIds.size
+        };
+
+    }
+
+
+    /* =====================================================
+       localStorage比較
+    ===================================================== */
 
     function makeBackupStorageMap(storageData){
 
@@ -449,10 +759,6 @@
     }
 
 
-    /* =====================
-       localStorage比較
-    ===================== */
-
     function compareLocalStorage(
         backupStorage,
         currentStorage
@@ -509,9 +815,9 @@
     }
 
 
-    /* =====================
+    /* =====================================================
        メディアSHA-256
-    ===================== */
+    ===================================================== */
 
     async function calculateBlobHash(file){
 
@@ -557,10 +863,6 @@
     }
 
 
-    /* =====================
-       メディアIDマップ
-    ===================== */
-
     function makeMediaMap(records){
 
         const map = new Map();
@@ -598,11 +900,6 @@
     }
 
 
-    /* =====================
-       メディア比較
-       同じIDはファイル内容まで比較
-    ===================== */
-
     async function compareMedia(
         backupMedia,
         currentMedia
@@ -619,10 +916,7 @@
         const identical = [];
         const different = [];
 
-        const backupEntries =
-            Array.from(backup.map.entries());
-
-        for(const [id, backupItem] of backupEntries){
+        for(const [id, backupItem] of backup.map.entries()){
 
             if(!current.map.has(id)){
 
@@ -685,10 +979,10 @@
     }
 
 
-    /* =====================
+    /* =====================================================
        PC・スマホデータ比較
        読み取り専用
-    ===================== */
+    ===================================================== */
 
     async function compareBackupData(backupData){
 
@@ -726,7 +1020,7 @@
             currentResult.snapshot;
 
         showMessage(
-            "メインデータと保存データを比較しています…"
+            "メインデータを比較しています…"
         );
 
         const main =
@@ -735,13 +1029,55 @@
                 snapshot.mainData
             );
 
-        /* ⭐ 推し一覧の詳細比較 */
-
         const oshiList =
             compareOshiListDetail(
                 backupData.mainData,
                 snapshot.mainData
             );
+
+        showMessage(
+            "推し詳細情報を比較しています…"
+        );
+
+        const oshiDetails =
+            compareDataCollection(
+                backupData.mainData?.oshiDetails,
+                snapshot.mainData?.oshiDetails,
+                "oshiDetails"
+            );
+
+        showMessage(
+            "推し記録を比較しています…"
+        );
+
+        const oshiRecords =
+            compareDataCollection(
+                backupData.mainData?.oshiRecords,
+                snapshot.mainData?.oshiRecords,
+                "oshiRecords"
+            );
+
+        const detailsLinks =
+            checkOshiLinks(
+                oshiDetails,
+                [
+                    ...oshiList.backupItems,
+                    ...oshiList.currentItems
+                ]
+            );
+
+        const recordsLinks =
+            checkOshiLinks(
+                oshiRecords,
+                [
+                    ...oshiList.backupItems,
+                    ...oshiList.currentItems
+                ]
+            );
+
+        showMessage(
+            "その他の保存データを比較しています…"
+        );
 
         const storage =
             compareLocalStorage(
@@ -762,6 +1098,10 @@
         return {
             main,
             oshiList,
+            oshiDetails,
+            oshiRecords,
+            detailsLinks,
+            recordsLinks,
             storage,
             media
         };
@@ -769,9 +1109,9 @@
     }
 
 
-    /* =====================
+    /* =====================================================
        表示用リスト
-    ===================== */
+    ===================================================== */
 
     function formatList(label, values){
 
@@ -814,14 +1154,54 @@
     }
 
 
-    /* =====================
-       比較結果表示
-    ===================== */
+    function formatCollectionItems(label, items){
 
-    function showInspectionResult(
-        report,
-        comparison
-    ){
+        const values =
+            (items || []).map(entry => {
+
+                const info =
+                    entry.backup || entry;
+
+                const owner =
+                    info.ownerId
+                        ? "推しID：" + info.ownerId
+                        : "推しID未確認";
+
+                const record =
+                    info.recordId
+                        ? "データID：" + info.recordId
+                        : "データID未設定";
+
+                const name =
+                    info.name
+                        ? "名前：" + info.name
+                        : "";
+
+                return [
+                    owner,
+                    record,
+                    name
+                ].filter(Boolean).join(" / ");
+
+            });
+
+        return (
+            label + "：" +
+            (
+                values.length
+                    ? values.join("、")
+                    : "なし"
+            )
+        );
+
+    }
+
+
+    /* =====================================================
+       比較結果表示
+    ===================================================== */
+
+    function showInspectionResult(report, comparison){
 
         const container =
             document.getElementById(
@@ -859,9 +1239,7 @@
 
             "メディア容量：" +
                 (
-                    report.mediaSize /
-                    1024 /
-                    1024
+                    report.mediaSize / 1024 / 1024
                 ).toFixed(2) + " MB",
 
             "ZIP内ファイル：" +
@@ -987,6 +1365,102 @@
 
             "",
             "====================",
+            "📘【推し詳細情報の比較】",
+
+            "スマホ側：" +
+                comparison.oshiDetails.backupCount + "件",
+
+            "PC側：" +
+                comparison.oshiDetails.currentCount + "件",
+
+            "内容一致：" +
+                comparison.oshiDetails.identical.length + "件",
+
+            "同じ識別情報・内容相違：" +
+                comparison.oshiDetails.different.length + "件",
+
+            "スマホのみ：" +
+                comparison.oshiDetails.backupOnly.length + "件",
+
+            "PCのみ：" +
+                comparison.oshiDetails.currentOnly.length + "件",
+
+            formatCollectionItems(
+                "スマホのみの詳細情報",
+                comparison.oshiDetails.backupOnly
+            ),
+
+            formatCollectionItems(
+                "PCのみの詳細情報",
+                comparison.oshiDetails.currentOnly
+            ),
+
+            "スマホ側の推しID未確認：" +
+                comparison.oshiDetails.noOwnerBackup.length + "件",
+
+            "PC側の推しID未確認：" +
+                comparison.oshiDetails.noOwnerCurrent.length + "件",
+
+            formatList(
+                "スマホ側の孤立した推しID",
+                comparison.detailsLinks.backupOrphans
+            ),
+
+            formatList(
+                "PC側の孤立した推しID",
+                comparison.detailsLinks.currentOrphans
+            ),
+
+            "",
+            "====================",
+            "📝【推し記録の比較】",
+
+            "スマホ側：" +
+                comparison.oshiRecords.backupCount + "件",
+
+            "PC側：" +
+                comparison.oshiRecords.currentCount + "件",
+
+            "内容一致：" +
+                comparison.oshiRecords.identical.length + "件",
+
+            "同じ識別情報・内容相違：" +
+                comparison.oshiRecords.different.length + "件",
+
+            "スマホのみ：" +
+                comparison.oshiRecords.backupOnly.length + "件",
+
+            "PCのみ：" +
+                comparison.oshiRecords.currentOnly.length + "件",
+
+            formatCollectionItems(
+                "スマホのみの記録",
+                comparison.oshiRecords.backupOnly
+            ),
+
+            formatCollectionItems(
+                "PCのみの記録",
+                comparison.oshiRecords.currentOnly
+            ),
+
+            "スマホ側の推しID未確認：" +
+                comparison.oshiRecords.noOwnerBackup.length + "件",
+
+            "PC側の推しID未確認：" +
+                comparison.oshiRecords.noOwnerCurrent.length + "件",
+
+            formatList(
+                "スマホ側の孤立した推しID",
+                comparison.recordsLinks.backupOrphans
+            ),
+
+            formatList(
+                "PC側の孤立した推しID",
+                comparison.recordsLinks.currentOrphans
+            ),
+
+            "",
+            "====================",
             "■ その他の保存データ",
 
             "スマホ：" +
@@ -1013,6 +1487,7 @@
             ),
 
             "",
+            "====================",
             "■ 写真・動画",
 
             "スマホ：" +
@@ -1053,9 +1528,9 @@
     }
 
 
-    /* =====================
+    /* =====================================================
        ZIP選択後の処理
-    ===================== */
+    ===================================================== */
 
     async function handleBackupFileChange(event){
 
@@ -1164,6 +1639,16 @@
                 comparison.oshiList
             );
 
+            console.log(
+                "📘 推し詳細情報の比較結果:",
+                comparison.oshiDetails
+            );
+
+            console.log(
+                "📝 推し記録の比較結果:",
+                comparison.oshiRecords
+            );
+
         }catch(error){
 
             selectedBackupFile = null;
@@ -1185,9 +1670,9 @@
     }
 
 
-    /* =====================
+    /* =====================================================
        ZIP選択ボタン
-    ===================== */
+    ===================================================== */
 
     window.selectRestoreBackup = function(){
 
@@ -1213,9 +1698,9 @@
     };
 
 
-    /* =====================
+    /* =====================================================
        保護ZIP検証
-    ===================== */
+    ===================================================== */
 
     function sameStringItems(a, b){
 
@@ -1312,10 +1797,9 @@
     }
 
 
-    /* =====================
-       保護バックアップ作成
-       保存・再検査
-    ===================== */
+    /* =====================================================
+       保護バックアップ作成・保存・再検査
+    ===================================================== */
 
     async function createAndVerifySafetyBackup(saveHandle){
 
@@ -1386,9 +1870,9 @@
     }
 
 
-    /* =====================
+    /* =====================================================
        保護バックアップファイル名
-    ===================== */
+    ===================================================== */
 
     function createSafetyFileName(){
 
@@ -1415,10 +1899,10 @@
     }
 
 
-    /* =====================
+    /* =====================================================
        保護バックアップボタン
        ※スマホデータの復元はしない
-    ===================== */
+    ===================================================== */
 
     window.startRestoreBackup = async function(){
 
@@ -1528,9 +2012,9 @@
     };
 
 
-    /* =====================
+    /* =====================================================
        UI初期化
-    ===================== */
+    ===================================================== */
 
     window.initRestoreBackupUI = function(){
 
