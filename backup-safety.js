@@ -1,27 +1,18 @@
 
-/* =====================================================
-   💾 復元前の安全確認
-   backup-safety.js
-
-   第1段階：読み取り専用
-
-   ・同一オリジンのlocalStorage全キーを取得
-   ・メインデータ全体を取得
-   ・IndexedDBのメディア全件と実ファイルを取得
-   ・件数、容量、形式を集計
-
-   ※保存・上書き・削除・復元は行わない
-   ※既存の保存処理は変更しない
-===================================================== */
+/* =========================================================
+   推し活手帳
+   復元前・保護用バックアップ
+   既存データの読み取り専用
+========================================================= */
 
 (function(){
-
 "use strict";
 
 
-/* =====================================================
-   1. localStorage全件を読み取る
-===================================================== */
+/* =========================================================
+   localStorage 全件取得
+   値は加工せず rawValue のまま保持
+========================================================= */
 
 function readAllLocalStorage(){
 
@@ -35,26 +26,12 @@ function readAllLocalStorage(){
 
         const rawValue = localStorage.getItem(key);
 
-        let value = rawValue;
-        let jsonParsed = false;
-
-        try{
-
-            value = JSON.parse(rawValue);
-            jsonParsed = true;
-
-        }catch(error){
-
-            // JSON以外は文字列のまま保持
-
-        }
-
         result.push({
 
             key:key,
+
             rawValue:rawValue,
-            value:value,
-            jsonParsed:jsonParsed,
+
             size:new Blob([rawValue || ""]).size
 
         });
@@ -66,23 +43,20 @@ function readAllLocalStorage(){
 }
 
 
-/* =====================================================
-   2. メインデータを確認
-===================================================== */
+/* =========================================================
+   メインデータ確認
+========================================================= */
 
 function inspectMainData(){
 
-    const raw = localStorage.getItem("oshi_app_data");
+    const raw =
+        localStorage.getItem("oshi_app_data");
 
     if(raw === null){
 
-        return {
-            exists:false,
-            valid:false,
-            data:null,
-            keys:[],
-            error:"メインデータが見つかりません。"
-        };
+        throw new Error(
+            "メインデータが見つかりません。"
+        );
 
     }
 
@@ -94,13 +68,9 @@ function inspectMainData(){
 
     }catch(error){
 
-        return {
-            exists:true,
-            valid:false,
-            data:null,
-            keys:[],
-            error:"メインデータをJSONとして読み取れません。"
-        };
+        throw new Error(
+            "メインデータをJSONとして読み取れません。"
+        );
 
     }
 
@@ -110,32 +80,20 @@ function inspectMainData(){
         Array.isArray(data)
     ){
 
-        return {
-            exists:true,
-            valid:false,
-            data:null,
-            keys:[],
-            error:"メインデータの形式が正しくありません。"
-        };
+        throw new Error(
+            "メインデータの形式が正しくありません。"
+        );
 
     }
 
-    return {
-
-        exists:true,
-        valid:true,
-        data:data,
-        keys:Object.keys(data),
-        error:null
-
-    };
+    return data;
 
 }
 
 
-/* =====================================================
-   3. IndexedDBのメディアを読み取る
-===================================================== */
+/* =========================================================
+   IndexedDB メディア全件取得
+========================================================= */
 
 async function readAllMedia(){
 
@@ -147,7 +105,8 @@ async function readAllMedia(){
 
     }
 
-    const records = await window.getAllMediaFiles();
+    const records =
+        await window.getAllMediaFiles();
 
     if(!Array.isArray(records)){
 
@@ -157,13 +116,19 @@ async function readAllMedia(){
 
     }
 
+    const ids = new Set();
+
     let totalSize = 0;
 
     const types = {};
 
-    const details = records.map(record => {
+    for(const record of records){
 
-        if(!record || record.id === undefined){
+        if(
+            !record ||
+            record.id === undefined ||
+            record.id === null
+        ){
 
             throw new Error(
                 "IDが確認できないメディアがあります。"
@@ -171,94 +136,108 @@ async function readAllMedia(){
 
         }
 
+        const id = String(record.id);
+
+        if(ids.has(id)){
+
+            throw new Error(
+                "メディアIDが重複しています: " + id
+            );
+
+        }
+
+        ids.add(id);
+
         if(!(record.file instanceof Blob)){
 
             throw new Error(
-                "実ファイルが確認できないメディアがあります: " +
-                record.id
+                "実ファイルが確認できないメディアがあります: " + id
             );
 
         }
 
         totalSize += record.file.size;
 
-        const type = record.file.type || "unknown";
+        const mimeType =
+            record.file.type || "unknown";
 
-        types[type] = (types[type] || 0) + 1;
+        types[mimeType] =
+            (types[mimeType] || 0) + 1;
 
-        return {
-
-            id:record.id,
-            type:record.type || "unknown",
-            mimeType:type,
-            size:record.file.size,
-            savedAt:record.savedAt
-
-        };
-
-    });
+    }
 
     return {
 
-        count:records.length,
-        totalSize:totalSize,
-        types:types,
-
-        // 実ファイルBlobを含む全レコード
         records:records,
 
-        // 確認・表示用情報
-        details:details
+        count:records.length,
+
+        totalSize:totalSize,
+
+        types:types
 
     };
 
 }
 
 
-/* =====================================================
-   4. 全データを読み取り・検査
-===================================================== */
+/* =========================================================
+   現在のデータを読み取り専用で検査
+========================================================= */
 
 async function inspectCurrentData(){
 
-    const localItems = readAllLocalStorage();
+    const localItems =
+        readAllLocalStorage();
 
-    const mainData = inspectMainData();
+    const mainData =
+        inspectMainData();
 
-    const media = await readAllMedia();
-
-    const localStorageSize = localItems.reduce(
-        (sum,item) => sum + item.size,
-        0
-    );
+    const media =
+        await readAllMedia();
 
     const report = {
 
         checkedAt:new Date().toISOString(),
 
         localStorage:{
+
             count:localItems.length,
-            totalSize:localStorageSize,
-            keys:localItems.map(item => item.key)
+
+            totalSize:localItems.reduce(
+                (sum,item) => sum + item.size,
+                0
+            ),
+
+            keys:localItems.map(
+                item => item.key
+            )
+
         },
 
         mainData:{
-            exists:mainData.exists,
-            valid:mainData.valid,
-            count:mainData.keys.length,
-            keys:mainData.keys,
-            error:mainData.error
+
+            exists:true,
+
+            valid:true,
+
+            count:Object.keys(mainData).length,
+
+            keys:Object.keys(mainData)
+
         },
 
         media:{
+
             count:media.count,
+
             totalSize:media.totalSize,
+
             types:media.types
+
         },
 
-        valid:
-            mainData.valid &&
-            media.records.length === media.count
+        valid:true
 
     };
 
@@ -270,13 +249,9 @@ async function inspectCurrentData(){
 
             localStorage:localItems,
 
-            mainData:mainData.data,
+            mainData:mainData,
 
-            // Blobを含むメディア全件
-            media:media.records,
-
-            // メディア確認用情報
-            mediaDetails:media.details
+            media:media.records
 
         }
 
@@ -285,15 +260,265 @@ async function inspectCurrentData(){
 }
 
 
-/* =====================================================
-   5. 公開
-===================================================== */
+/* =========================================================
+   保護用バックアップデータを作成
+========================================================= */
+
+function createSafetyBackupData(snapshot){
+
+    const localStorageData = {};
+
+    for(const item of snapshot.localStorage){
+
+        localStorageData[item.key] = {
+
+            id:item.key,
+
+            name:item.key,
+
+            exists:true,
+
+            value:item.rawValue
+
+        };
+
+    }
+
+    return {
+
+        format:"oshi-app-backup-data",
+
+        createdAt:new Date().toISOString(),
+
+        mainData:snapshot.mainData,
+
+        localStorage:localStorageData,
+
+        media:snapshot.media,
+
+        summary:{
+
+            kind:"pre-restore-safety",
+
+            description:"復元前の全データ保護用バックアップ",
+
+            localStorageCount:
+                snapshot.localStorage.length,
+
+            mainDataCount:
+                Object.keys(snapshot.mainData).length,
+
+            mediaCount:
+                snapshot.media.length,
+
+            mediaSize:
+                snapshot.media.reduce(
+                    (sum,item) => sum + item.file.size,
+                    0
+                )
+
+        }
+
+    };
+
+}
+
+
+/* =========================================================
+   保護用ZIP作成・再検査
+   ファイル保存はまだ行わない
+========================================================= */
+
+async function createSafetyBackupFile(){
+
+    if(
+        !window.BackupManager ||
+        typeof window.BackupManager.createZipBlob !== "function"
+    ){
+
+        throw new Error(
+            "ZIP作成機能が見つかりません。"
+        );
+
+    }
+
+    if(
+        typeof window.BackupManager.inspectBackupFile !== "function"
+    ){
+
+        throw new Error(
+            "ZIP検査機能が見つかりません。"
+        );
+
+    }
+
+
+    /* 最新状態を改めて取得 */
+
+    const inspected =
+        await inspectCurrentData();
+
+    const snapshot =
+        inspected.snapshot;
+
+
+    /* ZIP作成用データ */
+
+    const backupData =
+        createSafetyBackupData(snapshot);
+
+
+    /* ZIPを作成 */
+
+    const zipBlob =
+        await window.BackupManager.createZipBlob(
+            backupData
+        );
+
+
+    if(
+        !(zipBlob instanceof Blob) ||
+        zipBlob.size <= 0
+    ){
+
+        throw new Error(
+            "保護用ZIPを作成できませんでした。"
+        );
+
+    }
+
+
+    /* ファイル名 */
+
+    const now =
+        new Date();
+
+    const date =
+        now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2,"0") +
+        String(now.getDate()).padStart(2,"0") +
+        "_" +
+        String(now.getHours()).padStart(2,"0") +
+        String(now.getMinutes()).padStart(2,"0") +
+        String(now.getSeconds()).padStart(2,"0");
+
+    const fileName =
+        "推し活手帳_復元前保護バックアップ_" +
+        date +
+        ".zip";
+
+
+    /* ZIPをFile化 */
+
+    const file = new File(
+        [zipBlob],
+        fileName,
+        {
+            type:"application/zip"
+        }
+    );
+
+
+    /* 作成したZIPを読み直して検査 */
+
+    const checked =
+        await window.BackupManager.inspectBackupFile(
+            file
+        );
+
+    if(
+        !checked ||
+        !checked.report ||
+        checked.report.valid !== true
+    ){
+
+        throw new Error(
+            "保護用ZIPの検査に失敗しました。"
+        );
+
+    }
+
+
+    /* 件数・容量の照合 */
+
+    const report =
+        checked.report;
+
+    if(
+        report.mainDataItems !==
+        Object.keys(snapshot.mainData).length
+    ){
+
+        throw new Error(
+            "メインデータの件数が一致しません。"
+        );
+
+    }
+
+    if(
+        report.localStorageItems !==
+        snapshot.localStorage.length
+    ){
+
+        throw new Error(
+            "localStorageの件数が一致しません。"
+        );
+
+    }
+
+    if(
+        report.mediaCount !==
+        snapshot.media.length
+    ){
+
+        throw new Error(
+            "メディアの件数が一致しません。"
+        );
+
+    }
+
+    const expectedMediaSize =
+        snapshot.media.reduce(
+            (sum,item) => sum + item.file.size,
+            0
+        );
+
+    if(
+        report.mediaSize !== expectedMediaSize
+    ){
+
+        throw new Error(
+            "メディアの合計サイズが一致しません。"
+        );
+
+    }
+
+
+    /* 検査済みファイルを返す */
+
+    return {
+
+        file:file,
+
+        report:report,
+
+        snapshotReport:inspected.report
+
+    };
+
+}
+
+
+/* =========================================================
+   公開
+========================================================= */
 
 window.BackupSafety = {
 
-    inspectCurrentData:inspectCurrentData
+    inspectCurrentData,
+
+    createSafetyBackupFile
 
 };
-
 
 })();
