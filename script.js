@@ -2937,7 +2937,13 @@ async function(){
 
 await loadHtml("settingsContainer", "settings.html");
 
+/* 💾 バックアップ復元機能を初期化 */
+if(typeof initRestoreBackupUI === "function"){
+    initRestoreBackupUI();
+}
+
 initFavoritePhotoSettings();
+
 
 /* 🎨 保存済みのページ別背景を反映 */
 await loadPageBackgroundSettings();
