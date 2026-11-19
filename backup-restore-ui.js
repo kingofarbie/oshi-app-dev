@@ -5,17 +5,17 @@
 
    ・ZIP選択
    ・ZIP内容検査
-   ・復元前保護バックアップ作成
-   ・保護ZIP保存
-   ・保存済みZIP再検査
+   ・PCデータとの読み取り専用比較
+   ・復元前保護バックアップ作成、保存、再検査
 
-   ※この版ではスマホデータの復元はまだ行わない
+   ※スマホデータの復元・統合はまだ行わない
 ========================================================= */
 
 (function(){
 
     let selectedBackupFile = null;
     let inspectedBackupData = null;
+    let pendingSaveHandle = null;
 
 
     /* =====================
@@ -30,17 +30,535 @@
         if(!element) return;
 
         element.textContent = message;
-        element.style.color =
-            isError ? "#d33" : "";
+        element.style.color = isError ? "#d33" : "";
 
     }
 
 
     /* =====================
-       検査結果表示
+       データ比較用JSON
+       オブジェクトのキー順を統一
     ===================== */
 
-    function showInspectionResult(report){
+    function normalizeValue(value){
+
+        if(Array.isArray(value)){
+            return value.map(normalizeValue);
+        }
+
+        if(
+            value &&
+            typeof value === "object"
+        ){
+
+            const result = {};
+
+            Object.keys(value)
+                .sort()
+                .forEach(key => {
+
+                    result[key] =
+                        normalizeValue(value[key]);
+
+                });
+
+            return result;
+
+        }
+
+        return value;
+
+    }
+
+
+    function sameValue(a, b){
+
+        return (
+            JSON.stringify(normalizeValue(a)) ===
+            JSON.stringify(normalizeValue(b))
+        );
+
+    }
+
+
+    function parseStoredValue(value){
+
+        if(typeof value !== "string"){
+            return value;
+        }
+
+        try{
+            return JSON.parse(value);
+        }catch(error){
+            return value;
+        }
+
+    }
+
+
+    /* =====================
+       メインデータ比較
+    ===================== */
+
+    function compareMainData(backupData, currentData){
+
+        const backup =
+            backupData || {};
+
+        const current =
+            currentData || {};
+
+        const backupKeys =
+            Object.keys(backup);
+
+        const currentKeys =
+            Object.keys(current);
+
+        const backupOnly = [];
+        const currentOnly = [];
+        const identical = [];
+        const different = [];
+
+        backupKeys.forEach(key => {
+
+            if(!Object.prototype.hasOwnProperty.call(current, key)){
+
+                backupOnly.push(key);
+
+            }else if(
+                sameValue(backup[key], current[key])
+            ){
+
+                identical.push(key);
+
+            }else{
+
+                different.push(key);
+
+            }
+
+        });
+
+        currentKeys.forEach(key => {
+
+            if(!Object.prototype.hasOwnProperty.call(backup, key)){
+                currentOnly.push(key);
+            }
+
+        });
+
+        return {
+            backupCount: backupKeys.length,
+            currentCount: currentKeys.length,
+            backupOnly,
+            currentOnly,
+            identical,
+            different
+        };
+
+    }
+
+
+    /* =====================
+       localStorage比較用データ
+    ===================== */
+
+    function makeBackupStorageMap(storageData){
+
+        const result = new Map();
+
+        Object.entries(storageData || {})
+            .forEach(([storageId, item]) => {
+
+                if(!item || typeof item !== "object"){
+                    return;
+                }
+
+                const key =
+                    item.name ||
+                    item.id ||
+                    storageId;
+
+                if(key === "oshi_app_data"){
+                    return;
+                }
+
+                if(item.exists === false){
+                    return;
+                }
+
+                result.set(
+                    key,
+                    item.value
+                );
+
+            });
+
+        return result;
+
+    }
+
+
+    function makeCurrentStorageMap(storageItems){
+
+        const result = new Map();
+
+        (storageItems || []).forEach(item => {
+
+            if(!item || !item.key){
+                return;
+            }
+
+            if(item.key === "oshi_app_data"){
+                return;
+            }
+
+            result.set(
+                item.key,
+                parseStoredValue(item.rawValue)
+            );
+
+        });
+
+        return result;
+
+    }
+
+
+    /* =====================
+       localStorage比較
+    ===================== */
+
+    function compareLocalStorage(
+        backupStorage,
+        currentStorage
+    ){
+
+        const backup =
+            makeBackupStorageMap(backupStorage);
+
+        const current =
+            makeCurrentStorageMap(currentStorage);
+
+        const backupOnly = [];
+        const currentOnly = [];
+        const identical = [];
+        const different = [];
+
+        backup.forEach((value, key) => {
+
+            if(!current.has(key)){
+
+                backupOnly.push(key);
+
+            }else if(
+                sameValue(value, current.get(key))
+            ){
+
+                identical.push(key);
+
+            }else{
+
+                different.push(key);
+
+            }
+
+        });
+
+        current.forEach((value, key) => {
+
+            if(!backup.has(key)){
+                currentOnly.push(key);
+            }
+
+        });
+
+        return {
+            backupCount: backup.size,
+            currentCount: current.size,
+            backupOnly,
+            currentOnly,
+            identical,
+            different
+        };
+
+    }
+
+
+    /* =====================
+       メディアSHA-256
+    ===================== */
+
+    async function calculateBlobHash(file){
+
+        if(
+            !file ||
+            typeof file.arrayBuffer !== "function"
+        ){
+
+            throw new Error(
+                "メディアファイルを読み取れません。"
+            );
+
+        }
+
+        if(
+            !window.crypto ||
+            !window.crypto.subtle
+        ){
+
+            throw new Error(
+                "ファイル内容の安全な比較機能が利用できません。"
+            );
+
+        }
+
+        const buffer =
+            await file.arrayBuffer();
+
+        const hash =
+            await crypto.subtle.digest(
+                "SHA-256",
+                buffer
+            );
+
+        return Array.from(
+            new Uint8Array(hash)
+        )
+        .map(value =>
+            value.toString(16).padStart(2, "0")
+        )
+        .join("");
+
+    }
+
+
+    /* =====================
+       メディアIDマップ
+    ===================== */
+
+    function makeMediaMap(records){
+
+        const map = new Map();
+        const duplicates = [];
+
+        (records || []).forEach(item => {
+
+            if(
+                !item ||
+                item.id === undefined ||
+                item.id === null
+            ){
+                return;
+            }
+
+            const id = String(item.id);
+
+            if(map.has(id)){
+
+                duplicates.push(id);
+
+            }else{
+
+                map.set(id, item);
+
+            }
+
+        });
+
+        return {
+            map,
+            duplicates
+        };
+
+    }
+
+
+    /* =====================
+       メディア比較
+       同じIDはファイル内容まで比較
+    ===================== */
+
+    async function compareMedia(
+        backupMedia,
+        currentMedia
+    ){
+
+        const backup =
+            makeMediaMap(backupMedia);
+
+        const current =
+            makeMediaMap(currentMedia);
+
+        const backupOnly = [];
+        const currentOnly = [];
+        const identical = [];
+        const different = [];
+
+        const backupEntries =
+            Array.from(backup.map.entries());
+
+        for(const [id, backupItem] of backupEntries){
+
+            if(!current.map.has(id)){
+
+                backupOnly.push(id);
+                continue;
+
+            }
+
+            const currentItem =
+                current.map.get(id);
+
+            const backupHash =
+                await calculateBlobHash(
+                    backupItem.file
+                );
+
+            const currentHash =
+                await calculateBlobHash(
+                    currentItem.file
+                );
+
+            if(backupHash === currentHash){
+
+                identical.push(id);
+
+            }else{
+
+                different.push(id);
+
+            }
+
+        }
+
+        current.map.forEach((item, id) => {
+
+            if(!backup.map.has(id)){
+                currentOnly.push(id);
+            }
+
+        });
+
+        return {
+
+            backupCount: backup.map.size,
+            currentCount: current.map.size,
+
+            backupOnly,
+            currentOnly,
+            identical,
+            different,
+
+            duplicateBackupIds:
+                backup.duplicates,
+
+            duplicateCurrentIds:
+                current.duplicates
+
+        };
+
+    }
+
+
+    /* =====================
+       PC・スマホデータ比較
+       読み取り専用
+    ===================== */
+
+    async function compareBackupData(backupData){
+
+        if(
+            !window.BackupSafety ||
+            typeof BackupSafety.inspectCurrentData !==
+                "function"
+        ){
+
+            throw new Error(
+                "現在のPCデータ確認機能がありません。"
+            );
+
+        }
+
+        showMessage(
+            "現在のPCデータを読み取り中です…"
+        );
+
+        const currentResult =
+            await BackupSafety.inspectCurrentData();
+
+        if(
+            !currentResult ||
+            !currentResult.report ||
+            !currentResult.snapshot
+        ){
+
+            throw new Error(
+                "PCデータを正常に取得できませんでした。"
+            );
+
+        }
+
+        const snapshot =
+            currentResult.snapshot;
+
+        showMessage(
+            "メインデータと保存データを比較しています…"
+        );
+
+        const main =
+            compareMainData(
+                backupData.mainData,
+                snapshot.mainData
+            );
+
+        const storage =
+            compareLocalStorage(
+                backupData.localStorage,
+                snapshot.localStorage
+            );
+
+        showMessage(
+            "写真・動画の内容を比較しています…"
+        );
+
+        const media =
+            await compareMedia(
+                backupData.media,
+                snapshot.media
+            );
+
+        return {
+            main,
+            storage,
+            media
+        };
+
+    }
+
+
+    /* =====================
+       比較結果表示
+    ===================== */
+
+    function formatList(label, values){
+
+        return (
+            label + "：" +
+            (
+                values.length
+                    ? values.join("、")
+                    : "なし"
+            )
+        );
+
+    }
+
+
+    function showInspectionResult(
+        report,
+        comparison
+    ){
 
         const container =
             document.getElementById(
@@ -62,47 +580,108 @@
 
         const lines = [
 
-            "ZIPファイルの検査に成功しました。",
-            "",
+            "【スマホZIP検査結果】",
+            "検査成功",
             "ファイル名：" + report.filename,
             "作成日時：" + report.createdAt,
-            "",
             "メインデータ：" +
                 report.mainDataItems.length + "項目",
-
             "その他の保存データ：" +
                 report.localStorageItems.length + "項目",
-
             "写真・動画：" +
                 report.mediaCount + "件",
-
             "メディア容量：" +
                 (
                     report.mediaSize /
                     1024 /
                     1024
                 ).toFixed(2) + " MB",
-
-            "",
-            "ZIP内ファイル数：" +
-                report.zipEntryCount,
-
-            "CRC検証済み：" +
+            "ZIP内ファイル：" +
+                report.zipEntryCount + "件",
+            "CRC検証：" +
                 report.checkedCRCCount + "件",
 
             "",
-            "※まだ復元は実行されていません。"
+            "====================",
+            "【PCとの比較結果】",
+            "※まだデータの変更はありません。",
+            "",
+            "■ メインデータ",
+            "スマホ：" +
+                comparison.main.backupCount + "項目",
+            "PC：" +
+                comparison.main.currentCount + "項目",
+            "一致：" +
+                comparison.main.identical.length + "項目",
+            "内容が異なる項目：" +
+                comparison.main.different.length + "項目",
+            "スマホのみ：" +
+                comparison.main.backupOnly.length + "項目",
+            "PCのみ：" +
+                comparison.main.currentOnly.length + "項目",
+
+            formatList(
+                "内容が異なる項目",
+                comparison.main.different
+            ),
+
+            "",
+            "■ その他の保存データ",
+            "スマホ：" +
+                comparison.storage.backupCount + "キー",
+            "PC：" +
+                comparison.storage.currentCount + "キー",
+            "一致：" +
+                comparison.storage.identical.length + "キー",
+            "内容が異なるキー：" +
+                comparison.storage.different.length + "キー",
+            "スマホのみ：" +
+                comparison.storage.backupOnly.length + "キー",
+            "PCのみ：" +
+                comparison.storage.currentOnly.length + "キー",
+
+            formatList(
+                "内容が異なるキー",
+                comparison.storage.different
+            ),
+
+            "",
+            "■ 写真・動画",
+            "スマホ：" +
+                comparison.media.backupCount + "件",
+            "PC：" +
+                comparison.media.currentCount + "件",
+            "同一ID・同一内容：" +
+                comparison.media.identical.length + "件",
+            "同一ID・内容相違：" +
+                comparison.media.different.length + "件",
+            "スマホのみ：" +
+                comparison.media.backupOnly.length + "件",
+            "PCのみ：" +
+                comparison.media.currentOnly.length + "件",
+
+            formatList(
+                "内容が異なるメディアID",
+                comparison.media.different
+            ),
+
+            "",
+            "====================",
+            "比較完了。",
+            "この処理では保存・追加・上書き・削除はしていません。"
 
         ];
 
-        result.textContent = lines.join("\n");
+        result.textContent =
+            lines.join("\n");
+
         container.style.display = "block";
 
     }
 
 
     /* =====================
-       ZIPファイル選択後の処理
+       ZIP選択後の処理
     ===================== */
 
     async function handleBackupFileChange(event){
@@ -116,12 +695,6 @@
 
         selectedBackupFile = file;
         inspectedBackupData = null;
-
-        console.log(
-            "バックアップZIP選択:",
-            file.name,
-            file.size
-        );
 
         const nameElement =
             document.getElementById(
@@ -141,18 +714,20 @@
             inspection.style.display = "none";
         }
 
-        const restoreButton =
+        const button =
             document.getElementById(
                 "startRestoreBackupButton"
             );
 
-        if(restoreButton){
-            restoreButton.disabled = true;
+        if(button){
+            button.disabled = true;
         }
 
-        showMessage("ZIPファイルを検査しています…");
-
         try{
+
+            showMessage(
+                "ZIPファイルを検査しています…"
+            );
 
             if(
                 !window.BackupManager ||
@@ -184,19 +759,32 @@
             inspectedBackupData =
                 inspected.backupData;
 
-            showInspectionResult(inspected.report);
-
-            if(restoreButton){
-                restoreButton.disabled = false;
-            }
-
-            showMessage(
-                "検査が完了しました。内容を確認してください。"
-            );
-
             console.log(
                 "バックアップZIP検査成功:",
                 inspected.report
+            );
+
+            const comparison =
+                await compareBackupData(
+                    inspectedBackupData
+                );
+
+            showInspectionResult(
+                inspected.report,
+                comparison
+            );
+
+            if(button){
+                button.disabled = false;
+            }
+
+            showMessage(
+                "ZIP検査とPCデータとの比較が完了しました。"
+            );
+
+            console.log(
+                "PC・スマホデータ比較結果:",
+                comparison
             );
 
         }catch(error){
@@ -205,12 +793,13 @@
             inspectedBackupData = null;
 
             showMessage(
-                "検査エラー：" + error.message,
+                "検査・比較エラー：" +
+                error.message,
                 true
             );
 
             console.error(
-                "バックアップZIP検査エラー:",
+                "バックアップ検査・比較エラー:",
                 error
             );
 
@@ -220,7 +809,7 @@
 
 
     /* =====================
-       ZIPファイル選択ボタン
+       ZIP選択ボタン
     ===================== */
 
     window.selectRestoreBackup = function(){
@@ -248,7 +837,7 @@
 
 
     /* =====================
-       配列内容の比較
+       保護ZIP検証
     ===================== */
 
     function sameStringItems(a, b){
@@ -261,11 +850,8 @@
             return false;
         }
 
-        const left =
-            [...a].sort();
-
-        const right =
-            [...b].sort();
+        const left = [...a].sort();
+        const right = [...b].sort();
 
         return left.every(
             (value, index) =>
@@ -274,10 +860,6 @@
 
     }
 
-
-    /* =====================
-       保護バックアップの検証
-    ===================== */
 
     function verifySafetyBackup(
         originalReport,
@@ -290,17 +872,19 @@
             !savedReport ||
             savedReport.valid !== true
         ){
+
             throw new Error(
                 "保存した保護バックアップが正常ではありません。"
             );
+
         }
 
-        if(
-            savedFile.size !== originalFile.size
-        ){
+        if(savedFile.size !== originalFile.size){
+
             throw new Error(
                 "保存前後のZIP容量が一致しません。"
             );
+
         }
 
         if(
@@ -309,9 +893,11 @@
                 savedReport.mainDataItems
             )
         ){
+
             throw new Error(
                 "メインデータの検証に失敗しました。"
             );
+
         }
 
         if(
@@ -320,45 +906,28 @@
                 savedReport.localStorageItems
             )
         ){
+
             throw new Error(
                 "保存データの検証に失敗しました。"
             );
+
         }
 
         if(
             originalReport.mediaCount !==
-                savedReport.mediaCount
-        ){
-            throw new Error(
-                "写真・動画の件数が一致しません。"
-            );
-        }
-
-        if(
+                savedReport.mediaCount ||
             originalReport.mediaSize !==
-                savedReport.mediaSize
-        ){
-            throw new Error(
-                "写真・動画の容量が一致しません。"
-            );
-        }
-
-        if(
+                savedReport.mediaSize ||
             originalReport.zipEntryCount !==
-                savedReport.zipEntryCount
-        ){
-            throw new Error(
-                "ZIP内ファイル数が一致しません。"
-            );
-        }
-
-        if(
+                savedReport.zipEntryCount ||
             originalReport.checkedCRCCount !==
                 savedReport.checkedCRCCount
         ){
+
             throw new Error(
-                "CRC検証件数が一致しません。"
+                "保護バックアップの内容が一致しません。"
             );
+
         }
 
         return true;
@@ -367,41 +936,12 @@
 
 
     /* =====================
-       復元前保護バックアップ
-       作成・保存・再検査
+       保護バックアップ作成
+       保存・再検査
     ===================== */
 
-    async function createAndVerifySafetyBackup(){
+    async function createAndVerifySafetyBackup(saveHandle){
 
-        if(
-            !window.BackupSafety ||
-            typeof BackupSafety.createSafetyBackupFile !==
-                "function"
-        ){
-
-            throw new Error(
-                "保護バックアップ機能が読み込まれていません。"
-            );
-
-        }
-
-        if(
-            !window.BackupManager ||
-            typeof BackupManager.inspectBackupFile !==
-                "function"
-        ){
-
-            throw new Error(
-                "ZIP検査機能が読み込まれていません。"
-            );
-
-        }
-
-        showMessage(
-            "現在のPCデータを確認しています…"
-        );
-
-        /* 現在の全データから保護ZIPを作成 */
         const safetyResult =
             await BackupSafety.createSafetyBackupFile();
 
@@ -414,22 +954,6 @@
 
             throw new Error(
                 "保護バックアップの作成に失敗しました。"
-            );
-
-        }
-
-        showMessage(
-            "保護バックアップを保存しています…"
-        );
-
-        /* 保存先を選んだファイルハンドルを取得 */
-        const saveHandle =
-            await pendingSaveHandle;
-
-        if(!saveHandle){
-
-            throw new Error(
-                "保存先を確定できませんでした。"
             );
 
         }
@@ -456,10 +980,7 @@
                 try{
                     await writable.abort();
                 }catch(abortError){
-                    console.error(
-                        "保存処理の中止に失敗:",
-                        abortError
-                    );
+                    console.error(abortError);
                 }
 
             }
@@ -468,31 +989,19 @@
 
         }
 
-        showMessage(
-            "保存した保護バックアップを再検査しています…"
-        );
-
-        /* 保存先から実際のファイルを再取得 */
         const savedFile =
             await saveHandle.getFile();
 
-        /* 保存済みファイルをもう一度ZIP検査 */
         const savedInspection =
             await BackupManager.inspectBackupFile(
                 savedFile
             );
 
-        /* 作成時と保存後の内容を比較 */
         verifySafetyBackup(
             safetyResult.report,
             savedInspection.report,
             savedFile,
             safetyResult.file
-        );
-
-        console.log(
-            "保護バックアップ保存・再検査成功:",
-            savedInspection.report
         );
 
         return savedInspection.report;
@@ -501,11 +1010,8 @@
 
 
     /* =====================
-       保存先選択
+       保護ZIPファイル名
     ===================== */
-
-    let pendingSaveHandle = null;
-
 
     function createSafetyFileName(){
 
@@ -533,7 +1039,8 @@
 
 
     /* =====================
-       保護バックアップ作成ボタン
+       保護バックアップボタン
+       ※スマホデータの復元はしない
     ===================== */
 
     window.startRestoreBackup = async function(){
@@ -563,25 +1070,23 @@
 
         try{
 
-            /* 保存機能がない場合は中止 */
             if(
                 typeof window.showSaveFilePicker !==
                     "function"
             ){
 
                 throw new Error(
-                    "このブラウザでは保存完了を確認できません。Chromeなど対応ブラウザで開いてください。"
+                    "このブラウザでは保存完了を確認できません。"
                 );
 
             }
 
-            /*
-              ユーザー操作直後に保存先選択を開始する。
-              この前に await を行わない。
-            */
+            showMessage(
+                "保護バックアップの保存先を選択してください。"
+            );
 
-            pendingSaveHandle =
-                window.showSaveFilePicker({
+            const saveHandle =
+                await window.showSaveFilePicker({
 
                     suggestedName:
                         createSafetyFileName(),
@@ -592,9 +1097,7 @@
                                 "推し活手帳 保護バックアップ",
 
                             accept: {
-                                "application/zip": [
-                                    ".zip"
-                                ]
+                                "application/zip": [".zip"]
                             }
                         }
                     ]
@@ -602,21 +1105,13 @@
                 });
 
             showMessage(
-                "保護バックアップの保存先を選択してください。"
+                "PCデータの保護バックアップを作成しています…"
             );
 
-            /* 保存先選択後に作成・保存・再検査 */
-            const handlePromise =
-                pendingSaveHandle;
-
-            const saveHandle =
-                await handlePromise;
-
-            pendingSaveHandle =
-                Promise.resolve(saveHandle);
-
             const report =
-                await createAndVerifySafetyBackup();
+                await createAndVerifySafetyBackup(
+                    saveHandle
+                );
 
             showMessage(
                 "保護バックアップの保存と再検査に成功しました。\n" +
@@ -628,20 +1123,15 @@
                 report.mediaCount + "件\n" +
                 "ZIP内ファイル：" +
                 report.zipEntryCount + "件\n\n" +
-                "現在のPCデータは保護されました。\n" +
                 "スマホ側データの取り込みは、まだ実行していません。"
-            );
-
-            console.log(
-                "保護バックアップ完了。復元処理は未実行です。"
             );
 
         }catch(error){
 
             showMessage(
                 error.name === "AbortError"
-                    ? "保存がキャンセルされました。安全のため取り込みは中止しました。"
-                    : "保護バックアップを保存・検証できませんでした。取り込みは中止しました。\n" +
+                    ? "保存がキャンセルされました。"
+                    : "保護バックアップエラー：" +
                       error.message,
                 true
             );
@@ -653,10 +1143,8 @@
 
         }finally{
 
-            pendingSaveHandle = null;
-
             if(button){
-                button.disabled = true;
+                button.disabled = false;
             }
 
         }
@@ -703,13 +1191,13 @@
 
         input.value = "";
 
-        const restoreButton =
+        const button =
             document.getElementById(
                 "startRestoreBackupButton"
             );
 
-        if(restoreButton){
-            restoreButton.disabled = true;
+        if(button){
+            button.disabled = true;
         }
 
         const inspection =
