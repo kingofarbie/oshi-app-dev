@@ -6,6 +6,7 @@
    ・ZIP選択
    ・ZIP内容検査
    ・PCデータとの読み取り専用比較
+   ・推し一覧の詳細比較
    ・復元前保護バックアップ作成、保存、再検査
 
    ※スマホデータの復元・統合はまだ行わない
@@ -15,7 +16,6 @@
 
     let selectedBackupFile = null;
     let inspectedBackupData = null;
-    let pendingSaveHandle = null;
 
 
     /* =====================
@@ -46,10 +46,7 @@
             return value.map(normalizeValue);
         }
 
-        if(
-            value &&
-            typeof value === "object"
-        ){
+        if(value && typeof value === "object"){
 
             const result = {};
 
@@ -102,17 +99,11 @@
 
     function compareMainData(backupData, currentData){
 
-        const backup =
-            backupData || {};
+        const backup = backupData || {};
+        const current = currentData || {};
 
-        const current =
-            currentData || {};
-
-        const backupKeys =
-            Object.keys(backup);
-
-        const currentKeys =
-            Object.keys(current);
+        const backupKeys = Object.keys(backup);
+        const currentKeys = Object.keys(current);
 
         const backupOnly = [];
         const currentOnly = [];
@@ -125,9 +116,7 @@
 
                 backupOnly.push(key);
 
-            }else if(
-                sameValue(backup[key], current[key])
-            ){
+            }else if(sameValue(backup[key], current[key])){
 
                 identical.push(key);
 
@@ -154,6 +143,244 @@
             currentOnly,
             identical,
             different
+        };
+
+    }
+
+
+    /* =====================
+       ⭐ 推し一覧を配列に変換
+    ===================== */
+
+    function convertOshiList(data){
+
+        if(Array.isArray(data)){
+            return data.map(item => ({
+                item,
+                objectKey: ""
+            }));
+        }
+
+        if(data && typeof data === "object"){
+
+            if(Array.isArray(data.list)){
+                return data.list.map(item => ({
+                    item,
+                    objectKey: ""
+                }));
+            }
+
+            if(Array.isArray(data.items)){
+                return data.items.map(item => ({
+                    item,
+                    objectKey: ""
+                }));
+            }
+
+            return Object.entries(data).map(
+                ([key, item]) => ({
+                    item,
+                    objectKey: key
+                })
+            );
+
+        }
+
+        return [];
+
+    }
+
+
+    /* =====================
+       ⭐ 推し情報を取得
+    ===================== */
+
+    function getOshiInfo(entry){
+
+        const item = entry.item;
+
+        if(!item || typeof item !== "object"){
+
+            return {
+                id: "",
+                name: ""
+            };
+
+        }
+
+        const id =
+            item.id ??
+            item.oshiId ??
+            item.uid ??
+            entry.objectKey ??
+            "";
+
+        const name =
+            item.name ??
+            item.oshiName ??
+            item.title ??
+            item.groupName ??
+            "";
+
+        return {
+            id: String(id),
+            name: String(name)
+        };
+
+    }
+
+
+    /* =====================
+       ⭐ 推し一覧の詳細比較
+       読み取り専用
+    ===================== */
+
+    function compareOshiListDetail(
+        backupMainData,
+        currentMainData
+    ){
+
+        const backupEntries =
+            convertOshiList(
+                backupMainData?.oshiList
+            );
+
+        const currentEntries =
+            convertOshiList(
+                currentMainData?.oshiList
+            );
+
+        const backup =
+            backupEntries.map(getOshiInfo);
+
+        const current =
+            currentEntries.map(getOshiInfo);
+
+        const backupIds = new Set(
+            backup
+                .filter(item => item.id)
+                .map(item => item.id)
+        );
+
+        const currentIds = new Set(
+            current
+                .filter(item => item.id)
+                .map(item => item.id)
+        );
+
+        const backupOnly = [];
+        const currentOnly = [];
+        const identical = [];
+        const nameDifferent = [];
+
+        backup.forEach(item => {
+
+            if(!item.id) return;
+
+            if(!currentIds.has(item.id)){
+
+                backupOnly.push(item);
+
+            }else{
+
+                const matched =
+                    current.find(
+                        other => other.id === item.id
+                    );
+
+                if(matched){
+
+                    if(item.name === matched.name){
+
+                        identical.push({
+                            id: item.id,
+                            name: item.name
+                        });
+
+                    }else{
+
+                        nameDifferent.push({
+                            id: item.id,
+                            backupName: item.name,
+                            currentName: matched.name
+                        });
+
+                    }
+
+                }
+
+            }
+
+        });
+
+        current.forEach(item => {
+
+            if(!item.id){
+
+                return;
+
+            }
+
+            if(!backupIds.has(item.id)){
+
+                currentOnly.push(item);
+
+            }
+
+        });
+
+        const missingBackupId =
+            backup.filter(item => !item.id);
+
+        const missingCurrentId =
+            current.filter(item => !item.id);
+
+        function findDuplicateIds(items){
+
+            const counts = new Map();
+
+            items.forEach(item => {
+
+                if(!item.id) return;
+
+                counts.set(
+                    item.id,
+                    (counts.get(item.id) || 0) + 1
+                );
+
+            });
+
+            return Array.from(counts.entries())
+                .filter(([id, count]) => count > 1)
+                .map(([id, count]) => ({
+                    id,
+                    count
+                }));
+
+        }
+
+        return {
+
+            backupCount: backup.length,
+            currentCount: current.length,
+
+            backupItems: backup,
+            currentItems: current,
+
+            identical,
+            backupOnly,
+            currentOnly,
+            nameDifferent,
+
+            missingBackupId,
+            missingCurrentId,
+
+            duplicateBackupIds:
+                findDuplicateIds(backup),
+
+            duplicateCurrentIds:
+                findDuplicateIds(current)
+
         };
 
     }
@@ -187,10 +414,7 @@
                     return;
                 }
 
-                result.set(
-                    key,
-                    item.value
-                );
+                result.set(key, item.value);
 
             });
 
@@ -470,8 +694,7 @@
 
         if(
             !window.BackupSafety ||
-            typeof BackupSafety.inspectCurrentData !==
-                "function"
+            typeof BackupSafety.inspectCurrentData !== "function"
         ){
 
             throw new Error(
@@ -512,6 +735,14 @@
                 snapshot.mainData
             );
 
+        /* ⭐ 推し一覧の詳細比較 */
+
+        const oshiList =
+            compareOshiListDetail(
+                backupData.mainData,
+                snapshot.mainData
+            );
+
         const storage =
             compareLocalStorage(
                 backupData.localStorage,
@@ -530,6 +761,7 @@
 
         return {
             main,
+            oshiList,
             storage,
             media
         };
@@ -538,7 +770,7 @@
 
 
     /* =====================
-       比較結果表示
+       表示用リスト
     ===================== */
 
     function formatList(label, values){
@@ -554,6 +786,37 @@
 
     }
 
+
+    function formatOshiList(label, items){
+
+        const values =
+            (items || []).map(item => {
+
+                const name =
+                    item.name || "名前なし";
+
+                const id =
+                    item.id || "IDなし";
+
+                return name + "（ID：" + id + "）";
+
+            });
+
+        return (
+            label + "：" +
+            (
+                values.length
+                    ? values.join("、")
+                    : "なし"
+            )
+        );
+
+    }
+
+
+    /* =====================
+       比較結果表示
+    ===================== */
 
     function showInspectionResult(
         report,
@@ -584,20 +847,26 @@
             "検査成功",
             "ファイル名：" + report.filename,
             "作成日時：" + report.createdAt,
+
             "メインデータ：" +
                 report.mainDataItems.length + "項目",
+
             "その他の保存データ：" +
                 report.localStorageItems.length + "項目",
+
             "写真・動画：" +
                 report.mediaCount + "件",
+
             "メディア容量：" +
                 (
                     report.mediaSize /
                     1024 /
                     1024
                 ).toFixed(2) + " MB",
+
             "ZIP内ファイル：" +
                 report.zipEntryCount + "件",
+
             "CRC検証：" +
                 report.checkedCRCCount + "件",
 
@@ -605,18 +874,25 @@
             "====================",
             "【PCとの比較結果】",
             "※まだデータの変更はありません。",
+
             "",
             "■ メインデータ",
+
             "スマホ：" +
                 comparison.main.backupCount + "項目",
+
             "PC：" +
                 comparison.main.currentCount + "項目",
+
             "一致：" +
                 comparison.main.identical.length + "項目",
+
             "内容が異なる項目：" +
                 comparison.main.different.length + "項目",
+
             "スマホのみ：" +
                 comparison.main.backupOnly.length + "項目",
+
             "PCのみ：" +
                 comparison.main.currentOnly.length + "項目",
 
@@ -626,17 +902,108 @@
             ),
 
             "",
+            "====================",
+            "⭐【推し一覧の詳細比較】",
+
+            "スマホ登録件数：" +
+                comparison.oshiList.backupCount + "件",
+
+            "PC登録件数：" +
+                comparison.oshiList.currentCount + "件",
+
+            "共通ID・同じ名前：" +
+                comparison.oshiList.identical.length + "件",
+
+            "スマホだけの推し：" +
+                comparison.oshiList.backupOnly.length + "件",
+
+            "PCだけの推し：" +
+                comparison.oshiList.currentOnly.length + "件",
+
+            "同じID・名前が異なる推し：" +
+                comparison.oshiList.nameDifferent.length + "件",
+
+            "",
+            "【スマホ側の推し一覧】",
+
+            formatOshiList(
+                "登録内容",
+                comparison.oshiList.backupItems
+            ),
+
+            "",
+            "【PC側の推し一覧】",
+
+            formatOshiList(
+                "登録内容",
+                comparison.oshiList.currentItems
+            ),
+
+            "",
+            "【スマホだけの推し】",
+
+            formatOshiList(
+                "登録内容",
+                comparison.oshiList.backupOnly
+            ),
+
+            "",
+            "【PCだけの推し】",
+
+            formatOshiList(
+                "登録内容",
+                comparison.oshiList.currentOnly
+            ),
+
+            "",
+            "【同じIDで名前が異なる推し】",
+
+            ...comparison.oshiList.nameDifferent.map(
+                item =>
+                    "ID：" + item.id +
+                    " / スマホ：" + item.backupName +
+                    " / PC：" + item.currentName
+            ),
+
+            formatList(
+                "スマホ側の重複ID",
+                comparison.oshiList.duplicateBackupIds.map(
+                    item => item.id
+                )
+            ),
+
+            formatList(
+                "PC側の重複ID",
+                comparison.oshiList.duplicateCurrentIds.map(
+                    item => item.id
+                )
+            ),
+
+            "スマホ側のID未設定：" +
+                comparison.oshiList.missingBackupId.length + "件",
+
+            "PC側のID未設定：" +
+                comparison.oshiList.missingCurrentId.length + "件",
+
+            "",
+            "====================",
             "■ その他の保存データ",
+
             "スマホ：" +
                 comparison.storage.backupCount + "キー",
+
             "PC：" +
                 comparison.storage.currentCount + "キー",
+
             "一致：" +
                 comparison.storage.identical.length + "キー",
+
             "内容が異なるキー：" +
                 comparison.storage.different.length + "キー",
+
             "スマホのみ：" +
                 comparison.storage.backupOnly.length + "キー",
+
             "PCのみ：" +
                 comparison.storage.currentOnly.length + "キー",
 
@@ -647,16 +1014,22 @@
 
             "",
             "■ 写真・動画",
+
             "スマホ：" +
                 comparison.media.backupCount + "件",
+
             "PC：" +
                 comparison.media.currentCount + "件",
+
             "同一ID・同一内容：" +
                 comparison.media.identical.length + "件",
+
             "同一ID・内容相違：" +
                 comparison.media.different.length + "件",
+
             "スマホのみ：" +
                 comparison.media.backupOnly.length + "件",
+
             "PCのみ：" +
                 comparison.media.currentOnly.length + "件",
 
@@ -731,8 +1104,7 @@
 
             if(
                 !window.BackupManager ||
-                typeof BackupManager.inspectBackupFile !==
-                    "function"
+                typeof BackupManager.inspectBackupFile !== "function"
             ){
 
                 throw new Error(
@@ -785,6 +1157,11 @@
             console.log(
                 "PC・スマホデータ比較結果:",
                 comparison
+            );
+
+            console.log(
+                "⭐ 推し一覧の詳細比較結果:",
+                comparison.oshiList
             );
 
         }catch(error){
@@ -1010,7 +1387,7 @@
 
 
     /* =====================
-       保護ZIPファイル名
+       保護バックアップファイル名
     ===================== */
 
     function createSafetyFileName(){
@@ -1071,8 +1448,7 @@
         try{
 
             if(
-                typeof window.showSaveFilePicker !==
-                    "function"
+                typeof window.showSaveFilePicker !== "function"
             ){
 
                 throw new Error(
