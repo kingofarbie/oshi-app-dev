@@ -756,37 +756,42 @@
        ※従来方式を維持
     ===================================================== */
 
-    function makeBackupStorageMap(storageData){
 
-        const result = new Map();
+function makeBackupStorageMap(storageData){
 
-        Object.entries(storageData || {})
-            .forEach(([storageId, item]) => {
+    const result = new Map();
 
-                if(!item || typeof item !== "object"){
-                    return;
-                }
+    Object.entries(storageData || {})
+        .forEach(([storageId, item]) => {
 
-                const key =
-                    item.name ||
-                    item.id ||
-                    storageId;
+            if(!item || typeof item !== "object"){
+                return;
+            }
 
-                if(key === "oshi_app_data"){
-                    return;
-                }
+            // 実際のlocalStorage保存キーを使用
+            const key = storageId;
 
-                if(item.exists === false){
-                    return;
-                }
+            if(typeof key !== "string" || !key){
+                return;
+            }
 
-                result.set(key, item.value);
+            // メインDBは別途比較する
+            if(key === "oshi_app_data"){
+                return;
+            }
 
-            });
+            // ZIPに存在しない項目は比較対象外
+            if(item.exists === false){
+                return;
+            }
 
-        return result;
+            result.set(key, item.value);
 
-    }
+        });
+
+    return result;
+
+}
 
 
     function makeCurrentStorageMap(storageItems){
