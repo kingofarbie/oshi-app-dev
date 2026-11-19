@@ -1686,6 +1686,18 @@
                 comparison.oshiRecords
             );
 
+
+            console.log(
+    "📱 スマホ側・ID未設定データの実体:",
+    comparison.oshiRecords.noIdBackup
+);
+
+console.log(
+    "💻 PC側・ID未設定データの実体:",
+    comparison.oshiRecords.noIdCurrent
+);
+
+
         }catch(error){
 
             selectedBackupFile = null;
