@@ -266,21 +266,26 @@ async function inspectCurrentData(){
 
 function createSafetyBackupData(snapshot){
 
-    const localStorageData = {};
+    const localStorageData =
+        Object.create(null);
 
     for(const item of snapshot.localStorage){
 
-        localStorageData[item.key] = {
-
-            id:item.key,
-
-            name:item.key,
-
-            exists:true,
-
-            value:item.rawValue
-
-        };
+        Object.defineProperty(
+            localStorageData,
+            item.key,
+            {
+                value:{
+                    id:item.key,
+                    name:item.key,
+                    exists:true,
+                    value:item.rawValue
+                },
+                enumerable:true,
+                configurable:true,
+                writable:true
+            }
+        );
 
     }
 
@@ -325,8 +330,62 @@ function createSafetyBackupData(snapshot){
 
 
 /* =========================================================
+   配列の内容を順不同で照合
+========================================================= */
+
+function sameStringItems(actual, expected){
+
+    if(
+        !Array.isArray(actual) ||
+        !Array.isArray(expected)
+    ){
+
+        return false;
+
+    }
+
+    if(actual.length !== expected.length){
+
+        return false;
+
+    }
+
+    const actualSet =
+        new Set(actual.map(String));
+
+    const expectedSet =
+        new Set(expected.map(String));
+
+    if(actualSet.size !== actual.length){
+
+        return false;
+
+    }
+
+    if(expectedSet.size !== expected.length){
+
+        return false;
+
+    }
+
+    for(const value of expectedSet){
+
+        if(!actualSet.has(value)){
+
+            return false;
+
+        }
+
+    }
+
+    return true;
+
+}
+
+
+/* =========================================================
    保護用ZIP作成・再検査
-   ファイル保存はまだ行わない
+   この関数はファイル保存を行わない
 ========================================================= */
 
 async function createSafetyBackupFile(){
@@ -375,7 +434,6 @@ async function createSafetyBackupFile(){
             backupData
         );
 
-
     if(
         !(zipBlob instanceof Blob) ||
         zipBlob.size <= 0
@@ -390,8 +448,7 @@ async function createSafetyBackupFile(){
 
     /* ファイル名 */
 
-    const now =
-        new Date();
+    const now = new Date();
 
     const date =
         now.getFullYear() +
@@ -439,36 +496,54 @@ async function createSafetyBackupFile(){
     }
 
 
-    /* 件数・容量の照合 */
-
     const report =
         checked.report;
 
+
+    /* メインデータ項目名・件数を照合 */
+
+    const expectedMainKeys =
+        Object.keys(snapshot.mainData);
+
     if(
-        report.mainDataItems !==
-        Object.keys(snapshot.mainData).length
+        !sameStringItems(
+            report.mainDataItems,
+            expectedMainKeys
+        )
     ){
 
         throw new Error(
-            "メインデータの件数が一致しません。"
+            "メインデータの項目が一致しません。"
         );
 
     }
 
+
+    /* localStorage 全キーを照合 */
+
+    const expectedLocalKeys =
+        snapshot.localStorage.map(
+            item => item.key
+        );
+
     if(
-        report.localStorageItems !==
-        snapshot.localStorage.length
+        !sameStringItems(
+            report.localStorageItems,
+            expectedLocalKeys
+        )
     ){
 
         throw new Error(
-            "localStorageの件数が一致しません。"
+            "localStorageのキーが一致しません。"
         );
 
     }
 
+
+    /* メディア件数を照合 */
+
     if(
-        report.mediaCount !==
-        snapshot.media.length
+        report.mediaCount !== snapshot.media.length
     ){
 
         throw new Error(
@@ -476,6 +551,9 @@ async function createSafetyBackupFile(){
         );
 
     }
+
+
+    /* メディア合計サイズを照合 */
 
     const expectedMediaSize =
         snapshot.media.reduce(
@@ -489,6 +567,35 @@ async function createSafetyBackupFile(){
 
         throw new Error(
             "メディアの合計サイズが一致しません。"
+        );
+
+    }
+
+
+    /* ZIP内のエントリー数を照合 */
+
+    const expectedEntryCount =
+        snapshot.media.length + 1;
+
+    if(
+        report.zipEntryCount !== expectedEntryCount
+    ){
+
+        throw new Error(
+            "ZIP内のファイル数が一致しません。"
+        );
+
+    }
+
+
+    /* CRC検査数を照合 */
+
+    if(
+        report.checkedCRCCount !== expectedEntryCount
+    ){
+
+        throw new Error(
+            "ZIP内ファイルのCRC検査数が一致しません。"
         );
 
     }
