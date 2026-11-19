@@ -1460,6 +1460,7 @@ function makeBackupStorageMap(storageData){
     ===================================================== */
 
 
+
 async function handleBackupFileChange(event){
 
     const input = event.target;
@@ -1469,6 +1470,9 @@ async function handleBackupFileChange(event){
 
     selectedBackupFile = file;
     inspectedBackupData = null;
+
+    // 前回の確認結果をリセット
+    window.lastBackupImportPreview = null;
 
     const nameElement = document.getElementById(
         "restoreBackupFileName"
@@ -1497,7 +1501,7 @@ async function handleBackupFileChange(event){
     try{
 
         /* =====================
-           ZIPファイル検査
+           ZIP検査
         ===================== */
 
         showMessage("ZIPファイルを検査しています…");
@@ -1549,8 +1553,8 @@ async function handleBackupFileChange(event){
 
 
         /* =====================
-           安全な取り込み予定の作成
-           ※読み取り専用
+           安全な取り込み予定
+           読み取り専用
         ===================== */
 
         showMessage(
@@ -1571,6 +1575,9 @@ async function handleBackupFileChange(event){
                 inspectedBackupData
             );
 
+        // コンソール確認用に保存
+        window.lastBackupImportPreview = importPreview;
+
         console.log(
             "🔐 安全な取り込み予定（読み取り専用）:",
             importPreview
@@ -1583,7 +1590,7 @@ async function handleBackupFileChange(event){
 
 
         /* =====================
-           既存の比較結果ログ
+           詳細比較ログ
         ===================== */
 
         console.log(
@@ -1627,13 +1634,15 @@ async function handleBackupFileChange(event){
 
         showMessage(
             "ZIP検査・PCデータ比較・安全な取り込み予定の作成が完了しました。\n" +
-            "※この段階ではデータの取り込み・変更は行っていません。"
+            "※データの取り込み・変更は行っていません。"
         );
 
     }catch(error){
 
         selectedBackupFile = null;
         inspectedBackupData = null;
+
+        window.lastBackupImportPreview = null;
 
         if(button){
             button.disabled = true;
