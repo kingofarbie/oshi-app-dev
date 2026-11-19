@@ -33,6 +33,7 @@
 
     /* =====================================================
        ZIP選択
+       画面が後から読み込まれる場合にも対応
     ===================================================== */
 
     window.selectRestoreBackup = function(){
@@ -41,9 +42,21 @@
             document.getElementById("restoreBackupFile");
 
         if(!input){
-            showMessage("バックアップ選択欄が見つかりません。");
+            showMessage(
+                "バックアップ選択欄が見つかりません。設定画面のHTMLを確認してください。"
+            );
             return;
         }
+
+        // 選択のたびにイベントを設定
+        input.onchange = async function(){
+
+            const file =
+                input.files && input.files[0];
+
+            await inspectSelectedFile(file);
+
+        };
 
         input.value = "";
         input.click();
@@ -88,7 +101,8 @@
 
         const items = [
 
-            ["検査結果", report.valid ? "正常" : "異常"],
+            ["検査結果",
+                report.valid ? "正常" : "異常"],
 
             ["ファイル名", report.filename],
 
@@ -139,7 +153,7 @@
         const notice = document.createElement("p");
 
         notice.textContent =
-            "ZIPの構造と内容を検査しました。現時点ではアプリのデータは変更していません。";
+            "ZIPの構造と内容を検査しました。アプリのデータは変更していません。";
 
         result.appendChild(notice);
 
@@ -281,34 +295,6 @@
 
 
     /* =====================================================
-       選択ファイル変更イベント
-    ===================================================== */
-
-    function setup(){
-
-        const input =
-            document.getElementById("restoreBackupFile");
-
-        if(!input){
-            console.warn(
-                "復元用ファイル選択欄が見つかりません。"
-            );
-            return;
-        }
-
-        input.addEventListener("change", async function(){
-
-            const file =
-                input.files && input.files[0];
-
-            await inspectSelectedFile(file);
-
-        });
-
-    }
-
-
-    /* =====================================================
        復元開始ボタン
        ※復元処理は次の段階で実装
     ===================================================== */
@@ -328,23 +314,5 @@
 
     };
 
-
-    /* =====================================================
-       初期化
-    ===================================================== */
-
-    if(document.readyState === "loading"){
-
-        document.addEventListener(
-            "DOMContentLoaded",
-            setup,
-            { once:true }
-        );
-
-    }else{
-
-        setup();
-
-    }
 
 })();
