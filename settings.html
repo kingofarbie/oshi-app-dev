@@ -778,19 +778,21 @@ placeholder="カテゴリ名（例：推し活、仕事、旅行）">
 
 
 
+
 <!-- =====================
-     💾 バックアップ保存
+     💾 バックアップ保存・復元
 ===================== -->
 
 <div class="card setting-item">
 
-<h3>💾 推し活・全般データバックアップ</h3>
+    <h3>💾 推し活・全般データバックアップ</h3>
 
     <p>
         アプリのデータや写真・動画を
         ZIPファイルとして保存します。
     </p>
 
+    <!-- 通常バックアップ -->
     <button
         type="button"
         id="saveAppBackupButton"
@@ -802,6 +804,61 @@ placeholder="カテゴリ名（例：推し活、仕事、旅行）">
 
     <p
         id="saveAppBackupMessage"
+        aria-live="polite">
+    </p>
+
+    <hr>
+
+    <!-- バックアップ復元 -->
+    <h3>📦 バックアップの取り込み</h3>
+
+    <p>
+        保存済みのバックアップZIPを選択して、
+        アプリに取り込みます。
+    </p>
+
+    <input
+        type="file"
+        id="restoreBackupFile"
+        accept=".zip,application/zip"
+        style="display:none;">
+
+    <button
+        type="button"
+        id="selectRestoreBackupButton"
+        onclick="selectRestoreBackup()">
+
+        📂 バックアップZIPを選択
+
+    </button>
+
+    <p
+        id="restoreBackupFileName"
+        aria-live="polite">
+    </p>
+
+    <div
+        id="restoreBackupInspection"
+        style="display:none;">
+
+        <h4>🔍 バックアップ検査結果</h4>
+
+        <div id="restoreBackupInspectionResult"></div>
+
+        <button
+            type="button"
+            id="startRestoreBackupButton"
+            onclick="startRestoreBackup()"
+            disabled>
+
+            🔐 保護バックアップを作成して取り込み
+
+        </button>
+
+    </div>
+
+    <p
+        id="restoreBackupMessage"
         aria-live="polite">
     </p>
 
