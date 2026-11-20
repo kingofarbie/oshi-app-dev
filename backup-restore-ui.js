@@ -1906,101 +1906,95 @@ async function handleBackupFileChange(event){
        ※スマホデータの復元は行わない
     ===================================================== */
 
-    window.startRestoreBackup = async function(){
 
-        if(!selectedBackupFile || !inspectedBackupData){
+window.startRestoreBackup = async function(){
 
-            showMessage(
-                "先にバックアップZIPを選択してください。",
-                true
-            );
+    if(!selectedBackupFile || !inspectedBackupData){
 
-            return;
-
-        }
-
-        const button = document.getElementById(
-            "startRestoreBackupButton"
+        showMessage(
+            "先にバックアップZIPを選択してください。",
+            true
         );
 
+        return;
+    }
+
+    if(
+        !window.lastBackupImportPreview ||
+        !window.BackupImportExecute ||
+        typeof window.BackupImportExecute.executeImport !== "function"
+    ){
+
+        showMessage(
+            "取り込み計画または実行機能が見つかりません。ページを再読み込みしてZIPを選択し直してください。",
+            true
+        );
+
+        return;
+    }
+
+    const button = document.getElementById(
+        "startRestoreBackupButton"
+    );
+
+    if(button){
+        button.disabled = true;
+    }
+
+    try{
+
+        showMessage(
+            "保護バックアップを保存して検査しています…"
+        );
+
+        const result =
+            await window.BackupImportExecute.executeImport(
+                window.lastBackupImportPreview
+            );
+
+        console.log(
+            "取り込み完了結果:",
+            result
+        );
+
+        showMessage(
+            "取り込みが完了しました。\n\n" +
+            "保護バックアップ：保存・再検査成功\n" +
+            "メインデータ追加候補：" +
+            result.mainData.addedCandidates + "項目\n" +
+            "写真・動画の追加：" +
+            result.media.added + "件\n" +
+            "既存IDのため保留：" +
+            result.media.skippedExisting + "件\n\n" +
+            "メインデータ保存後確認：成功\n" +
+            "メディア保存後確認：" +
+            result.media.verified + "件\n\n" +
+            "既存データの削除・上書きは行っていません。"
+        );
+
+    }catch(error){
+
+        console.error(
+            "取り込み処理エラー:",
+            error
+        );
+
+        showMessage(
+            "取り込みを完了できませんでした。\n\n" +
+            error.message,
+            true
+        );
+
+    }finally{
+
         if(button){
-            button.disabled = true;
+            button.disabled = false;
         }
 
-        try{
+    }
 
-            if(typeof window.showSaveFilePicker !== "function"){
-                throw new Error(
-                    "このブラウザでは保存完了を確認できません。"
-                );
-            }
+};
 
-            showMessage(
-                "保護バックアップの保存先を選択してください。"
-            );
-
-            const saveHandle =
-                await window.showSaveFilePicker({
-
-                    suggestedName: createSafetyFileName(),
-
-                    types: [
-                        {
-                            description:
-                                "推し活手帳 保護バックアップ",
-
-                            accept: {
-                                "application/zip": [".zip"]
-                            }
-                        }
-                    ]
-
-                });
-
-            showMessage(
-                "PCデータの保護バックアップを作成しています…"
-            );
-
-            const report =
-                await createAndVerifySafetyBackup(saveHandle);
-
-            showMessage(
-                "保護バックアップの保存と再検査に成功しました。\n" +
-                "メインデータ：" +
-                report.mainDataItems.length + "項目\n" +
-                "その他の保存データ：" +
-                report.localStorageItems.length + "項目\n" +
-                "写真・動画：" +
-                report.mediaCount + "件\n" +
-                "ZIP内ファイル：" +
-                report.zipEntryCount + "件\n\n" +
-                "スマホ側データの取り込みは、まだ実行していません。"
-            );
-
-        }catch(error){
-
-            showMessage(
-                error.name === "AbortError"
-                    ? "保存がキャンセルされました。"
-                    : "保護バックアップエラー：" +
-                      error.message,
-                true
-            );
-
-            console.error(
-                "保護バックアップ処理エラー:",
-                error
-            );
-
-        }finally{
-
-            if(button){
-                button.disabled = false;
-            }
-
-        }
-
-    };
 
 
     /* =====================================================
