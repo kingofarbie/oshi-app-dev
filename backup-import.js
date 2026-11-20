@@ -387,104 +387,252 @@ function compareOshiRecords(backupRecords, currentRecords){
    メインDBの個別比較
 ===================================================== */
 
+
+/* =====================================================
+   メインDBの個別比較
+   既存データを変更しない読み取り専用
+===================================================== */
+
 function compareMainData(backupData){
 
     const currentRaw =
         localStorage.getItem("oshi_app_data");
 
     if(currentRaw === null){
-
         return {
             status: "current-data-missing",
             oshiList: null,
             oshiDetails: null,
             oshiRecords: null,
+            items: {},
             held: [],
             invalid: []
         };
-
     }
 
     let currentData;
 
-    try{
-
+    try {
         currentData = JSON.parse(currentRaw);
-
-    }catch(error){
-
-        throw new Error(
-            "現在のPCメインデータを解析できません。"
-        );
-
+    } catch(error) {
+        throw new Error("現在のPCメインデータを解析できません。");
     }
 
     if(!isObject(backupData.mainData)){
-
-        throw new Error(
-            "スマホ側メインデータの形式が正しくありません。"
-        );
-
+        throw new Error("スマホ側メインデータの形式が正しくありません。");
     }
 
     const backupMain = backupData.mainData;
 
     const result = {
-
         status: "read-only-comparison",
-
         oshiList: null,
         oshiDetails: null,
         oshiRecords: null,
-
+        items: {},
         held: [],
         invalid: []
-
     };
 
-
     /* 推し一覧 */
-
     if(hasOwn(backupMain, "oshiList")){
-
         result.oshiList = compareIdArray(
             backupMain.oshiList,
             currentData.oshiList
         );
-
     }
 
-
     /* 推し詳細 */
-
     if(hasOwn(backupMain, "oshiDetails")){
-
         result.oshiDetails = compareObjectKeys(
             backupMain.oshiDetails,
             currentData.oshiDetails
         );
-
     }
 
-
     /* 推し記録 */
-
     if(hasOwn(backupMain, "oshiRecords")){
-
         result.oshiRecords = compareOshiRecords(
             backupMain.oshiRecords,
             currentData.oshiRecords
         );
+    }
+
+    const arrayKeys = [
+        "events",
+        "categories",
+        "plannerNotes",
+        "plannerStickerPlacements",
+        "anniversaryDays"
+    ];
+
+    /* ID付き配列 */
+    arrayKeys.forEach(key => {
+
+        if(!hasOwn(backupMain, key)) return;
+
+        result.items[key] = compareIdArray(
+            backupMain[key],
+            currentData[key]
+        );
+
+    });
+
+    /* 日付キーの思い出 */
+    if(hasOwn(backupMain, "dayMemories")){
+
+        result.items.dayMemories = compareObjectKeys(
+            backupMain.dayMemories,
+            currentData.dayMemories
+        );
 
     }
 
+    /* 設定：項目単位で比較 */
+    if(hasOwn(backupMain, "settings")){
 
-    /* 未確認のデータは安全のため保留 */
+        result.items.settings = compareObjectKeys(
+            backupMain.settings,
+            currentData.settings
+        );
 
+    }
+
+    /* お気に入り：配列ごとに比較 */
+    if(hasOwn(backupMain, "favorites")){
+
+        const backup = backupMain.favorites;
+        const current = currentData.favorites || {};
+
+        if(!isObject(backup)){
+
+            result.items.favorites = {
+                add: [],
+                same: [],
+                conflict: [],
+                invalid: [{ reason: "お気に入りの形式が不正です" }]
+            };
+
+        }else{
+
+            const favoriteResult = {
+                add: [],
+                same: [],
+                conflict: [],
+                invalid: []
+            };
+
+            Object.entries(backup).forEach(([key, value]) => {
+
+                if(!hasOwn(current, key)){
+
+                    favoriteResult.add.push({
+                        key,
+                        value
+                    });
+
+                }else if(isSame(value, current[key])){
+
+                    favoriteResult.same.push({
+                        key,
+                        value
+                    });
+
+                }else{
+
+                    favoriteResult.conflict.push({
+                        key,
+                        backup: value,
+                        current: current[key]
+                    });
+
+                }
+
+            });
+
+            result.items.favorites = favoriteResult;
+
+        }
+
+    }
+
+    /* スポーツ・健康カレンダーは安全のため全体比較 */
+    ["sportsCalendar", "healthCalendar"].forEach(key => {
+
+        if(!hasOwn(backupMain, key)) return;
+
+        const backup = backupMain[key];
+        const current = currentData[key];
+
+        if(!isObject(backup)){
+
+            result.items[key] = {
+                add: [],
+                same: [],
+                conflict: [],
+                invalid: [{ reason: "データ形式が不正です" }]
+            };
+
+            return;
+
+        }
+
+        if(!isObject(current)){
+
+            result.items[key] = {
+                add: [],
+                same: [],
+                conflict: [{
+                    key: key,
+                    backup: backup,
+                    current: current
+                }],
+                invalid: []
+            };
+
+            return;
+
+        }
+
+        result.items[key] = {
+            add: [],
+            same: isSame(backup, current) ? [backup] : [],
+            conflict: isSame(backup, current) ? [] : [{
+                key: key,
+                backup: backup,
+                current: current
+            }],
+            invalid: []
+        };
+
+    });
+
+    /* 関連データの整合性確認が必要な項目は保留 */
+    ["familySchedule", "money"].forEach(key => {
+
+        if(!hasOwn(backupMain, key)) return;
+
+        result.held.push({
+            key: key,
+            value: backupMain[key],
+            reason: "関連データの整合性確認が必要なため保留"
+        });
+
+    });
+
+    /* 未対応項目は保留 */
     const knownKeys = [
         "oshiList",
         "oshiDetails",
-        "oshiRecords"
+        "oshiRecords",
+        ...arrayKeys,
+        "dayMemories",
+        "settings",
+        "favorites",
+        "sportsCalendar",
+        "healthCalendar",
+        "familySchedule",
+        "money"
     ];
 
     Object.entries(backupMain).forEach(([key, value]) => {
@@ -492,16 +640,16 @@ function compareMainData(backupData){
         if(knownKeys.includes(key)) return;
 
         result.held.push({
-            key: key,
-            value: value,
-            reason: "データ構造と安全な統合方法が未確認"
+            key,
+            value,
+            reason: "比較方法が未対応のため保留"
         });
 
     });
 
     return result;
-
 }
+
 
 
 /* =====================================================
@@ -680,6 +828,7 @@ async function compareMedia(backupMedia){
 }
 
 
+
 /* =====================================================
    取り込み予定の作成
 ===================================================== */
@@ -690,15 +839,12 @@ async function createImportPreview(backupData){
         !backupData ||
         backupData.format !== "oshi-app-restore-data"
     ){
-
         throw new Error(
             "取り込み用データの形式が正しくありません。"
         );
-
     }
 
-    const mainData =
-        compareMainData(backupData);
+    const mainData = compareMainData(backupData);
 
     const localStorageResult =
         compareLocalStorage(backupData.localStorage);
@@ -706,97 +852,71 @@ async function createImportPreview(backupData){
     const media =
         await compareMedia(backupData.media);
 
+    const count = {};
 
-    const count = {
+    function addCounts(prefix, comparison){
 
-        oshiListAdd:
-            mainData.oshiList
-                ? mainData.oshiList.add.length
-                : 0,
+        if(!comparison) return;
 
-        oshiListSame:
-            mainData.oshiList
-                ? mainData.oshiList.same.length
-                : 0,
+        count[prefix + "Add"] =
+            comparison.add.length;
 
-        oshiListConflict:
-            mainData.oshiList
-                ? mainData.oshiList.conflict.length
-                : 0,
+        count[prefix + "Same"] =
+            comparison.same.length;
 
-        oshiDetailsAdd:
-            mainData.oshiDetails
-                ? mainData.oshiDetails.add.length
-                : 0,
+        count[prefix + "Conflict"] =
+            comparison.conflict.length;
 
-        oshiDetailsSame:
-            mainData.oshiDetails
-                ? mainData.oshiDetails.same.length
-                : 0,
+        count[prefix + "Invalid"] =
+            comparison.invalid.length;
 
-        oshiDetailsConflict:
-            mainData.oshiDetails
-                ? mainData.oshiDetails.conflict.length
-                : 0,
+    }
 
-        oshiRecordsAdd:
-            mainData.oshiRecords
-                ? mainData.oshiRecords.add.length
-                : 0,
+    addCounts("oshiList", mainData.oshiList);
+    addCounts("oshiDetails", mainData.oshiDetails);
+    addCounts("oshiRecords", mainData.oshiRecords);
 
-        oshiRecordsSame:
-            mainData.oshiRecords
-                ? mainData.oshiRecords.same.length
-                : 0,
+    Object.entries(mainData.items || {}).forEach(
+        ([key, comparison]) => {
+            addCounts(key, comparison);
+        }
+    );
 
-        oshiRecordsConflict:
-            mainData.oshiRecords
-                ? mainData.oshiRecords.conflict.length
-                : 0,
+    count.mainDataHeld =
+        mainData.held.length;
 
-        mainDataHeld:
-            mainData.held.length,
+    count.mainDataInvalid =
+        mainData.invalid.length;
 
-        mainDataInvalid:
-            mainData.invalid.length,
+    count.localStorageAdd =
+        localStorageResult.add.length;
 
-        localStorageAdd:
-            localStorageResult.add.length,
+    count.localStorageSame =
+        localStorageResult.same.length;
 
-        localStorageSame:
-            localStorageResult.same.length,
+    count.localStorageConflict =
+        localStorageResult.conflict.length;
 
-        localStorageConflict:
-            localStorageResult.conflict.length,
+    count.localStorageInvalid =
+        localStorageResult.invalid.length;
 
-        mediaAdd:
-            media.add.length,
+    count.mediaAdd =
+        media.add.length;
 
-        mediaSameIdHeld:
-            media.sameId.length,
+    count.mediaSameIdHeld =
+        media.sameId.length;
 
-        mediaInvalid:
-            media.invalid.length
-
-    };
-
+    count.mediaInvalid =
+        media.invalid.length;
 
     return {
-
         createdAt: new Date().toISOString(),
-
         mode: "READ_ONLY",
-
-        mainData: mainData,
-
+        mainData,
         localStorage: localStorageResult,
-
-        media: media,
-
+        media,
         summary: count
-
     };
-
 }
 
 
