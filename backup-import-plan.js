@@ -305,18 +305,43 @@ function buildMainDataCandidate(currentData, comparison){
 
 
 /* 取り込み計画を作成 */
-async function createImportPlan(backupData){
 
+async function createImportPlan(source){
+
+    let preview;
+
+    /*
+     * 既に作成済みの比較結果を受け取る
+     */
     if(
-        !window.BackupImport ||
-        typeof window.BackupImport.createImportPreview !== "function"
+        source &&
+        source.mode === "READ_ONLY" &&
+        source.mainData &&
+        source.localStorage &&
+        source.media
     ){
-        throw new Error("バックアップ比較機能が見つかりません");
+
+        preview = source;
+
+    }else if(
+        source &&
+        source.format === "oshi-app-restore-data"
+    ){
+
+        preview =
+            await window.BackupImport.createImportPreview(source);
+
+    }else{
+
+        throw new Error(
+            "比較結果またはバックアップデータが指定されていません。"
+        );
+
     }
 
-    const preview =
-        await window.BackupImport.createImportPreview(backupData);
-
+    /*
+     * PC側の現在データを取得
+     */
     const currentRaw =
         localStorage.getItem("oshi_app_data");
 
@@ -336,17 +361,21 @@ async function createImportPlan(backupData){
         throw new Error("PC側のメインデータ形式が不正です");
     }
 
+    /*
+     * 比較結果を使って追加候補を組み立てる
+     */
     const built = buildMainDataCandidate(
         currentData,
         preview.mainData
     );
 
     /*
-     * この計画は読み取り専用。
-     * localStorage・IndexedDBへの保存は行わない。
+     * 読み取り専用の取り込み計画
      */
     return {
+
         createdAt: new Date().toISOString(),
+
         mode: "READ_ONLY_PLAN",
 
         mainDataCandidate: built.candidate,
@@ -358,15 +387,25 @@ async function createImportPlan(backupData){
             preview.media.add.slice(),
 
         held: {
-            mainData: preview.mainData.held,
-            localStorage: preview.localStorage.conflict,
-            mediaSameId: preview.media.sameId,
-            mediaConflict: preview.media.conflict
+
+            mainData:
+                preview.mainData.held,
+
+            localStorage:
+                preview.localStorage.conflict,
+
+            mediaSameId:
+                preview.media.sameId,
+
+            mediaConflict:
+                preview.media.conflict
+
         },
 
         errors: built.errors,
 
         summary: {
+
             mainDataAddCandidates:
                 preview.summary.oshiListAdd +
                 preview.summary.oshiDetailsAdd +
@@ -385,9 +424,12 @@ async function createImportPlan(backupData){
 
             errors:
                 built.errors.length
+
         }
+
     };
 }
+
 
 
 /* 公開 */
