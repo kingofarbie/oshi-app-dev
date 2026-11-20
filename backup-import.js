@@ -194,63 +194,75 @@ function compareObjectKeys(backupObject, currentObject){
    外側の配列 → oshiId → 記録配列
 ===================================================== */
 
+
 function flattenRecords(records){
 
     const result = [];
     const invalid = [];
 
-    if(!Array.isArray(records)){
+    if(
+        !Array.isArray(records) &&
+        (!records || typeof records !== "object")
+    ){
         return {
-            items: result,
+            records: result,
             invalid: [{
-                reason: "推し記録が配列ではありません"
+                reason: "推し記録の形式が不正です",
+                value: records
             }]
         };
     }
 
-    records.forEach(group => {
+    const groups = Array.isArray(records)
+        ? records
+        : [records];
 
-        if(!isObject(group)){
+    groups.forEach((group, groupIndex) => {
 
-            invalid.push(group);
+        if(
+            !group ||
+            typeof group !== "object" ||
+            Array.isArray(group)
+        ){
+            invalid.push({
+                reason: "推し記録のグループ形式が不正です",
+                index: groupIndex,
+                value: group
+            });
             return;
-
         }
 
         Object.entries(group).forEach(([oshiId, items]) => {
 
             if(!Array.isArray(items)){
-
                 invalid.push({
+                    reason: "推し記録の一覧が配列ではありません",
                     oshiId: oshiId,
                     value: items
                 });
-
                 return;
-
             }
 
-            items.forEach(item => {
-
-                if(!isObject(item)){
-
-                    invalid.push(item);
-                    return;
-
-                }
-
-                const normalized = {
-                    ...item
-                };
+            items.forEach((record, recordIndex) => {
 
                 if(
-                    normalized.oshiId == null ||
-                    normalized.oshiId === ""
+                    !record ||
+                    typeof record !== "object" ||
+                    Array.isArray(record)
                 ){
-                    normalized.oshiId = oshiId;
+                    invalid.push({
+                        reason: "推し記録の内容が不正です",
+                        oshiId: oshiId,
+                        index: recordIndex,
+                        value: record
+                    });
+                    return;
                 }
 
-                result.push(normalized);
+                result.push({
+                    ...record,
+                    oshiId: record.oshiId || oshiId
+                });
 
             });
 
@@ -259,7 +271,7 @@ function flattenRecords(records){
     });
 
     return {
-        items: result,
+        records: result,
         invalid: invalid
     };
 
@@ -270,25 +282,105 @@ function flattenRecords(records){
    推し記録のID比較
 ===================================================== */
 
+
 function compareOshiRecords(backupRecords, currentRecords){
 
-    const backup = flattenRecords(backupRecords);
-    const current = flattenRecords(currentRecords);
+    const backupResult = flattenRecords(backupRecords);
+    const currentResult = flattenRecords(currentRecords);
 
-    const result = compareIdArray(
-        backup.items,
-        current.items
-    );
+    const backup = backupResult.records;
+    const current = currentResult.records;
 
-    result.invalid.push(
-        ...backup.invalid
-    );
+    const result = {
+        add: [],
+        same: [],
+        conflict: [],
+        invalid: backupResult.invalid,
+        currentInvalid: currentResult.invalid
+    };
 
-    result.currentInvalid = current.invalid;
+    const currentMap = new Map();
+
+    current.forEach(record => {
+
+        if(!record.id){
+            result.currentInvalid.push({
+                reason: "PC側の推し記録にIDがありません",
+                record: record
+            });
+            return;
+        }
+
+        if(currentMap.has(record.id)){
+            result.currentInvalid.push({
+                reason: "PC側に同じIDの推し記録があります",
+                id: record.id
+            });
+            return;
+        }
+
+        currentMap.set(record.id, record);
+
+    });
+
+    const backupIds = new Set();
+
+    backup.forEach(record => {
+
+        if(!record.id){
+            result.invalid.push({
+                reason: "スマホ側の推し記録にIDがありません",
+                record: record
+            });
+            return;
+        }
+
+        if(backupIds.has(record.id)){
+            result.invalid.push({
+                reason: "スマホ側に同じIDの推し記録があります",
+                id: record.id
+            });
+            return;
+        }
+
+        backupIds.add(record.id);
+
+        const existing = currentMap.get(record.id);
+
+        if(!existing){
+
+            result.add.push(record);
+            return;
+
+        }
+
+        const backupJSON = JSON.stringify(record);
+        const currentJSON = JSON.stringify(existing);
+
+        if(backupJSON === currentJSON){
+
+            result.same.push({
+                id: record.id,
+                backup: record,
+                current: existing
+            });
+
+        }else{
+
+            result.conflict.push({
+                id: record.id,
+                backup: record,
+                current: existing
+            });
+
+        }
+
+    });
 
     return result;
 
 }
+
 
 
 /* =====================================================
