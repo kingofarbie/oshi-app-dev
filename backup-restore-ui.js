@@ -1462,6 +1462,7 @@ function makeBackupStorageMap(storageData){
 
 
 
+
 async function handleBackupFileChange(event){
 
     const input = event.target;
@@ -1473,21 +1474,9 @@ async function handleBackupFileChange(event){
     inspectedBackupData = null;
     window.lastBackupImportPreview = null;
 
-    const nameElement = document.getElementById(
-        "restoreBackupFileName"
-    );
-
-    if(nameElement){
-        nameElement.textContent = file.name;
-    }
-
-    const inspection = document.getElementById(
-        "restoreBackupInspection"
-    );
-
-    if(inspection){
-        inspection.style.display = "none";
-    }
+    // 前回の確認データを初期化
+    window.lastBackupMainDataRaw = null;
+    window.lastCurrentMainDataRaw = null;
 
     const button = document.getElementById(
         "startRestoreBackupButton"
@@ -1536,24 +1525,7 @@ async function handleBackupFileChange(event){
 
 
         /* =====================
-           既存の詳細比較
-        ===================== */
-
-        showMessage("PCデータと比較しています…");
-
-        const comparison = await compareBackupData(
-            inspectedBackupData
-        );
-
-        showInspectionResult(
-            inspected.report,
-            comparison
-        );
-
-
-        /* =====================
-           推し記録の実データ確認
-           読み取り専用
+           PC側データの読み取り
         ===================== */
 
         let currentMainData = {};
@@ -1572,34 +1544,71 @@ async function handleBackupFileChange(event){
 
         }
 
-        const backupRecords =
-            inspectedBackupData.mainData?.oshiRecords;
 
-        const currentRecords =
-            currentMainData.oshiRecords;
+        /* =====================
+           実データを一時公開
+           読み取り専用
+        ===================== */
+
+        window.lastBackupMainDataRaw =
+            inspectedBackupData.mainData;
+
+        window.lastCurrentMainDataRaw =
+            currentMainData;
 
         console.log(
-            "📱 スマホ側oshiRecords実データ:",
-            backupRecords
+            "📦 ZIP全体の構造:",
+            inspectedBackupData
         );
 
         console.log(
-            "📱 スマホ側oshiRecordsの型:",
-            typeof backupRecords,
-            "Array:",
-            Array.isArray(backupRecords)
+            "📱 ZIP側メインデータの実体:",
+            window.lastBackupMainDataRaw
+        );
+
+        console.log(
+            "📱 ZIP側メインデータのキー:",
+            Object.keys(
+                window.lastBackupMainDataRaw || {}
+            )
+        );
+
+        console.log(
+            "💻 PC側メインデータのキー:",
+            Object.keys(
+                window.lastCurrentMainDataRaw || {}
+            )
+        );
+
+
+        /* =====================
+           従来の詳細比較
+        ===================== */
+
+        showMessage("PCデータと比較しています…");
+
+        const comparison = await compareBackupData(
+            inspectedBackupData
+        );
+
+        showInspectionResult(
+            inspected.report,
+            comparison
+        );
+
+
+        /* =====================
+           推し記録の確認
+        ===================== */
+
+        console.log(
+            "📱 スマホ側oshiRecords実データ:",
+            inspectedBackupData.mainData?.oshiRecords
         );
 
         console.log(
             "💻 PC側oshiRecords実データ:",
-            currentRecords
-        );
-
-        console.log(
-            "💻 PC側oshiRecordsの型:",
-            typeof currentRecords,
-            "Array:",
-            Array.isArray(currentRecords)
+            currentMainData.oshiRecords
         );
 
 
@@ -1638,11 +1647,6 @@ async function handleBackupFileChange(event){
             importPreview.summary
         );
 
-
-        /* =====================
-           推し記録の比較結果
-        ===================== */
-
         console.log(
             "📝 推し記録の詳細比較結果:",
             comparison.oshiRecords
@@ -1653,34 +1657,9 @@ async function handleBackupFileChange(event){
             importPreview.mainData.oshiRecords
         );
 
-
-        /* =====================
-           その他の詳細比較ログ
-        ===================== */
-
         console.log(
             "PC・スマホデータ比較結果:",
             comparison
-        );
-
-        console.log(
-            "⭐ 推し一覧の詳細比較結果:",
-            comparison.oshiList
-        );
-
-        console.log(
-            "📘 推し詳細情報の比較結果:",
-            comparison.oshiDetails
-        );
-
-        console.log(
-            "📱 スマホ側・ID未設定データの実体:",
-            comparison.oshiRecords.noIdBackup
-        );
-
-        console.log(
-            "💻 PC側・ID未設定データの実体:",
-            comparison.oshiRecords.noIdCurrent
         );
 
 
@@ -1720,7 +1699,6 @@ async function handleBackupFileChange(event){
     }
 
 }
-
 
 
 
