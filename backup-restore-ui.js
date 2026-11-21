@@ -11,6 +11,9 @@
    ・localStorage
    ・写真・動画
 
+   ・ZIP内の取り込み項目選択画面
+
+   ※現在は項目選択画面の確認段階
    ※スマホデータの復元・統合・削除は行わない
 ========================================================= */
 
@@ -91,6 +94,332 @@
         }catch(error){
             return value;
         }
+
+    }
+
+
+    /* =====================================================
+       取り込み項目選択画面
+
+       ※現在の取り込み計画が対応している項目だけ表示
+       ※この段階では選択情報の取得・表示のみ
+       ※実際の取り込みには接続しない
+    ===================================================== */
+
+    function removeRestoreSelection(){
+
+        const oldPanel = document.getElementById(
+            "restoreBackupSelection"
+        );
+
+        if(oldPanel){
+            oldPanel.remove();
+        }
+
+    }
+
+
+    function getSupportedRestoreItems(){
+
+        return new Set([
+
+            "oshiList",
+            "oshiDetails",
+            "oshiRecords",
+
+            "events",
+            "categories",
+
+            "dayMemories",
+            "plannerNotes",
+            "plannerStickerPlacements",
+
+            "anniversaryDays",
+
+            "settings",
+            "favorites"
+
+        ]);
+
+    }
+
+
+    function addRestoreCheckbox(
+        container,
+        id,
+        name,
+        countLabel
+    ){
+
+        const label = document.createElement("label");
+
+        label.style.display = "flex";
+        label.style.alignItems = "center";
+        label.style.gap = "9px";
+        label.style.padding = "8px 4px";
+        label.style.cursor = "pointer";
+        label.style.borderBottom = "1px solid rgba(128,128,128,0.18)";
+
+        const checkbox = document.createElement("input");
+
+        checkbox.type = "checkbox";
+        checkbox.value = id;
+        checkbox.dataset.restoreItemId = id;
+
+        checkbox.style.flexShrink = "0";
+        checkbox.style.width = "18px";
+        checkbox.style.height = "18px";
+
+        const text = document.createElement("span");
+
+        text.textContent = countLabel
+            ? name + "（" + countLabel + "）"
+            : name;
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+
+        container.appendChild(label);
+
+        return checkbox;
+
+    }
+
+
+    function renderRestoreSelectionList(backupData){
+
+        const inspection = document.getElementById(
+            "restoreBackupInspection"
+        );
+
+        const result = document.getElementById(
+            "restoreBackupInspectionResult"
+        );
+
+        const restoreButton = document.getElementById(
+            "startRestoreBackupButton"
+        );
+
+        if(!inspection || !result || !restoreButton){
+
+            throw new Error(
+                "取り込み項目選択画面の表示場所が見つかりません。"
+            );
+
+        }
+
+        // 前回の選択画面を削除
+        removeRestoreSelection();
+
+        // この段階では取り込みボタンを必ず無効にする
+        restoreButton.disabled = true;
+
+        const mainData =
+            backupData && backupData.mainData &&
+            typeof backupData.mainData === "object"
+                ? backupData.mainData
+                : {};
+
+        const supportedIds = getSupportedRestoreItems();
+
+        if(
+            !window.BackupManager ||
+            typeof BackupManager.getMainDataItems !== "function" ||
+            typeof BackupManager.getSources !== "function"
+        ){
+
+            throw new Error(
+                "バックアップ項目一覧を取得できません。"
+            );
+
+        }
+
+        const registeredItems =
+            BackupManager.getMainDataItems();
+
+        const mainItems = registeredItems.filter(item => {
+
+            if(!item || !supportedIds.has(item.id)){
+                return false;
+            }
+
+            return Object.prototype.hasOwnProperty.call(
+                mainData,
+                item.id
+            );
+
+        });
+
+        const media = Array.isArray(backupData.media)
+            ? backupData.media
+            : [];
+
+        const sources = BackupManager.getSources();
+
+        const mediaSource = sources.find(
+            source => source.id === "media"
+        );
+
+        const panel = document.createElement("div");
+
+        panel.id = "restoreBackupSelection";
+
+        panel.style.margin = "16px 0";
+        panel.style.padding = "12px";
+        panel.style.border = "1px solid rgba(128,128,128,0.45)";
+        panel.style.borderRadius = "10px";
+        panel.style.background = "rgba(128,128,128,0.04)";
+
+        const heading = document.createElement("h4");
+
+        heading.textContent = "📋 取り込む項目を選択";
+
+        heading.style.marginTop = "0";
+
+        panel.appendChild(heading);
+
+        const description = document.createElement("p");
+
+        description.textContent =
+            "ZIPに含まれている項目のうち、取り込みたいものを選択してください。";
+
+        panel.appendChild(description);
+
+        const note = document.createElement("p");
+
+        note.textContent =
+            "初期状態ではすべて未選択です。";
+
+        note.style.fontSize = "0.9em";
+        note.style.opacity = "0.8";
+
+        panel.appendChild(note);
+
+        const checkboxArea = document.createElement("div");
+
+        let previousCategory = "";
+
+        mainItems.forEach(item => {
+
+            const category =
+                item.category || "その他";
+
+            if(category !== previousCategory){
+
+                const categoryTitle =
+                    document.createElement("p");
+
+                categoryTitle.textContent =
+                    "■ " + category;
+
+                categoryTitle.style.fontWeight = "bold";
+                categoryTitle.style.margin = "14px 0 4px";
+
+                checkboxArea.appendChild(categoryTitle);
+
+                previousCategory = category;
+
+            }
+
+            addRestoreCheckbox(
+                checkboxArea,
+                "main:" + item.id,
+                item.name || item.id
+            );
+
+        });
+
+
+        /* =====================
+           写真・動画
+        ===================== */
+
+        if(media.length > 0 && mediaSource){
+
+            const categoryTitle =
+                document.createElement("p");
+
+            categoryTitle.textContent = "■ 写真・動画";
+
+            categoryTitle.style.fontWeight = "bold";
+            categoryTitle.style.margin = "14px 0 4px";
+
+            checkboxArea.appendChild(categoryTitle);
+
+            addRestoreCheckbox(
+                checkboxArea,
+                "media",
+                mediaSource.name || "写真・動画の実ファイル",
+                media.length + "件"
+            );
+
+        }
+
+
+        /* =====================
+           対象項目がない場合
+        ===================== */
+
+        if(mainItems.length === 0 && media.length === 0){
+
+            const empty = document.createElement("p");
+
+            empty.textContent =
+                "このZIPには、現在の取り込み計画が対応している項目がありません。";
+
+            checkboxArea.appendChild(empty);
+
+        }
+
+        panel.appendChild(checkboxArea);
+
+
+        /* =====================
+           選択数表示
+        ===================== */
+
+        const count = document.createElement("p");
+
+        count.id = "restoreBackupSelectionCount";
+
+        count.textContent = "選択中：0項目";
+
+        count.style.fontWeight = "bold";
+        count.style.marginBottom = "0";
+
+        panel.appendChild(count);
+
+
+        /* =====================
+           選択数の更新
+        ===================== */
+
+        checkboxArea.addEventListener("change", () => {
+
+            const selected =
+                checkboxArea.querySelectorAll(
+                    'input[type="checkbox"]:checked'
+                );
+
+            count.textContent =
+                "選択中：" + selected.length + "項目";
+
+        });
+
+
+        /* =====================
+           検査結果の直後に表示
+        ===================== */
+
+        result.insertAdjacentElement(
+            "afterend",
+            panel
+        );
+
+        inspection.style.display = "block";
+
+        // この段階では実際の取り込みは禁止
+        restoreButton.disabled = true;
 
     }
 
@@ -313,15 +642,6 @@
 
     /* =====================================================
        推し詳細情報比較
-
-       保存形式：
-       {
-           "oshi_ID": {
-               photos: [],
-               profile: {},
-               links: []
-           }
-       }
     ===================================================== */
 
     function makeOshiDetailsMap(data){
@@ -429,20 +749,6 @@
 
     /* =====================================================
        推し記録の展開
-
-       実際の保存形式：
-
-       [
-           {
-               "oshi_ID": [
-                   {id, oshiId, type, fields, ...},
-                   {id, oshiId, type, fields, ...}
-               ]
-           }
-       ]
-
-       配列 → オブジェクト → 推しID → 記録配列
-       の順に読み取る
     ===================================================== */
 
     function flattenRecords(data){
@@ -456,7 +762,6 @@
                 return;
             }
 
-            /* 配列は中身を順番に展開 */
             if(Array.isArray(value)){
 
                 value.forEach(item => {
@@ -471,10 +776,6 @@
                 return;
             }
 
-            /*
-              個々の記録かどうか判定。
-              id と記録固有の情報を持つものだけ記録扱い。
-            */
             const isRecord =
                 typeof value.id === "string" &&
                 (
@@ -501,10 +802,6 @@
 
             }
 
-            /*
-              記録そのものではないオブジェクト。
-              キーが oshi_ID なら、そのキーを引き継ぐ。
-            */
             Object.entries(value).forEach(([key, child]) => {
 
                 const nextOshiId =
@@ -753,45 +1050,40 @@
 
     /* =====================================================
        localStorage比較
-       ※従来方式を維持
     ===================================================== */
 
+    function makeBackupStorageMap(storageData){
 
-function makeBackupStorageMap(storageData){
+        const result = new Map();
 
-    const result = new Map();
+        Object.entries(storageData || {})
+            .forEach(([storageId, item]) => {
 
-    Object.entries(storageData || {})
-        .forEach(([storageId, item]) => {
+                if(!item || typeof item !== "object"){
+                    return;
+                }
 
-            if(!item || typeof item !== "object"){
-                return;
-            }
+                const key = storageId;
 
-            // 実際のlocalStorage保存キーを使用
-            const key = storageId;
+                if(typeof key !== "string" || !key){
+                    return;
+                }
 
-            if(typeof key !== "string" || !key){
-                return;
-            }
+                if(key === "oshi_app_data"){
+                    return;
+                }
 
-            // メインDBは別途比較する
-            if(key === "oshi_app_data"){
-                return;
-            }
+                if(item.exists === false){
+                    return;
+                }
 
-            // ZIPに存在しない項目は比較対象外
-            if(item.exists === false){
-                return;
-            }
+                result.set(key, item.value);
 
-            result.set(key, item.value);
+            });
 
-        });
+        return result;
 
-    return result;
-
-}
+    }
 
 
     function makeCurrentStorageMap(storageItems){
@@ -1459,247 +1751,260 @@ function makeBackupStorageMap(storageData){
        ZIP選択後の処理
     ===================================================== */
 
+    async function handleBackupFileChange(event){
 
+        const input = event.target;
+        const file = input.files && input.files[0];
 
+        if(!file) return;
 
-
-async function handleBackupFileChange(event){
-
-    const input = event.target;
-    const file = input.files && input.files[0];
-
-    if(!file) return;
-
-    selectedBackupFile = file;
-    inspectedBackupData = null;
-    window.lastBackupImportPreview = null;
-
-    // 前回の確認データを初期化
-    window.lastBackupMainDataRaw = null;
-    window.lastCurrentMainDataRaw = null;
-
-    const button = document.getElementById(
-        "startRestoreBackupButton"
-    );
-
-    if(button){
-        button.disabled = true;
-    }
-
-    try{
-
-        /* =====================
-           ZIP検査
-        ===================== */
-
-        showMessage("ZIPファイルを検査しています…");
-
-        if(
-            !window.BackupManager ||
-            typeof BackupManager.inspectBackupFile !== "function"
-        ){
-            throw new Error(
-                "バックアップ検査機能が読み込まれていません。"
-            );
-        }
-
-        const inspected =
-            await BackupManager.inspectBackupFile(file);
-
-        if(
-            !inspected ||
-            !inspected.report ||
-            !inspected.report.valid
-        ){
-            throw new Error(
-                "ZIPファイルの検査に失敗しました。"
-            );
-        }
-
-        inspectedBackupData = inspected.backupData;
-
-        console.log(
-            "バックアップZIP検査成功:",
-            inspected.report
-        );
-
-
-        /* =====================
-           PC側データの読み取り
-        ===================== */
-
-        let currentMainData = {};
-
-        try{
-
-            currentMainData = JSON.parse(
-                localStorage.getItem("oshi_app_data") || "{}"
-            );
-
-        }catch(error){
-
-            throw new Error(
-                "PC側メインデータを読み取れません。"
-            );
-
-        }
-
-
-        /* =====================
-           実データを一時公開
-           読み取り専用
-        ===================== */
-
-        window.lastBackupMainDataRaw =
-            inspectedBackupData.mainData;
-
-        window.lastCurrentMainDataRaw =
-            currentMainData;
-
-        console.log(
-            "📦 ZIP全体の構造:",
-            inspectedBackupData
-        );
-
-        console.log(
-            "📱 ZIP側メインデータの実体:",
-            window.lastBackupMainDataRaw
-        );
-
-        console.log(
-            "📱 ZIP側メインデータのキー:",
-            Object.keys(
-                window.lastBackupMainDataRaw || {}
-            )
-        );
-
-        console.log(
-            "💻 PC側メインデータのキー:",
-            Object.keys(
-                window.lastCurrentMainDataRaw || {}
-            )
-        );
-
-
-        /* =====================
-           従来の詳細比較
-        ===================== */
-
-        showMessage("PCデータと比較しています…");
-
-        const comparison = await compareBackupData(
-            inspectedBackupData
-        );
-
-        showInspectionResult(
-            inspected.report,
-            comparison
-        );
-
-
-        /* =====================
-           推し記録の確認
-        ===================== */
-
-        console.log(
-            "📱 スマホ側oshiRecords実データ:",
-            inspectedBackupData.mainData?.oshiRecords
-        );
-
-        console.log(
-            "💻 PC側oshiRecords実データ:",
-            currentMainData.oshiRecords
-        );
-
-
-        /* =====================
-           安全な取り込み予定
-           読み取り専用
-        ===================== */
-
-        showMessage(
-            "安全な取り込み予定を確認しています…"
-        );
-
-        if(
-            !window.BackupImport ||
-            typeof BackupImport.createImportPreview !== "function"
-        ){
-            throw new Error(
-                "安全な取り込み準備機能が読み込まれていません。"
-            );
-        }
-
-        const importPreview =
-            await BackupImport.createImportPreview(
-                inspectedBackupData
-            );
-
-        window.lastBackupImportPreview = importPreview;
-
-        console.log(
-            "🔐 安全な取り込み予定（読み取り専用）:",
-            importPreview
-        );
-
-        console.log(
-            "🔐 取り込み予定の件数:",
-            importPreview.summary
-        );
-
-        console.log(
-            "📝 推し記録の詳細比較結果:",
-            comparison.oshiRecords
-        );
-
-        console.log(
-            "🔐 新方式の推し記録比較結果:",
-            importPreview.mainData.oshiRecords
-        );
-
-        console.log(
-            "PC・スマホデータ比較結果:",
-            comparison
-        );
-
-
-        /* =====================
-           完了
-        ===================== */
-
-        if(button){
-            button.disabled = false;
-        }
-
-        showMessage(
-            "ZIP検査・PCデータ比較・安全な取り込み予定の作成が完了しました。\n" +
-            "※データの取り込み・変更は行っていません。"
-        );
-
-    }catch(error){
-
-        selectedBackupFile = null;
+        selectedBackupFile = file;
         inspectedBackupData = null;
         window.lastBackupImportPreview = null;
+
+        removeRestoreSelection();
+
+        // 前回の確認データを初期化
+        window.lastBackupMainDataRaw = null;
+        window.lastCurrentMainDataRaw = null;
+
+        const button = document.getElementById(
+            "startRestoreBackupButton"
+        );
 
         if(button){
             button.disabled = true;
         }
 
-        showMessage(
-            "検査・比較エラー：" + error.message,
-            true
-        );
+        try{
 
-        console.error(
-            "バックアップ検査・比較エラー:",
-            error
-        );
+            /* =====================
+               ZIP検査
+            ===================== */
+
+            showMessage("ZIPファイルを検査しています…");
+
+            if(
+                !window.BackupManager ||
+                typeof BackupManager.inspectBackupFile !== "function"
+            ){
+                throw new Error(
+                    "バックアップ検査機能が読み込まれていません。"
+                );
+            }
+
+            const inspected =
+                await BackupManager.inspectBackupFile(file);
+
+            if(
+                !inspected ||
+                !inspected.report ||
+                !inspected.report.valid
+            ){
+                throw new Error(
+                    "ZIPファイルの検査に失敗しました。"
+                );
+            }
+
+            inspectedBackupData = inspected.backupData;
+
+            console.log(
+                "バックアップZIP検査成功:",
+                inspected.report
+            );
+
+
+            /* =====================
+               PC側データの読み取り
+            ===================== */
+
+            let currentMainData = {};
+
+            try{
+
+                currentMainData = JSON.parse(
+                    localStorage.getItem("oshi_app_data") || "{}"
+                );
+
+            }catch(error){
+
+                throw new Error(
+                    "PC側メインデータを読み取れません。"
+                );
+
+            }
+
+
+            /* =====================
+               実データを一時公開
+               読み取り専用
+            ===================== */
+
+            window.lastBackupMainDataRaw =
+                inspectedBackupData.mainData;
+
+            window.lastCurrentMainDataRaw =
+                currentMainData;
+
+            console.log(
+                "📦 ZIP全体の構造:",
+                inspectedBackupData
+            );
+
+            console.log(
+                "📱 ZIP側メインデータの実体:",
+                window.lastBackupMainDataRaw
+            );
+
+            console.log(
+                "📱 ZIP側メインデータのキー:",
+                Object.keys(
+                    window.lastBackupMainDataRaw || {}
+                )
+            );
+
+            console.log(
+                "💻 PC側メインデータのキー:",
+                Object.keys(
+                    window.lastCurrentMainDataRaw || {}
+                )
+            );
+
+
+            /* =====================
+               従来の詳細比較
+            ===================== */
+
+            showMessage("PCデータと比較しています…");
+
+            const comparison = await compareBackupData(
+                inspectedBackupData
+            );
+
+            showInspectionResult(
+                inspected.report,
+                comparison
+            );
+
+
+            /* =====================
+               推し記録の確認
+            ===================== */
+
+            console.log(
+                "📱 スマホ側oshiRecords実データ:",
+                inspectedBackupData.mainData?.oshiRecords
+            );
+
+            console.log(
+                "💻 PC側oshiRecords実データ:",
+                currentMainData.oshiRecords
+            );
+
+
+            /* =====================
+               安全な取り込み予定
+               読み取り専用
+            ===================== */
+
+            showMessage(
+                "安全な取り込み予定を確認しています…"
+            );
+
+            if(
+                !window.BackupImport ||
+                typeof BackupImport.createImportPreview !== "function"
+            ){
+                throw new Error(
+                    "安全な取り込み準備機能が読み込まれていません。"
+                );
+            }
+
+            const importPreview =
+                await BackupImport.createImportPreview(
+                    inspectedBackupData
+                );
+
+            window.lastBackupImportPreview = importPreview;
+
+            console.log(
+                "🔐 安全な取り込み予定（読み取り専用）:",
+                importPreview
+            );
+
+            console.log(
+                "🔐 取り込み予定の件数:",
+                importPreview.summary
+            );
+
+            console.log(
+                "📝 推し記録の詳細比較結果:",
+                comparison.oshiRecords
+            );
+
+            console.log(
+                "🔐 新方式の推し記録比較結果:",
+                importPreview.mainData.oshiRecords
+            );
+
+            console.log(
+                "PC・スマホデータ比較結果:",
+                comparison
+            );
+
+
+            /* =====================
+               取り込み項目選択画面
+            ===================== */
+
+            showMessage(
+                "ZIP内の取り込み可能な項目を確認しています…"
+            );
+
+            renderRestoreSelectionList(
+                inspectedBackupData
+            );
+
+
+            /* =====================
+               完了
+            ===================== */
+
+            if(button){
+                button.disabled = true;
+            }
+
+            showMessage(
+                "ZIP検査・PCデータ比較・項目選択画面の準備が完了しました。\n" +
+                "項目を選択できます。\n" +
+                "※現在は選択画面の確認段階です。実際の取り込みは行いません。"
+            );
+
+        }catch(error){
+
+            selectedBackupFile = null;
+            inspectedBackupData = null;
+            window.lastBackupImportPreview = null;
+
+            removeRestoreSelection();
+
+            if(button){
+                button.disabled = true;
+            }
+
+            showMessage(
+                "検査・比較エラー：" + error.message,
+                true
+            );
+
+            console.error(
+                "バックアップ検査・比較エラー:",
+                error
+            );
+
+        }
 
     }
-
-}
-
 
 
     /* =====================================================
@@ -1723,7 +2028,9 @@ async function handleBackupFileChange(event){
 
         }
 
+        // 同じZIPを再度選択できるようにする
         input.value = "";
+
         input.click();
 
     };
@@ -1901,100 +2208,22 @@ async function handleBackupFileChange(event){
 
 
     /* =====================================================
-       保護バックアップボタン
+       取り込みボタン
 
-       ※スマホデータの復元は行わない
+       ※現在は項目選択画面の確認段階
+       ※実際の取り込みは実行しない
     ===================================================== */
 
-
-window.startRestoreBackup = async function(){
-
-    if(!selectedBackupFile || !inspectedBackupData){
+    window.startRestoreBackup = async function(){
 
         showMessage(
-            "先にバックアップZIPを選択してください。",
-            true
+            "現在は取り込み項目選択画面の確認段階です。\n" +
+            "実際の取り込み処理はまだ接続されていません。"
         );
 
         return;
-    }
 
-    if(
-        !window.lastBackupImportPreview ||
-        !window.BackupImportExecute ||
-        typeof window.BackupImportExecute.executeImport !== "function"
-    ){
-
-        showMessage(
-            "取り込み計画または実行機能が見つかりません。ページを再読み込みしてZIPを選択し直してください。",
-            true
-        );
-
-        return;
-    }
-
-    const button = document.getElementById(
-        "startRestoreBackupButton"
-    );
-
-    if(button){
-        button.disabled = true;
-    }
-
-    try{
-
-        showMessage(
-            "保護バックアップを保存して検査しています…"
-        );
-
-        const result =
-            await window.BackupImportExecute.executeImport(
-                window.lastBackupImportPreview
-            );
-
-        console.log(
-            "取り込み完了結果:",
-            result
-        );
-
-        showMessage(
-            "取り込みが完了しました。\n\n" +
-            "保護バックアップ：保存・再検査成功\n" +
-            "メインデータ追加候補：" +
-            result.mainData.addedCandidates + "項目\n" +
-            "写真・動画の追加：" +
-            result.media.added + "件\n" +
-            "既存IDのため保留：" +
-            result.media.skippedExisting + "件\n\n" +
-            "メインデータ保存後確認：成功\n" +
-            "メディア保存後確認：" +
-            result.media.verified + "件\n\n" +
-            "既存データの削除・上書きは行っていません。"
-        );
-
-    }catch(error){
-
-        console.error(
-            "取り込み処理エラー:",
-            error
-        );
-
-        showMessage(
-            "取り込みを完了できませんでした。\n\n" +
-            error.message,
-            true
-        );
-
-    }finally{
-
-        if(button){
-            button.disabled = false;
-        }
-
-    }
-
-};
-
+    };
 
 
     /* =====================================================
@@ -2031,7 +2260,11 @@ window.startRestoreBackup = async function(){
         selectedBackupFile = null;
         inspectedBackupData = null;
 
+        window.lastBackupImportPreview = null;
+
         input.value = "";
+
+        removeRestoreSelection();
 
         const button = document.getElementById(
             "startRestoreBackupButton"
