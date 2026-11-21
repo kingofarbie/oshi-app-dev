@@ -1,4 +1,3 @@
-
 /* =========================================================
    推し活手帳
    バックアップ検査・比較・保護バックアップ UI
@@ -11,16 +10,16 @@
    ・localStorage
    ・写真・動画
 
-   ・ZIP内の取り込み項目選択画面
-
-   ※現在は項目選択画面の確認段階
-   ※スマホデータの復元・統合・削除は行わない
+   ・ZIP内の取り込み項目選択
+   ・選択項目だけの取り込み
+   ・全データの保護バックアップ
 ========================================================= */
 
 (function(){
 
     let selectedBackupFile = null;
     let inspectedBackupData = null;
+    let isRestoring = false;
 
 
     /* =====================================================
@@ -100,10 +99,6 @@
 
     /* =====================================================
        取り込み項目選択画面
-
-       ※現在の取り込み計画が対応している項目だけ表示
-       ※この段階では選択情報の取得・表示のみ
-       ※実際の取り込みには接続しない
     ===================================================== */
 
     function removeRestoreSelection(){
@@ -158,7 +153,8 @@
         label.style.gap = "9px";
         label.style.padding = "8px 4px";
         label.style.cursor = "pointer";
-        label.style.borderBottom = "1px solid rgba(128,128,128,0.18)";
+        label.style.borderBottom =
+            "1px solid rgba(128,128,128,0.18)";
 
         const checkbox = document.createElement("input");
 
@@ -186,6 +182,68 @@
     }
 
 
+    /* =====================================================
+       選択状態の取得
+    ===================================================== */
+
+    function getSelectedRestoreIds(){
+
+        const panel = document.getElementById(
+            "restoreBackupSelection"
+        );
+
+        if(!panel){
+            return [];
+        }
+
+        return Array.from(
+            panel.querySelectorAll(
+                'input[data-restore-item-id]:checked'
+            )
+        ).map(input => input.dataset.restoreItemId);
+
+    }
+
+
+    /* =====================================================
+       選択数・実行ボタンの更新
+    ===================================================== */
+
+    function updateRestoreSelectionState(){
+
+        const count = document.getElementById(
+            "restoreBackupSelectionCount"
+        );
+
+        const restoreButton = document.getElementById(
+            "startRestoreBackupButton"
+        );
+
+        const selected = getSelectedRestoreIds();
+
+        if(count){
+
+            count.textContent =
+                "選択中：" + selected.length + "項目";
+
+        }
+
+        if(restoreButton){
+
+            restoreButton.disabled =
+                selected.length === 0 ||
+                !inspectedBackupData ||
+                isRestoring;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       取り込み項目一覧
+    ===================================================== */
+
     function renderRestoreSelectionList(backupData){
 
         const inspection = document.getElementById(
@@ -208,10 +266,8 @@
 
         }
 
-        // 前回の選択画面を削除
         removeRestoreSelection();
 
-        // この段階では取り込みボタンを必ず無効にする
         restoreButton.disabled = true;
 
         const mainData =
@@ -266,14 +322,14 @@
 
         panel.style.margin = "16px 0";
         panel.style.padding = "12px";
-        panel.style.border = "1px solid rgba(128,128,128,0.45)";
+        panel.style.border =
+            "1px solid rgba(128,128,128,0.45)";
         panel.style.borderRadius = "10px";
         panel.style.background = "rgba(128,128,128,0.04)";
 
         const heading = document.createElement("h4");
 
         heading.textContent = "📋 取り込む項目を選択";
-
         heading.style.marginTop = "0";
 
         panel.appendChild(heading);
@@ -381,7 +437,6 @@
         const count = document.createElement("p");
 
         count.id = "restoreBackupSelectionCount";
-
         count.textContent = "選択中：0項目";
 
         count.style.fontWeight = "bold";
@@ -391,18 +446,12 @@
 
 
         /* =====================
-           選択数の更新
+           選択変更時
         ===================== */
 
         checkboxArea.addEventListener("change", () => {
 
-            const selected =
-                checkboxArea.querySelectorAll(
-                    'input[type="checkbox"]:checked'
-                );
-
-            count.textContent =
-                "選択中：" + selected.length + "項目";
+            updateRestoreSelectionState();
 
         });
 
@@ -418,8 +467,7 @@
 
         inspection.style.display = "block";
 
-        // この段階では実際の取り込みは禁止
-        restoreButton.disabled = true;
+        updateRestoreSelectionState();
 
     }
 
@@ -1764,7 +1812,6 @@
 
         removeRestoreSelection();
 
-        // 前回の確認データを初期化
         window.lastBackupMainDataRaw = null;
         window.lastCurrentMainDataRaw = null;
 
@@ -1970,14 +2017,9 @@
                完了
             ===================== */
 
-            if(button){
-                button.disabled = true;
-            }
-
             showMessage(
-                "ZIP検査・PCデータ比較・項目選択画面の準備が完了しました。\n" +
-                "項目を選択できます。\n" +
-                "※現在は選択画面の確認段階です。実際の取り込みは行いません。"
+                "ZIP検査・PCデータ比較が完了しました。\n" +
+                "取り込みたい項目を選択してください。"
             );
 
         }catch(error){
@@ -2012,6 +2054,10 @@
     ===================================================== */
 
     window.selectRestoreBackup = function(){
+
+        if(isRestoring){
+            return;
+        }
 
         const input = document.getElementById(
             "restoreBackupFile"
@@ -2208,20 +2254,382 @@
 
 
     /* =====================================================
-       取り込みボタン
+       選択項目だけの取り込みデータを作成
+    ===================================================== */
 
-       ※現在は項目選択画面の確認段階
-       ※実際の取り込みは実行しない
+    function createSelectedBackupData(selectedIds){
+
+        if(!inspectedBackupData){
+
+            throw new Error(
+                "検査済みのZIPデータがありません。"
+            );
+
+        }
+
+        const selected = new Set(selectedIds);
+
+        const sourceMain =
+            inspectedBackupData.mainData || {};
+
+        const filteredMain = {};
+
+        Object.entries(sourceMain).forEach(([key, value]) => {
+
+            if(selected.has("main:" + key)){
+
+                filteredMain[key] = value;
+
+            }
+
+        });
+
+
+        /* =====================
+           メディア選択
+        ===================== */
+
+        const selectedMedia = selected.has("media")
+            ? (
+                Array.isArray(inspectedBackupData.media)
+                    ? inspectedBackupData.media
+                    : []
+            )
+            : [];
+
+
+        /* =====================
+           localStorageは対象外
+           現在の実行処理では個別追加に未対応
+        ===================== */
+
+        return {
+
+            ...inspectedBackupData,
+
+            mainData: filteredMain,
+
+            localStorage: {},
+
+            media: selectedMedia
+
+        };
+
+    }
+
+
+    /* =====================================================
+       取り込み結果表示
+    ===================================================== */
+
+    function showImportSuccess(result){
+
+        const safetyName =
+            result.safetyBackup &&
+            result.safetyBackup.fileName
+                ? result.safetyBackup.fileName
+                : "保存済み";
+
+        const mainAdded =
+            result.mainData &&
+            Array.isArray(result.mainData.addedCandidates)
+                ? result.mainData.addedCandidates.length
+                : 0;
+
+        const mediaAdded =
+            result.media &&
+            Number.isFinite(result.media.added)
+                ? result.media.added
+                : 0;
+
+        const mediaSkipped =
+            result.media &&
+            Number.isFinite(result.media.skippedExisting)
+                ? result.media.skippedExisting
+                : 0;
+
+        const lines = [
+
+            "取り込みと保存後の確認が完了しました。",
+
+            "",
+            "【保護バックアップ】",
+            safetyName,
+
+            "",
+            "【取り込み結果】",
+            "メインデータ追加候補：" + mainAdded + "件",
+            "写真・動画の追加：" + mediaAdded + "件",
+            "既存メディアのスキップ：" + mediaSkipped + "件",
+
+            "",
+            "既存データの削除・上書きは行っていません。",
+
+            "",
+            "別の項目を取り込む場合は、同じZIPをもう一度選択してください。"
+
+        ];
+
+        showMessage(lines.join("\n"));
+
+    }
+
+
+    /* =====================================================
+       実際の取り込み
     ===================================================== */
 
     window.startRestoreBackup = async function(){
 
-        showMessage(
-            "現在は取り込み項目選択画面の確認段階です。\n" +
-            "実際の取り込み処理はまだ接続されていません。"
+        if(isRestoring){
+            return;
+        }
+
+        const selectedIds = getSelectedRestoreIds();
+
+        if(selectedIds.length === 0){
+
+            showMessage(
+                "取り込む項目を1つ以上選択してください。",
+                true
+            );
+
+            updateRestoreSelectionState();
+
+            return;
+
+        }
+
+        if(!selectedBackupFile || !inspectedBackupData){
+
+            showMessage(
+                "先にバックアップZIPを選択してください。",
+                true
+            );
+
+            return;
+
+        }
+
+        if(
+            !window.BackupImport ||
+            typeof BackupImport.createImportPreview !== "function"
+        ){
+
+            showMessage(
+                "安全な取り込み準備機能がありません。",
+                true
+            );
+
+            return;
+
+        }
+
+        if(
+            !window.BackupImportExecute ||
+            typeof BackupImportExecute.executeImport !== "function"
+        ){
+
+            showMessage(
+                "取り込み実行機能が読み込まれていません。",
+                true
+            );
+
+            return;
+
+        }
+
+        const restoreButton = document.getElementById(
+            "startRestoreBackupButton"
         );
 
-        return;
+        isRestoring = true;
+
+        if(restoreButton){
+            restoreButton.disabled = true;
+        }
+
+        try{
+
+            /* =====================
+               選択項目だけに絞る
+            ===================== */
+
+            showMessage(
+                "選択した項目だけを取り込み対象にしています…"
+            );
+
+            const selectedBackupData =
+                createSelectedBackupData(selectedIds);
+
+            console.log(
+                "📦 選択された取り込み項目:",
+                selectedIds
+            );
+
+            console.log(
+                "📦 選択後の取り込みデータ:",
+                selectedBackupData
+            );
+
+
+            /* =====================
+               選択後のデータで再比較
+            ===================== */
+
+            showMessage(
+                "選択した項目を現在のPCデータと再比較しています…"
+            );
+
+            const selectedPreview =
+                await BackupImport.createImportPreview(
+                    selectedBackupData
+                );
+
+            window.lastBackupImportPreview =
+                selectedPreview;
+
+            window.lastBackupImportSelectionPreview =
+                selectedPreview;
+
+            console.log(
+                "🔐 選択項目だけの取り込み予定:",
+                selectedPreview
+            );
+
+
+            /* =====================
+               実行直前の確認
+            ===================== */
+
+            if(
+                !selectedPreview ||
+                selectedPreview.mode !== "READ_ONLY"
+            ){
+
+                throw new Error(
+                    "選択項目の比較結果が正しくありません。"
+                );
+
+            }
+
+            if(
+                selectedPreview.localStorage &&
+                selectedPreview.localStorage.add &&
+                selectedPreview.localStorage.add.length > 0
+            ){
+
+                throw new Error(
+                    "個別保存データが取り込み対象に含まれています。安全のため中止しました。"
+                );
+
+            }
+
+
+            /* =====================
+               保護バックアップと取り込み
+            ===================== */
+
+            showMessage(
+                "PC全体の保護バックアップを作成しています…\n" +
+                "保存先を選択してください。"
+            );
+
+            const importResult =
+                await BackupImportExecute.executeImport(
+                    selectedPreview
+                );
+
+            if(
+                !importResult ||
+                importResult.success !== true
+            ){
+
+                throw new Error(
+                    importResult && importResult.message
+                        ? importResult.message
+                        : "取り込み処理が正常に完了しませんでした。"
+                );
+
+            }
+
+
+            /* =====================
+               成功
+            ===================== */
+
+            console.log(
+                "✅ 取り込み完了:",
+                importResult
+            );
+
+            showImportSuccess(importResult);
+
+
+            /* =====================
+               完了後は再実行を防止
+               別項目はZIP再選択で対応
+            ===================== */
+
+            const panel = document.getElementById(
+                "restoreBackupSelection"
+            );
+
+            if(panel){
+
+                panel.querySelectorAll(
+                    'input[type="checkbox"]'
+                ).forEach(input => {
+
+                    input.disabled = true;
+
+                });
+
+            }
+
+            if(restoreButton){
+                restoreButton.disabled = true;
+            }
+
+        }catch(error){
+
+            console.error(
+                "バックアップ取り込みエラー:",
+                error
+            );
+
+            showMessage(
+                "取り込み処理でエラーが発生しました。\n" +
+                error.message +
+                "\n\n安全確認が必要なため、同じZIPでの再実行は一旦行わず、現在のPCデータを確認してください。",
+                true
+            );
+
+        }finally{
+
+            isRestoring = false;
+
+            if(restoreButton){
+
+                const panel = document.getElementById(
+                    "restoreBackupSelection"
+                );
+
+                const hasDisabledCheckbox =
+                    panel &&
+                    panel.querySelector(
+                        'input[type="checkbox"]:disabled'
+                    );
+
+                if(!hasDisabledCheckbox){
+                    updateRestoreSelectionState();
+                }else{
+                    restoreButton.disabled = true;
+                }
+
+            }
+
+        }
 
     };
 
@@ -2259,8 +2667,10 @@
 
         selectedBackupFile = null;
         inspectedBackupData = null;
+        isRestoring = false;
 
         window.lastBackupImportPreview = null;
+        window.lastBackupImportSelectionPreview = null;
 
         input.value = "";
 
