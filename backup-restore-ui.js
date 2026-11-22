@@ -2269,7 +2269,9 @@
             );
 
             renderRestoreSelectionList(
-                inspectedBackupData
+                inspectedBackupData,
+                comparison,
+                importPreview
             );
 
 
