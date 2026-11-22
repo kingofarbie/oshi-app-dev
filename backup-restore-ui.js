@@ -114,29 +114,25 @@
     }
 
 
-    function getSupportedRestoreItems(){
 
-        return new Set([
+function getSupportedRestoreItems(){
 
-            "oshiList",
-            "oshiDetails",
-            "oshiRecords",
+    return new Set([
+        "oshiList",
+        "oshiDetails",
+        "oshiRecords",
+        "events",
+        "categories",
+        "dayMemories",
+        "plannerNotes",
+        "plannerStickerPlacements",
+        "anniversaryDays",
+        "settings",
+        "favorites",
+        "money"
+    ]);
 
-            "events",
-            "categories",
-
-            "dayMemories",
-            "plannerNotes",
-            "plannerStickerPlacements",
-
-            "anniversaryDays",
-
-            "settings",
-            "favorites"
-
-        ]);
-
-    }
+}
 
 
         /* =====================================================
@@ -470,267 +466,357 @@
        取り込み項目一覧
     ===================================================== */
 
-    function renderRestoreSelectionList(
-        backupData,
-        comparison,
-        importPreview
+
+function renderRestoreSelectionList(
+    backupData,
+    comparison,
+    importPreview
+){
+
+    const inspection = document.getElementById(
+        "restoreBackupInspection"
+    );
+
+    const result = document.getElementById(
+        "restoreBackupInspectionResult"
+    );
+
+    const restoreButton = document.getElementById(
+        "startRestoreBackupButton"
+    );
+
+    if(!inspection || !result || !restoreButton){
+
+        throw new Error(
+            "取り込み項目選択画面の表示場所が見つかりません。"
+        );
+
+    }
+
+    removeRestoreSelection();
+
+    restoreButton.disabled = true;
+
+    const mainData =
+        backupData && backupData.mainData &&
+        typeof backupData.mainData === "object"
+            ? backupData.mainData
+            : {};
+
+    const supportedIds = getSupportedRestoreItems();
+
+    if(
+        !window.BackupManager ||
+        typeof BackupManager.getMainDataItems !== "function" ||
+        typeof BackupManager.getSources !== "function"
     ){
 
-        const inspection = document.getElementById(
-            "restoreBackupInspection"
+        throw new Error(
+            "バックアップ項目一覧を取得できません。"
         );
 
-        const result = document.getElementById(
-            "restoreBackupInspectionResult"
-        );
+    }
 
-        const restoreButton = document.getElementById(
-            "startRestoreBackupButton"
-        );
+    const registeredItems =
+        BackupManager.getMainDataItems();
 
-        if(!inspection || !result || !restoreButton){
+    const mainItems = registeredItems.filter(item => {
 
-            throw new Error(
-                "取り込み項目選択画面の表示場所が見つかりません。"
-            );
-
+        if(!item || !supportedIds.has(item.id)){
+            return false;
         }
 
-        removeRestoreSelection();
-
-        restoreButton.disabled = true;
-
-        const mainData =
-            backupData && backupData.mainData &&
-            typeof backupData.mainData === "object"
-                ? backupData.mainData
-                : {};
-
-        const supportedIds = getSupportedRestoreItems();
-
-        if(
-            !window.BackupManager ||
-            typeof BackupManager.getMainDataItems !== "function" ||
-            typeof BackupManager.getSources !== "function"
-        ){
-
-            throw new Error(
-                "バックアップ項目一覧を取得できません。"
-            );
-
-        }
-
-        const registeredItems =
-            BackupManager.getMainDataItems();
-
-        const mainItems = registeredItems.filter(item => {
-
-            if(!item || !supportedIds.has(item.id)){
-                return false;
-            }
-
-            return Object.prototype.hasOwnProperty.call(
-                mainData,
-                item.id
-            );
-
-        });
-
-        const media = Array.isArray(backupData.media)
-            ? backupData.media
-            : [];
-
-        const sources = BackupManager.getSources();
-
-        const mediaSource = sources.find(
-            source => source.id === "media"
+        return Object.prototype.hasOwnProperty.call(
+            mainData,
+            item.id
         );
 
-        const panel = document.createElement("div");
+    });
 
-        panel.id = "restoreBackupSelection";
+    const media = Array.isArray(backupData.media)
+        ? backupData.media
+        : [];
 
-        panel.style.margin = "16px 0";
-        panel.style.padding = "12px";
-        panel.style.border =
-            "1px solid rgba(128,128,128,0.45)";
-        panel.style.borderRadius = "10px";
-        panel.style.background = "rgba(128,128,128,0.04)";
+    const sources = BackupManager.getSources();
 
-        const heading = document.createElement("h4");
+    const mediaSource = sources.find(
+        source => source.id === "media"
+    );
 
-        heading.textContent = "📋 取り込む項目を選択";
-        heading.style.marginTop = "0";
+    const panel = document.createElement("div");
 
-        panel.appendChild(heading);
+    panel.id = "restoreBackupSelection";
 
-        const description = document.createElement("p");
+    panel.style.margin = "16px 0";
+    panel.style.padding = "12px";
+    panel.style.border =
+        "1px solid rgba(128,128,128,0.45)";
+    panel.style.borderRadius = "10px";
+    panel.style.background = "rgba(128,128,128,0.04)";
 
-        description.textContent =
-            "ZIPに含まれている項目のうち、取り込みたいものを選択してください。";
+    const heading = document.createElement("h4");
 
-        panel.appendChild(description);
+    heading.textContent = "📋 取り込む項目を選択";
+    heading.style.marginTop = "0";
 
-        const note = document.createElement("p");
+    panel.appendChild(heading);
 
-        note.textContent =
-            "取込済の項目と保留項目は選択できません。一部の場合は追加可能なデータだけを取り込みます。";
+    const description = document.createElement("p");
 
-        note.style.fontSize = "0.9em";
-        note.style.opacity = "0.8";
+    description.textContent =
+        "ZIPに含まれている項目のうち、取り込みたいものを選択してください。";
 
-        panel.appendChild(note);
+    panel.appendChild(description);
 
-        const checkboxArea = document.createElement("div");
+    const note = document.createElement("p");
 
-        let previousCategory = "";
+    note.textContent =
+        "取込済の項目と保留項目は選択できません。一部の場合は追加可能なデータだけを取り込みます。";
 
-        mainItems.forEach(item => {
+    note.style.fontSize = "0.9em";
+    note.style.opacity = "0.8";
 
-            const category =
-                item.category || "その他";
+    panel.appendChild(note);
 
-            if(category !== previousCategory){
+    const checkboxArea = document.createElement("div");
 
-                const categoryTitle =
-                    document.createElement("p");
+    let previousCategory = "";
 
-                categoryTitle.textContent =
-                    "■ " + category;
+    /* =====================
+       通常のメインデータ
+    ===================== */
 
-                categoryTitle.style.fontWeight = "bold";
-                categoryTitle.style.margin = "14px 0 4px";
+    mainItems.forEach(item => {
 
-                checkboxArea.appendChild(categoryTitle);
+        const category =
+            item.category || "その他";
 
-                previousCategory = category;
-
-            }
-
-            const status = getRestoreItemStatus(
-                item.id,
-                importPreview,
-                comparison
-            );
-
-            addRestoreCheckbox(
-                checkboxArea,
-                "main:" + item.id,
-                item.name || item.id,
-                "",
-                status
-            );
-
-        });
-
-
-        /* =====================
-           写真・動画
-        ===================== */
-
-        if(media.length > 0 && mediaSource){
+        if(category !== previousCategory){
 
             const categoryTitle =
                 document.createElement("p");
 
-            categoryTitle.textContent = "■ 写真・動画";
+            categoryTitle.textContent =
+                "■ " + category;
 
             categoryTitle.style.fontWeight = "bold";
             categoryTitle.style.margin = "14px 0 4px";
 
             checkboxArea.appendChild(categoryTitle);
 
-            const mediaStatus =
-                getMediaImportStatus(comparison);
+            previousCategory = category;
+
+        }
+
+        const status = getRestoreItemStatus(
+            item.id,
+            importPreview,
+            comparison
+        );
+
+        addRestoreCheckbox(
+            checkboxArea,
+            "main:" + item.id,
+            item.name || item.id,
+            "",
+            status
+        );
+
+    });
+
+
+    /* =====================
+       家族予定4項目
+    ===================== */
+
+    const familySource = mainData.familySchedule;
+
+    const familySections = [
+        {
+            id: "members",
+            name: "家族メンバー"
+        },
+        {
+            id: "events",
+            name: "家族予定"
+        },
+        {
+            id: "rules",
+            name: "繰り返しルール"
+        },
+        {
+            id: "exceptions",
+            name: "例外設定"
+        }
+    ];
+
+    let familySectionCount = 0;
+
+    if(
+        familySource &&
+        typeof familySource === "object"
+    ){
+
+        familySections.forEach(section => {
+
+            if(!Array.isArray(familySource[section.id])){
+                return;
+            }
+
+            if(familySectionCount === 0){
+
+                const categoryTitle =
+                    document.createElement("p");
+
+                categoryTitle.textContent = "■ 家族予定";
+
+                categoryTitle.style.fontWeight = "bold";
+                categoryTitle.style.margin = "14px 0 4px";
+
+                checkboxArea.appendChild(categoryTitle);
+
+            }
+
+            familySectionCount++;
+
+            const familyComparison =
+                importPreview &&
+                importPreview.mainData &&
+                importPreview.mainData.familySchedule
+                    ? importPreview.mainData.familySchedule[section.id]
+                    : null;
+
+            const status = getImportStatus(
+                familyComparison
+            );
 
             addRestoreCheckbox(
                 checkboxArea,
-                "media",
-                mediaSource.name || "写真・動画の実ファイル",
-                media.length + "件",
-                mediaStatus
+                "familySchedule:" + section.id,
+                section.name,
+                familySource[section.id].length + "件",
+                status
             );
-
-        }
-
-
-        /* =====================
-           対象項目がない場合
-        ===================== */
-
-        if(mainItems.length === 0 && media.length === 0){
-
-            const empty = document.createElement("p");
-
-            empty.textContent =
-                "このZIPには、現在の取り込み計画が対応している項目がありません。";
-
-            checkboxArea.appendChild(empty);
-
-        }
-
-        panel.appendChild(checkboxArea);
-
-
-        /* =====================
-           ステータス説明
-        ===================== */
-
-        const statusHelp = document.createElement("p");
-
-        statusHelp.style.fontSize = "0.82em";
-        statusHelp.style.lineHeight = "1.7";
-        statusHelp.style.marginTop = "12px";
-
-        statusHelp.textContent =
-            "取込済：同じ内容が存在 / " +
-            "未取込：新規追加可能 / " +
-            "一部：追加可能分あり / " +
-            "保留：競合などで取り込み不可";
-
-        panel.appendChild(statusHelp);
-
-
-        /* =====================
-           選択数表示
-        ===================== */
-
-        const count = document.createElement("p");
-
-        count.id = "restoreBackupSelectionCount";
-        count.textContent = "選択中：0項目";
-
-        count.style.fontWeight = "bold";
-        count.style.marginBottom = "0";
-
-        panel.appendChild(count);
-
-
-        /* =====================
-           選択変更時
-        ===================== */
-
-        checkboxArea.addEventListener("change", () => {
-
-            updateRestoreSelectionState();
 
         });
 
+    }
 
-        /* =====================
-           検査結果の直後に表示
-        ===================== */
 
-        result.insertAdjacentElement(
-            "afterend",
-            panel
+    /* =====================
+       写真・動画
+    ===================== */
+
+    if(media.length > 0 && mediaSource){
+
+        const categoryTitle =
+            document.createElement("p");
+
+        categoryTitle.textContent = "■ 写真・動画";
+
+        categoryTitle.style.fontWeight = "bold";
+        categoryTitle.style.margin = "14px 0 4px";
+
+        checkboxArea.appendChild(categoryTitle);
+
+        const mediaStatus =
+            getMediaImportStatus(comparison);
+
+        addRestoreCheckbox(
+            checkboxArea,
+            "media",
+            mediaSource.name || "写真・動画の実ファイル",
+            media.length + "件",
+            mediaStatus
         );
 
-        inspection.style.display = "block";
+    }
+
+
+    /* =====================
+       対象項目がない場合
+    ===================== */
+
+    if(
+        mainItems.length === 0 &&
+        familySectionCount === 0 &&
+        media.length === 0
+    ){
+
+        const empty = document.createElement("p");
+
+        empty.textContent =
+            "このZIPには、現在の取り込み計画が対応している項目がありません。";
+
+        checkboxArea.appendChild(empty);
+
+    }
+
+    panel.appendChild(checkboxArea);
+
+
+    /* =====================
+       ステータス説明
+    ===================== */
+
+    const statusHelp = document.createElement("p");
+
+    statusHelp.style.fontSize = "0.82em";
+    statusHelp.style.lineHeight = "1.7";
+    statusHelp.style.marginTop = "12px";
+
+    statusHelp.textContent =
+        "取込済：同じ内容が存在 / " +
+        "未取込：新規追加可能 / " +
+        "一部：追加可能分あり / " +
+        "保留：競合などで取り込み不可";
+
+    panel.appendChild(statusHelp);
+
+
+    /* =====================
+       選択数表示
+    ===================== */
+
+    const count = document.createElement("p");
+
+    count.id = "restoreBackupSelectionCount";
+    count.textContent = "選択中：0項目";
+
+    count.style.fontWeight = "bold";
+    count.style.marginBottom = "0";
+
+    panel.appendChild(count);
+
+
+    /* =====================
+       選択変更時
+    ===================== */
+
+    checkboxArea.addEventListener("change", () => {
 
         updateRestoreSelectionState();
 
-    }
+    });
+
+
+    /* =====================
+       検査結果の直後に表示
+    ===================== */
+
+    result.insertAdjacentElement(
+        "afterend",
+        panel
+    );
+
+    inspection.style.display = "block";
+
+    updateRestoreSelectionState();
+
+}
+
+
+
 
     /* =====================================================
        メインデータ比較
@@ -2519,122 +2605,332 @@
        選択項目だけの取り込みデータを作成
     ===================================================== */
 
-    function createSelectedBackupData(selectedIds){
 
-        if(!inspectedBackupData){
+function createSelectedBackupData(selectedIds){
+
+    if(!inspectedBackupData){
+
+        throw new Error(
+            "検査済みのZIPデータがありません。"
+        );
+
+    }
+
+    const selected = new Set(selectedIds);
+
+    const sourceMain =
+        inspectedBackupData.mainData || {};
+
+    const filteredMain = {};
+
+    /* =====================
+       通常のメインデータ
+    ===================== */
+
+    Object.entries(sourceMain).forEach(([key, value]) => {
+
+        if(selected.has("main:" + key)){
+
+            filteredMain[key] = value;
+
+        }
+
+    });
+
+
+    /* =====================
+       家族予定4項目
+       選択した配列だけを渡す
+       未選択項目は空配列にする
+    ===================== */
+
+    const familySections = [
+        "members",
+        "events",
+        "rules",
+        "exceptions"
+    ];
+
+    const selectedFamilySections =
+        familySections.filter(section =>
+            selected.has("familySchedule:" + section)
+        );
+
+    if(selectedFamilySections.length > 0){
+
+        const sourceFamily =
+            sourceMain.familySchedule;
+
+        if(
+            !sourceFamily ||
+            typeof sourceFamily !== "object"
+        ){
 
             throw new Error(
-                "検査済みのZIPデータがありません。"
+                "ZIP内の家族予定データを取得できません。"
             );
 
         }
 
-        const selected = new Set(selectedIds);
+        const filteredFamily = {};
 
-        const sourceMain =
-            inspectedBackupData.mainData || {};
+        familySections.forEach(section => {
 
-        const filteredMain = {};
+            if(selected.has("familySchedule:" + section)){
 
-        Object.entries(sourceMain).forEach(([key, value]) => {
+                if(!Array.isArray(sourceFamily[section])){
 
-            if(selected.has("main:" + key)){
+                    throw new Error(
+                        "家族予定の「" + section +
+                        "」データが正しい配列ではありません。"
+                    );
 
-                filteredMain[key] = value;
+                }
+
+                filteredFamily[section] =
+                    sourceFamily[section];
+
+            }else{
+
+                filteredFamily[section] = [];
 
             }
 
         });
 
-
-        /* =====================
-           メディア選択
-        ===================== */
-
-        const selectedMedia = selected.has("media")
-            ? (
-                Array.isArray(inspectedBackupData.media)
-                    ? inspectedBackupData.media
-                    : []
-            )
-            : [];
-
-
-        /* =====================
-           localStorageは対象外
-           現在の実行処理では個別追加に未対応
-        ===================== */
-
-        return {
-
-            ...inspectedBackupData,
-
-            mainData: filteredMain,
-
-            localStorage: {},
-
-            media: selectedMedia
-
-        };
+        filteredMain.familySchedule = filteredFamily;
 
     }
+
+
+    /* =====================
+       メディア選択
+    ===================== */
+
+    const selectedMedia = selected.has("media")
+        ? (
+            Array.isArray(inspectedBackupData.media)
+                ? inspectedBackupData.media
+                : []
+        )
+        : [];
+
+
+    /* =====================
+       localStorageは対象外
+       現在の実行処理では個別追加に未対応
+    ===================== */
+
+    return {
+
+        ...inspectedBackupData,
+
+        mainData: filteredMain,
+
+        localStorage: {},
+
+        media: selectedMedia
+
+    };
+
+}
+
 
 
     /* =====================================================
        取り込み結果表示
     ===================================================== */
 
-    function showImportSuccess(result){
 
-        const safetyName =
-            result.safetyBackup &&
-            result.safetyBackup.fileName
-                ? result.safetyBackup.fileName
-                : "保存済み";
+    /* =====================================================
+       取り込み結果表示・項目別一覧
+    ===================================================== */
 
-        const mainAdded =
-            result.mainData &&
-            Array.isArray(result.mainData.addedCandidates)
-                ? result.mainData.addedCandidates.length
+
+
+function showImportSuccess(result){
+
+    const safetyName =
+        result.safetyBackup &&
+        result.safetyBackup.fileName
+            ? result.safetyBackup.fileName
+            : "保存済み";
+
+    const preview =
+        window.lastBackupImportSelectionPreview;
+
+    const main =
+        preview && preview.mainData
+            ? preview.mainData
+            : {};
+
+    const items = main.items || {};
+
+    const familySchedule =
+        main.familySchedule || {};
+
+    function count(comparison, type){
+
+        return comparison &&
+            Array.isArray(comparison[type])
+                ? comparison[type].length
                 : 0;
-
-        const mediaAdded =
-            result.media &&
-            Number.isFinite(result.media.added)
-                ? result.media.added
-                : 0;
-
-        const mediaSkipped =
-            result.media &&
-            Number.isFinite(result.media.skippedExisting)
-                ? result.media.skippedExisting
-                : 0;
-
-        const lines = [
-
-            "取り込みと保存後の確認が完了しました。",
-
-            "",
-            "【保護バックアップ】",
-            safetyName,
-
-            "",
-            "【取り込み結果】",
-            "メインデータ追加候補：" + mainAdded + "件",
-            "写真・動画の追加：" + mediaAdded + "件",
-            "既存メディアのスキップ：" + mediaSkipped + "件",
-
-            "",
-            "既存データの削除・上書きは行っていません。",
-
-            "",
-            "別の項目を取り込む場合は、同じZIPをもう一度選択してください。"
-
-        ];
-
-        showMessage(lines.join("\n"));
 
     }
+
+    function getCounts(comparison){
+
+        return {
+            add: count(comparison, "add"),
+            same: count(comparison, "same"),
+            conflict: count(comparison, "conflict"),
+            invalid: count(comparison, "invalid")
+        };
+
+    }
+
+    function addLine(lines, name, comparison){
+
+        if(!comparison) return;
+
+        const c = getCounts(comparison);
+        const held = c.conflict + c.invalid;
+
+        // 何も該当しない項目は表示しない
+        if(
+            c.add === 0 &&
+            c.same === 0 &&
+            held === 0
+        ){
+            return;
+        }
+
+        lines.push(
+            name +
+            "：追加対象 " + c.add + "件 / " +
+            "既存 " + c.same + "件 / " +
+            "保留 " + held + "件"
+        );
+
+    }
+
+    const mainAdded =
+        result.mainData &&
+        Number.isFinite(result.mainData.addedCandidates)
+            ? result.mainData.addedCandidates
+            : 0;
+
+    const mediaAdded =
+        result.media &&
+        Number.isFinite(result.media.added)
+            ? result.media.added
+            : 0;
+
+    const mediaSkipped =
+        result.media &&
+        Number.isFinite(result.media.skippedExisting)
+            ? result.media.skippedExisting
+            : 0;
+
+    const lines = [
+
+        "【取り込み結果】",
+        "取り込みと保存後の確認が完了しました。",
+
+        "",
+        "■ 保護バックアップ",
+        safetyName,
+
+        "",
+        "■ メインデータの項目別内訳"
+
+    ];
+
+    addLine(lines, "推し一覧", main.oshiList);
+    addLine(lines, "推し詳細", main.oshiDetails);
+    addLine(lines, "推し記録", main.oshiRecords);
+
+    addLine(lines, "予定", items.events);
+    addLine(lines, "カテゴリー", items.categories);
+    addLine(lines, "思い出", items.dayMemories);
+    addLine(lines, "手帳メモ", items.plannerNotes);
+    addLine(lines, "手帳ステッカー", items.plannerStickerPlacements);
+    addLine(lines, "記念日", items.anniversaryDays);
+    addLine(lines, "設定", items.settings);
+    addLine(lines, "お気に入り", items.favorites);
+    addLine(lines, "家計・推し活費", items.money);
+
+    /* =====================
+       家族予定4項目の結果
+    ===================== */
+
+    addLine(
+        lines,
+        "家族メンバー",
+        familySchedule.members
+    );
+
+    addLine(
+        lines,
+        "家族予定",
+        familySchedule.events
+    );
+
+    addLine(
+        lines,
+        "繰り返しルール",
+        familySchedule.rules
+    );
+
+    addLine(
+        lines,
+        "例外設定",
+        familySchedule.exceptions
+    );
+
+    lines.push(
+        "",
+        "■ メインデータの追加候補合計",
+        mainAdded + "件"
+    );
+
+    lines.push(
+        "",
+        "■ 写真・動画",
+        "実際に追加：" + mediaAdded + "件",
+        "既存IDのためスキップ：" + mediaSkipped + "件"
+    );
+
+    lines.push(
+        "",
+        "■ 保存後の確認",
+
+        "メインデータ：" +
+            (
+                result.mainData &&
+                result.mainData.verified === true
+                    ? "確認済み"
+                    : "未確認"
+            ),
+
+        "写真・動画：" +
+            (
+                result.media &&
+                result.media.verified === true
+                    ? "確認済み"
+                    : "未確認"
+            ),
+
+        "",
+        "既存データの削除・上書きは行っていません。",
+        "",
+        "別の項目を取り込む場合は、同じZIPをもう一度選択してください。"
+    );
+
+    showMessage(lines.join("\n"));
+
+}
+
 
 
     /* =====================================================

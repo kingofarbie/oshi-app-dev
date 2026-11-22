@@ -3,11 +3,14 @@
    💾 安全なバックアップ取り込み準備
    backup-import.js
 
-   第2版：
+   第4版：
    ・推し一覧をID単位で比較
    ・推し詳細をoshiId単位で比較
    ・推し記録を記録ID単位で比較
-   ・その他のメインDB項目は保留
+   ・家計・推し活費を項目別に比較
+   ・家族予定を4項目に分けて比較
+   ・家族メンバーと予定の参照関係を確認
+   ・その他の未対応項目は保留
    ・localStorageをキー単位で比較
    ・メディアをID単位で比較
 
@@ -194,7 +197,6 @@ function compareObjectKeys(backupObject, currentObject){
    外側の配列 → oshiId → 記録配列
 ===================================================== */
 
-
 function flattenRecords(records){
 
     const result = [];
@@ -282,7 +284,6 @@ function flattenRecords(records){
    推し記録のID比較
 ===================================================== */
 
-
 function compareOshiRecords(backupRecords, currentRecords){
 
     const backupResult = flattenRecords(backupRecords);
@@ -354,10 +355,7 @@ function compareOshiRecords(backupRecords, currentRecords){
 
         }
 
-        const backupJSON = JSON.stringify(record);
-        const currentJSON = JSON.stringify(existing);
-
-        if(backupJSON === currentJSON){
+        if(isSame(record, existing)){
 
             result.same.push({
                 id: record.id,
@@ -382,10 +380,650 @@ function compareOshiRecords(backupRecords, currentRecords){
 }
 
 
+/* =====================================================
+   家計・推し活費の比較
+===================================================== */
+
+function compareMoneyData(backupMoney, currentMoney){
+
+    const result = {
+        add: [],
+        same: [],
+        conflict: [],
+        invalid: [],
+        sections: {}
+    };
+
+    if(!isObject(backupMoney)){
+
+        result.invalid.push({
+            section: "money",
+            reason: "バックアップ側のお金データがオブジェクトではありません"
+        });
+
+        return result;
+
+    }
+
+    if(currentMoney === undefined){
+        currentMoney = {};
+    }
+
+    if(!isObject(currentMoney)){
+
+        result.invalid.push({
+            section: "money",
+            reason: "PC側のお金データがオブジェクトではありません"
+        });
+
+        return result;
+
+    }
+
+
+    /* 配列項目の比較 */
+
+    const arrayKeys = [
+        "records",
+        "categories",
+        "oshiCategories"
+    ];
+
+    arrayKeys.forEach(key => {
+
+        if(!hasOwn(backupMoney, key)) return;
+
+        if(
+            hasOwn(currentMoney, key) &&
+            !Array.isArray(currentMoney[key])
+        ){
+
+            result.sections[key] = {
+                add: [],
+                same: [],
+                conflict: [],
+                invalid: [{
+                    reason: "PC側の保存形式が配列ではありません",
+                    section: key
+                }]
+            };
+
+            return;
+
+        }
+
+        result.sections[key] = compareIdArray(
+            backupMoney[key],
+            currentMoney[key] || []
+        );
+
+    });
+
+
+    /* 月キー単位の比較 */
+
+    const objectKeys = [
+        "monthlySettings",
+        "carryovers",
+        "adjustments"
+    ];
+
+    objectKeys.forEach(key => {
+
+        if(!hasOwn(backupMoney, key)) return;
+
+        if(
+            hasOwn(currentMoney, key) &&
+            !isObject(currentMoney[key])
+        ){
+
+            result.sections[key] = {
+                add: [],
+                same: [],
+                conflict: [],
+                invalid: [{
+                    reason: "PC側の保存形式がオブジェクトではありません",
+                    section: key
+                }]
+            };
+
+            return;
+
+        }
+
+        result.sections[key] = compareObjectKeys(
+            backupMoney[key],
+            currentMoney[key] || {}
+        );
+
+    });
+
+
+    /* 各比較結果を全体集計へ反映 */
+
+    Object.entries(result.sections).forEach(
+        ([section, comparison]) => {
+
+            comparison.add.forEach(item => {
+
+                result.add.push({
+                    section: section,
+                    item: item
+                });
+
+            });
+
+            comparison.same.forEach(item => {
+
+                result.same.push({
+                    section: section,
+                    item: item
+                });
+
+            });
+
+            comparison.conflict.forEach(item => {
+
+                result.conflict.push({
+                    section: section,
+                    item: item
+                });
+
+            });
+
+            comparison.invalid.forEach(item => {
+
+                result.invalid.push({
+                    section: section,
+                    item: item
+                });
+
+            });
+
+        }
+    );
+
+
+    /* categorySetupVersion */
+
+    if(hasOwn(backupMoney, "categorySetupVersion")){
+
+        const backupValue =
+            backupMoney.categorySetupVersion;
+
+        if(!hasOwn(currentMoney, "categorySetupVersion")){
+
+            result.add.push({
+                section: "categorySetupVersion",
+                key: "categorySetupVersion",
+                value: backupValue
+            });
+
+        }else if(
+            isSame(
+                backupValue,
+                currentMoney.categorySetupVersion
+            )
+        ){
+
+            result.same.push({
+                section: "categorySetupVersion",
+                value: backupValue
+            });
+
+        }else{
+
+            result.conflict.push({
+                section: "categorySetupVersion",
+                backup: backupValue,
+                current: currentMoney.categorySetupVersion
+            });
+
+        }
+
+    }
+
+
+    /* 推し表示スロット */
+
+    if(hasOwn(backupMoney, "oshiDisplaySlots")){
+
+        const backupValue =
+            backupMoney.oshiDisplaySlots;
+
+        if(!Array.isArray(backupValue)){
+
+            result.invalid.push({
+                section: "oshiDisplaySlots",
+                reason: "バックアップ側の保存形式が配列ではありません"
+            });
+
+        }else if(!hasOwn(currentMoney, "oshiDisplaySlots")){
+
+            result.add.push({
+                section: "oshiDisplaySlots",
+                key: "oshiDisplaySlots",
+                value: backupValue
+            });
+
+        }else if(
+            !Array.isArray(currentMoney.oshiDisplaySlots)
+        ){
+
+            result.invalid.push({
+                section: "oshiDisplaySlots",
+                reason: "PC側の保存形式が配列ではありません"
+            });
+
+        }else if(
+            isSame(
+                backupValue,
+                currentMoney.oshiDisplaySlots
+            )
+        ){
+
+            result.same.push({
+                section: "oshiDisplaySlots",
+                value: backupValue
+            });
+
+        }else{
+
+            result.conflict.push({
+                section: "oshiDisplaySlots",
+                backup: backupValue,
+                current: currentMoney.oshiDisplaySlots
+            });
+
+        }
+
+    }
+
+
+    /* 未対応のmoney項目は保留 */
+
+    const knownKeys = [
+        ...arrayKeys,
+        ...objectKeys,
+        "categorySetupVersion",
+        "oshiDisplaySlots"
+    ];
+
+    Object.entries(backupMoney).forEach(([key, value]) => {
+
+        if(knownKeys.includes(key)) return;
+
+        result.conflict.push({
+            section: key,
+            backup: value,
+            current: hasOwn(currentMoney, key)
+                ? currentMoney[key]
+                : undefined,
+            reason: "比較方法が未対応のため保留"
+        });
+
+    });
+
+    return result;
+
+}
+
 
 /* =====================================================
-   メインDBの個別比較
+   家族予定の比較
+   members / events / rules / exceptions
 ===================================================== */
+
+function compareFamilySchedule(backupFamily, currentFamily){
+
+    const result = {
+        members: {
+            add: [],
+            same: [],
+            conflict: [],
+            invalid: []
+        },
+        events: {
+            add: [],
+            same: [],
+            conflict: [],
+            invalid: []
+        },
+        rules: {
+            add: [],
+            same: [],
+            conflict: [],
+            invalid: []
+        },
+        exceptions: {
+            add: [],
+            same: [],
+            conflict: [],
+            invalid: []
+        },
+        invalid: []
+    };
+
+    if(!isObject(backupFamily)){
+
+        result.invalid.push({
+            reason: "バックアップ側の家族予定データがオブジェクトではありません"
+        });
+
+        return result;
+
+    }
+
+    if(currentFamily === undefined || currentFamily === null){
+        currentFamily = {};
+    }
+
+    if(!isObject(currentFamily)){
+
+        result.invalid.push({
+            reason: "PC側の家族予定データがオブジェクトではありません"
+        });
+
+        return result;
+
+    }
+
+
+    const keys = [
+        "members",
+        "events",
+        "rules",
+        "exceptions"
+    ];
+
+    const backupLists = {};
+    const currentLists = {};
+    const validBackupLists = {};
+    const invalidCurrentKeys = new Set();
+
+
+    /* -------------------------------------------------
+       配列形式の確認
+    ------------------------------------------------- */
+
+    keys.forEach(key => {
+
+        if(!hasOwn(backupFamily, key)){
+
+            backupLists[key] = [];
+
+        }else if(!Array.isArray(backupFamily[key])){
+
+            result.invalid.push({
+                section: key,
+                reason: "バックアップ側の保存形式が配列ではありません"
+            });
+
+            backupLists[key] = [];
+
+        }else{
+
+            backupLists[key] = backupFamily[key];
+
+        }
+
+
+        if(!hasOwn(currentFamily, key)){
+
+            currentLists[key] = [];
+
+        }else if(!Array.isArray(currentFamily[key])){
+
+            invalidCurrentKeys.add(key);
+            currentLists[key] = [];
+
+        }else{
+
+            currentLists[key] = currentFamily[key];
+
+        }
+
+    });
+
+
+    /* -------------------------------------------------
+       バックアップ側レコードの基本形式を確認
+    ------------------------------------------------- */
+
+    keys.forEach(key => {
+
+        validBackupLists[key] = [];
+
+        backupLists[key].forEach((item, index) => {
+
+            if(
+                !isObject(item) ||
+                item.id == null ||
+                String(item.id) === ""
+            ){
+
+                result.invalid.push({
+                    section: key,
+                    index: index,
+                    value: item,
+                    reason: "IDがない、またはレコード形式が不正です"
+                });
+
+                return;
+
+            }
+
+
+            if(
+                (key === "events" || key === "rules") &&
+                (
+                    item.memberId == null ||
+                    String(item.memberId) === ""
+                )
+            ){
+
+                result.invalid.push({
+                    section: key,
+                    index: index,
+                    value: item,
+                    reason: "memberIdがありません"
+                });
+
+                return;
+
+            }
+
+
+            if(
+                key === "exceptions" &&
+                (
+                    item.memberId == null ||
+                    String(item.memberId) === "" ||
+                    item.ruleId == null ||
+                    String(item.ruleId) === ""
+                )
+            ){
+
+                result.invalid.push({
+                    section: key,
+                    index: index,
+                    value: item,
+                    reason: "exceptionのmemberIdまたはruleIdがありません"
+                });
+
+                return;
+
+            }
+
+            validBackupLists[key].push(item);
+
+        });
+
+    });
+
+
+    /* -------------------------------------------------
+       各項目をID単位で比較
+    ------------------------------------------------- */
+
+    keys.forEach(key => {
+
+        if(invalidCurrentKeys.has(key)){
+
+            result[key] = {
+                add: [],
+                same: [],
+                conflict: [],
+                invalid: [{
+                    reason: "PC側の保存形式が不正なため比較・追加を停止しました"
+                }]
+            };
+
+            return;
+
+        }
+
+        result[key] = compareIdArray(
+            validBackupLists[key],
+            currentLists[key]
+        );
+
+    });
+
+
+    /* -------------------------------------------------
+       利用可能なメンバーIDを作成
+       PC側に存在するメンバーと、
+       今回安全に追加できるメンバーだけを対象にする
+    ------------------------------------------------- */
+
+    const memberIds = new Set();
+
+    currentLists.members.forEach(item => {
+
+        if(item && item.id != null){
+            memberIds.add(String(item.id));
+        }
+
+    });
+
+    if(!invalidCurrentKeys.has("members")){
+
+        result.members.add.forEach(item => {
+
+            if(item && item.id != null){
+                memberIds.add(String(item.id));
+            }
+
+        });
+
+    }
+
+
+    /* -------------------------------------------------
+       利用可能なルールIDを作成
+       ID競合しているルールは利用可能にしない
+    ------------------------------------------------- */
+
+    const conflictedRuleIds = new Set();
+
+    result.rules.conflict.forEach(item => {
+
+        if(item && item.id != null){
+            conflictedRuleIds.add(String(item.id));
+        }
+
+    });
+
+    const ruleIds = new Set();
+
+    currentLists.rules.forEach(item => {
+
+        if(
+            item &&
+            item.id != null &&
+            !conflictedRuleIds.has(String(item.id))
+        ){
+
+            ruleIds.add(String(item.id));
+
+        }
+
+    });
+
+    if(!invalidCurrentKeys.has("rules")){
+
+        result.rules.add.forEach(item => {
+
+            if(item && item.id != null){
+                ruleIds.add(String(item.id));
+            }
+
+        });
+
+    }
+
+
+    /* -------------------------------------------------
+       個別予定・繰り返しルールの参照確認
+    ------------------------------------------------- */
+
+    ["events", "rules"].forEach(key => {
+
+        result[key].add =
+            result[key].add.filter(item => {
+
+                if(memberIds.has(String(item.memberId))){
+                    return true;
+                }
+
+                result.invalid.push({
+                    section: key,
+                    id: item.id,
+                    reason: "参照先の家族メンバーが見つからないため追加対象外です"
+                });
+
+                return false;
+
+            });
+
+    });
+
+
+    /* -------------------------------------------------
+       繰り返し予定の例外の参照確認
+       memberId と ruleId の両方が必要
+    ------------------------------------------------- */
+
+    result.exceptions.add =
+        result.exceptions.add.filter(item => {
+
+            const hasMember =
+                memberIds.has(String(item.memberId));
+
+            const hasRule =
+                ruleIds.has(String(item.ruleId));
+
+            if(hasMember && hasRule){
+                return true;
+            }
+
+            result.invalid.push({
+                section: "exceptions",
+                id: item.id,
+                reason: !hasMember
+                    ? "参照先の家族メンバーが見つからないため追加対象外です"
+                    : "参照先の繰り返し予定ルールが見つからないため追加対象外です"
+            });
+
+            return false;
+
+        });
+
+
+    return result;
+
+}
 
 
 /* =====================================================
@@ -399,27 +1037,48 @@ function compareMainData(backupData){
         localStorage.getItem("oshi_app_data");
 
     if(currentRaw === null){
+
         return {
             status: "current-data-missing",
             oshiList: null,
             oshiDetails: null,
             oshiRecords: null,
+            familySchedule: null,
             items: {},
             held: [],
             invalid: []
         };
+
     }
 
     let currentData;
 
     try {
+
         currentData = JSON.parse(currentRaw);
+
     } catch(error) {
-        throw new Error("現在のPCメインデータを解析できません。");
+
+        throw new Error(
+            "現在のPCメインデータを解析できません。"
+        );
+
+    }
+
+    if(!isObject(currentData)){
+
+        throw new Error(
+            "現在のPCメインデータの形式が正しくありません。"
+        );
+
     }
 
     if(!isObject(backupData.mainData)){
-        throw new Error("スマホ側メインデータの形式が正しくありません。");
+
+        throw new Error(
+            "スマホ側メインデータの形式が正しくありません。"
+        );
+
     }
 
     const backupMain = backupData.mainData;
@@ -429,34 +1088,48 @@ function compareMainData(backupData){
         oshiList: null,
         oshiDetails: null,
         oshiRecords: null,
+        familySchedule: null,
         items: {},
         held: [],
         invalid: []
     };
 
+
     /* 推し一覧 */
+
     if(hasOwn(backupMain, "oshiList")){
+
         result.oshiList = compareIdArray(
             backupMain.oshiList,
             currentData.oshiList
         );
+
     }
 
+
     /* 推し詳細 */
+
     if(hasOwn(backupMain, "oshiDetails")){
+
         result.oshiDetails = compareObjectKeys(
             backupMain.oshiDetails,
             currentData.oshiDetails
         );
+
     }
 
+
     /* 推し記録 */
+
     if(hasOwn(backupMain, "oshiRecords")){
+
         result.oshiRecords = compareOshiRecords(
             backupMain.oshiRecords,
             currentData.oshiRecords
         );
+
     }
+
 
     const arrayKeys = [
         "events",
@@ -466,7 +1139,9 @@ function compareMainData(backupData){
         "anniversaryDays"
     ];
 
+
     /* ID付き配列 */
+
     arrayKeys.forEach(key => {
 
         if(!hasOwn(backupMain, key)) return;
@@ -478,7 +1153,9 @@ function compareMainData(backupData){
 
     });
 
+
     /* 日付キーの思い出 */
+
     if(hasOwn(backupMain, "dayMemories")){
 
         result.items.dayMemories = compareObjectKeys(
@@ -488,7 +1165,9 @@ function compareMainData(backupData){
 
     }
 
-    /* 設定：項目単位で比較 */
+
+    /* 設定 */
+
     if(hasOwn(backupMain, "settings")){
 
         result.items.settings = compareObjectKeys(
@@ -498,7 +1177,9 @@ function compareMainData(backupData){
 
     }
 
-    /* お気に入り：配列ごとに比較 */
+
+    /* お気に入り */
+
     if(hasOwn(backupMain, "favorites")){
 
         const backup = backupMain.favorites;
@@ -510,7 +1191,9 @@ function compareMainData(backupData){
                 add: [],
                 same: [],
                 conflict: [],
-                invalid: [{ reason: "お気に入りの形式が不正です" }]
+                invalid: [{
+                    reason: "お気に入りの形式が不正です"
+                }]
             };
 
         }else{
@@ -556,7 +1239,9 @@ function compareMainData(backupData){
 
     }
 
-    /* スポーツ・健康カレンダーは安全のため全体比較 */
+
+    /* スポーツ・健康カレンダー */
+
     ["sportsCalendar", "healthCalendar"].forEach(key => {
 
         if(!hasOwn(backupMain, key)) return;
@@ -570,7 +1255,9 @@ function compareMainData(backupData){
                 add: [],
                 same: [],
                 conflict: [],
-                invalid: [{ reason: "データ形式が不正です" }]
+                invalid: [{
+                    reason: "データ形式が不正です"
+                }]
             };
 
             return;
@@ -607,20 +1294,33 @@ function compareMainData(backupData){
 
     });
 
-    /* 関連データの整合性確認が必要な項目は保留 */
-    ["familySchedule", "money"].forEach(key => {
 
-        if(!hasOwn(backupMain, key)) return;
+    /* 家計・推し活費 */
 
-        result.held.push({
-            key: key,
-            value: backupMain[key],
-            reason: "関連データの整合性確認が必要なため保留"
-        });
+    if(hasOwn(backupMain, "money")){
 
-    });
+        result.items.money = compareMoneyData(
+            backupMain.money,
+            currentData.money
+        );
+
+    }
+
+
+    /* 家族予定 */
+
+    if(hasOwn(backupMain, "familySchedule")){
+
+        result.familySchedule = compareFamilySchedule(
+            backupMain.familySchedule,
+            currentData.familySchedule
+        );
+
+    }
+
 
     /* 未対応項目は保留 */
+
     const knownKeys = [
         "oshiList",
         "oshiDetails",
@@ -648,8 +1348,8 @@ function compareMainData(backupData){
     });
 
     return result;
-}
 
+}
 
 
 /* =====================================================
@@ -749,10 +1449,13 @@ async function compareMedia(backupMedia){
     };
 
     if(!Array.isArray(backupMedia)){
+
         result.invalid.push({
             reason: "メディア一覧が配列ではありません"
         });
+
         return result;
+
     }
 
     if(typeof getAllMediaFiles !== "function"){
@@ -828,7 +1531,6 @@ async function compareMedia(backupMedia){
 }
 
 
-
 /* =====================================================
    取り込み予定の作成
 ===================================================== */
@@ -839,9 +1541,11 @@ async function createImportPreview(backupData){
         !backupData ||
         backupData.format !== "oshi-app-restore-data"
     ){
+
         throw new Error(
             "取り込み用データの形式が正しくありません。"
         );
+
     }
 
     const mainData = compareMainData(backupData);
@@ -853,6 +1557,7 @@ async function createImportPreview(backupData){
         await compareMedia(backupData.media);
 
     const count = {};
+
 
     function addCounts(prefix, comparison){
 
@@ -872,21 +1577,59 @@ async function createImportPreview(backupData){
 
     }
 
+
     addCounts("oshiList", mainData.oshiList);
     addCounts("oshiDetails", mainData.oshiDetails);
     addCounts("oshiRecords", mainData.oshiRecords);
 
+
+    /* 家族予定4項目の件数 */
+
+    if(mainData.familySchedule){
+
+        [
+            "members",
+            "events",
+            "rules",
+            "exceptions"
+        ].forEach(key => {
+
+            addCounts(
+                "familySchedule" + key,
+                mainData.familySchedule[key]
+            );
+
+        });
+
+        count.familyScheduleInvalid =
+            mainData.familySchedule.invalid.length;
+
+    }else{
+
+        count.familyScheduleInvalid = 0;
+
+    }
+
+
+    /* その他のメインDB項目 */
+
     Object.entries(mainData.items || {}).forEach(
         ([key, comparison]) => {
+
             addCounts(key, comparison);
+
         }
     );
+
 
     count.mainDataHeld =
         mainData.held.length;
 
     count.mainDataInvalid =
         mainData.invalid.length;
+
+
+    /* localStorage */
 
     count.localStorageAdd =
         localStorageResult.add.length;
@@ -900,6 +1643,9 @@ async function createImportPreview(backupData){
     count.localStorageInvalid =
         localStorageResult.invalid.length;
 
+
+    /* メディア */
+
     count.mediaAdd =
         media.add.length;
 
@@ -909,6 +1655,7 @@ async function createImportPreview(backupData){
     count.mediaInvalid =
         media.invalid.length;
 
+
     return {
         createdAt: new Date().toISOString(),
         mode: "READ_ONLY",
@@ -917,6 +1664,7 @@ async function createImportPreview(backupData){
         media,
         summary: count
     };
+
 }
 
 
