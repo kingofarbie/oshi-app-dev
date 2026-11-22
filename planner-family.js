@@ -3,6 +3,7 @@
    planner-family.js
 
    ・登録中の家族メンバー最大8人
+   ・同時表示できる家族メンバー最大4人
    ・アーカイブによる安全なメンバー整理
    ・アーカイブしたメンバーの過去予定を保持
    ・アーカイブから復元可能
@@ -14,6 +15,7 @@
 ===================================================== */
 
 const PLANNER_FAMILY_MAX_MEMBERS = 8;
+const PLANNER_FAMILY_MAX_VISIBLE_MEMBERS = 4;
 const PLANNER_FAMILY_DESKTOP_LANE = 54;
 const PLANNER_FAMILY_MOBILE_LANE = 46;
 const PLANNER_FAMILY_MINUTES_PER_HOUR = 60;
@@ -424,12 +426,27 @@ function closePlannerFamily() {
     if (screen) screen.style.display = "none";
 }
 
+/* 表示ONは最大4人まで */
 function plannerFamilyToggleMember(memberId) {
     const data = db.load();
     const family = plannerFamilyEnsureData(data);
     const member = family.members.find(item => item.id === memberId);
 
     if (!member || member.archived) return;
+
+    // OFFからONにするときだけ、表示人数を確認
+    if (!member.enabled) {
+        const visibleCount = plannerFamilyGetActiveMembers(family)
+            .filter(item => item.enabled).length;
+
+        if (visibleCount >= PLANNER_FAMILY_MAX_VISIBLE_MEMBERS) {
+            alert(
+                "同時に表示できる家族メンバーは4人までです。\n" +
+                "先に誰かの表示をOFFにしてください。"
+            );
+            return;
+        }
+    }
 
     member.enabled = !member.enabled;
 
@@ -1629,6 +1646,24 @@ function plannerFamilyRenderMembers() {
     const data = db.load();
     const family = plannerFamilyEnsureData(data);
 
+    /*
+     * 既存データに表示ONが5人以上ある場合、
+     * 登録順で先頭4人だけをONにする。
+     * 予定データやアーカイブ情報には触れない。
+     */
+    const enabledMembers = plannerFamilyGetActiveMembers(family)
+        .filter(member => member.enabled);
+
+    if (enabledMembers.length > PLANNER_FAMILY_MAX_VISIBLE_MEMBERS) {
+        enabledMembers
+            .slice(PLANNER_FAMILY_MAX_VISIBLE_MEMBERS)
+            .forEach(member => {
+                member.enabled = false;
+            });
+
+        plannerFamilySave(data);
+    }
+
     const activeMembers = plannerFamilyGetActiveMembers(family);
     const archivedMembers = family.members.filter(member => member.archived);
     const activeCount = activeMembers.length;
@@ -2110,7 +2145,7 @@ function plannerFamilyAddRule(memberId) {
                 !plannerFamilyTimeIsValid(values.endTime) ||
                 values.endTime <= values.startTime
             ) {
-                alert("開始・終了時刻を正しく入力してください。");
+                alert("開始・終了時刻は正しく入力してください。");
                 return false;
             }
 
@@ -2272,18 +2307,27 @@ function plannerFamilyRenderLanes() {
 
     const date = plannerFamilyGetSelectedDate();
 
-    const activeMembers = family.members.filter(
-        member => !member.archived && member.enabled
-    );
+    const activeMembers = family.members
+        .filter(member => !member.archived && member.enabled)
+        .slice(0, PLANNER_FAMILY_MAX_VISIBLE_MEMBERS);
 
     /*
      * アーカイブ済みメンバーは、
      * アーカイブ日以前で、該当日に予定がある場合だけ表示する。
+     * 画面全体の表示人数が4人を超えないようにする。
      */
-    const archivedMembers = family.members.filter(member =>
-        member.archived &&
-        plannerFamilyArchivedHasEvents(member.id, date, family)
-    );
+    const archivedMembers = family.members
+        .filter(member =>
+            member.archived &&
+            plannerFamilyArchivedHasEvents(member.id, date, family)
+        )
+        .slice(
+            0,
+            Math.max(
+                0,
+                PLANNER_FAMILY_MAX_VISIBLE_MEMBERS - activeMembers.length
+            )
+        );
 
     const members = [...activeMembers, ...archivedMembers];
 
