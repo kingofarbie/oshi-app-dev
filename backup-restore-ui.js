@@ -139,11 +139,202 @@
     }
 
 
+        /* =====================================================
+       取り込みステータス判定
+       ZIPと現在のPCデータを比較した結果から毎回判定
+       ※履歴保存なし
+    ===================================================== */
+
+    function getImportStatus(comparison, extraHold = 0){
+
+        if(!comparison){
+            return {
+                label: "保留",
+                canSelect: false,
+                detail: "比較結果を取得できません"
+            };
+        }
+
+        const add = Array.isArray(comparison.add)
+            ? comparison.add.length
+            : 0;
+
+        const same = Array.isArray(comparison.same)
+            ? comparison.same.length
+            : 0;
+
+        const conflict = Array.isArray(comparison.conflict)
+            ? comparison.conflict.length
+            : 0;
+
+        const invalid = Array.isArray(comparison.invalid)
+            ? comparison.invalid.length
+            : 0;
+
+        const held = extraHold + conflict + invalid;
+
+        if(add > 0){
+
+            if(same > 0 || held > 0){
+
+                return {
+                    label: "一部",
+                    canSelect: true,
+                    detail:
+                        "追加可能：" + add + "件 / " +
+                        "既存：" + same + "件 / " +
+                        "保留：" + held + "件"
+                };
+
+            }
+
+            return {
+                label: "未取込",
+                canSelect: true,
+                detail: "新規追加可能：" + add + "件"
+            };
+
+        }
+
+        if(held > 0){
+
+            return {
+                label: "保留",
+                canSelect: false,
+                detail: "競合・不正・確認が必要：" + held + "件"
+            };
+
+        }
+
+        if(same > 0){
+
+            return {
+                label: "取込済",
+                canSelect: false,
+                detail: "同じ内容のデータがすべて存在します"
+            };
+
+        }
+
+        return {
+            label: "保留",
+            canSelect: false,
+            detail: "比較できるデータがありません"
+        };
+
+    }
+
+
+    function getMainItemComparison(importPreview, itemId){
+
+        if(!importPreview || !importPreview.mainData){
+            return null;
+        }
+
+        const main = importPreview.mainData;
+
+        if(
+            itemId === "oshiList" ||
+            itemId === "oshiDetails" ||
+            itemId === "oshiRecords"
+        ){
+            return main[itemId] || null;
+        }
+
+        return main.items
+            ? main.items[itemId] || null
+            : null;
+
+    }
+
+
+    function getRestoreItemStatus(
+        itemId,
+        importPreview,
+        comparison
+    ){
+
+        const itemComparison =
+            getMainItemComparison(importPreview, itemId);
+
+        let extraHold = 0;
+
+        if(itemId === "oshiDetails"){
+
+            extraHold +=
+                comparison?.detailsLinks?.backupOrphans?.length || 0;
+
+        }
+
+        if(itemId === "oshiRecords"){
+
+            extraHold +=
+                comparison?.recordsLinks?.backupOrphans?.length || 0;
+
+            extraHold +=
+                comparison?.oshiRecords?.noIdBackup?.length || 0;
+
+            extraHold +=
+                comparison?.oshiRecords?.duplicateBackupIds?.length || 0;
+
+        }
+
+        if(itemId === "oshiList"){
+
+            extraHold +=
+                comparison?.oshiList?.missingBackupId?.length || 0;
+
+            extraHold +=
+                comparison?.oshiList?.duplicateBackupIds?.length || 0;
+
+        }
+
+        return getImportStatus(
+            itemComparison,
+            extraHold
+        );
+
+    }
+
+
+    function getMediaImportStatus(comparison){
+
+        if(!comparison || !comparison.media){
+
+            return {
+                label: "保留",
+                canSelect: false,
+                detail: "メディアの比較結果がありません"
+            };
+
+        }
+
+        const media = comparison.media;
+
+        const add = media.backupOnly.length;
+        const same = media.identical.length;
+        const conflict =
+            media.different.length +
+            media.duplicateBackupIds.length;
+
+        return getImportStatus({
+
+            add: Array(add).fill(null),
+            same: Array(same).fill(null),
+            conflict: Array(conflict).fill(null),
+            invalid: []
+
+        });
+
+    }
+
+
     function addRestoreCheckbox(
         container,
         id,
         name,
-        countLabel
+        countLabel,
+        status
     ){
 
         const label = document.createElement("label");
@@ -151,8 +342,10 @@
         label.style.display = "flex";
         label.style.alignItems = "center";
         label.style.gap = "9px";
-        label.style.padding = "8px 4px";
-        label.style.cursor = "pointer";
+        label.style.padding = "9px 4px";
+        label.style.cursor = status && status.canSelect
+            ? "pointer"
+            : "default";
         label.style.borderBottom =
             "1px solid rgba(128,128,128,0.18)";
 
@@ -166,21 +359,54 @@
         checkbox.style.width = "18px";
         checkbox.style.height = "18px";
 
-        const text = document.createElement("span");
+        if(status && !status.canSelect){
+            checkbox.disabled = true;
+        }
 
-        text.textContent = countLabel
+        const textArea = document.createElement("span");
+
+        textArea.style.display = "flex";
+        textArea.style.flexDirection = "column";
+        textArea.style.gap = "3px";
+        textArea.style.minWidth = "0";
+
+        const title = document.createElement("span");
+
+        title.textContent = countLabel
             ? name + "（" + countLabel + "）"
             : name;
 
+        const statusText = document.createElement("span");
+
+        statusText.style.fontSize = "0.85em";
+        statusText.style.opacity = "0.85";
+
+        statusText.textContent = status
+            ? "【" + status.label + "】"
+            : "【保留】";
+
+        const detail = document.createElement("span");
+
+        detail.style.fontSize = "0.8em";
+        detail.style.opacity = "0.7";
+
+        detail.textContent = status
+            ? status.detail
+            : "比較結果を確認できません";
+
+        textArea.appendChild(title);
+        textArea.appendChild(statusText);
+        textArea.appendChild(detail);
+
         label.appendChild(checkbox);
-        label.appendChild(text);
+        label.appendChild(textArea);
 
         container.appendChild(label);
 
         return checkbox;
 
     }
-
+    
 
     /* =====================================================
        選択状態の取得
@@ -244,7 +470,11 @@
        取り込み項目一覧
     ===================================================== */
 
-    function renderRestoreSelectionList(backupData){
+    function renderRestoreSelectionList(
+        backupData,
+        comparison,
+        importPreview
+    ){
 
         const inspection = document.getElementById(
             "restoreBackupInspection"
@@ -344,7 +574,7 @@
         const note = document.createElement("p");
 
         note.textContent =
-            "初期状態ではすべて未選択です。";
+            "取込済の項目と保留項目は選択できません。一部の場合は追加可能なデータだけを取り込みます。";
 
         note.style.fontSize = "0.9em";
         note.style.opacity = "0.8";
@@ -377,10 +607,18 @@
 
             }
 
+            const status = getRestoreItemStatus(
+                item.id,
+                importPreview,
+                comparison
+            );
+
             addRestoreCheckbox(
                 checkboxArea,
                 "main:" + item.id,
-                item.name || item.id
+                item.name || item.id,
+                "",
+                status
             );
 
         });
@@ -402,11 +640,15 @@
 
             checkboxArea.appendChild(categoryTitle);
 
+            const mediaStatus =
+                getMediaImportStatus(comparison);
+
             addRestoreCheckbox(
                 checkboxArea,
                 "media",
                 mediaSource.name || "写真・動画の実ファイル",
-                media.length + "件"
+                media.length + "件",
+                mediaStatus
             );
 
         }
@@ -428,6 +670,25 @@
         }
 
         panel.appendChild(checkboxArea);
+
+
+        /* =====================
+           ステータス説明
+        ===================== */
+
+        const statusHelp = document.createElement("p");
+
+        statusHelp.style.fontSize = "0.82em";
+        statusHelp.style.lineHeight = "1.7";
+        statusHelp.style.marginTop = "12px";
+
+        statusHelp.textContent =
+            "取込済：同じ内容が存在 / " +
+            "未取込：新規追加可能 / " +
+            "一部：追加可能分あり / " +
+            "保留：競合などで取り込み不可";
+
+        panel.appendChild(statusHelp);
 
 
         /* =====================
@@ -470,7 +731,6 @@
         updateRestoreSelectionState();
 
     }
-
 
     /* =====================================================
        メインデータ比較
