@@ -2,12 +2,13 @@
    👨‍👩‍👧 家族スケジュール
    planner-family.js
 
-   ・登録中の家族メンバー最大8人
+   ・登録総数最大8人（アーカイブ済みを含む）
    ・同時表示できる家族メンバー最大4人
    ・アーカイブによる安全なメンバー整理
    ・アーカイブしたメンバーの過去予定を保持
    ・アーカイブから復元可能
-   ・9人以上の登録時は家族予定の表示・操作を停止
+   ・完全削除でメンバーと関連データを削除
+   ・既存データが8人を超えていても表示・操作可能
    ・プレミアム / VIP 限定
    ・単発予定、繰り返し予定、日別例外を分離保存
    ・繰り返し予定の変更は指定日以降に適用
@@ -47,7 +48,12 @@ function plannerFamilyEnsureData(data) {
     return family;
 }
 
-/* アーカイブされていないメンバーだけを登録中として数える */
+/* アーカイブ済みを含む登録総数 */
+function plannerFamilyGetTotalCount(family) {
+    return family.members.length;
+}
+
+/* アーカイブされていないメンバー */
 function plannerFamilyGetActiveMembers(family) {
     return family.members.filter(member => !member.archived);
 }
@@ -56,26 +62,25 @@ function plannerFamilyGetActiveCount(family) {
     return plannerFamilyGetActiveMembers(family).length;
 }
 
-/* 9人以上の場合は家族予定の操作を停止する */
+/* 登録総数が8人を超えているか */
 function plannerFamilyIsOverLimit(family) {
-    return plannerFamilyGetActiveCount(family) >
+    return plannerFamilyGetTotalCount(family) >
         PLANNER_FAMILY_MAX_MEMBERS;
 }
 
+/* 新規登録できるか */
+function plannerFamilyCanAddMember(family) {
+    return plannerFamilyGetTotalCount(family) <
+        PLANNER_FAMILY_MAX_MEMBERS;
+}
+
+/*
+ * 既存データが8人を超えていても、
+ * 閲覧・編集・予定登録などの操作は停止しない。
+ */
 function plannerFamilyCanOperate() {
     if (!plannerFamilyIsAllowed()) {
         alert("家族スケジュールはプレミアム以上で利用できます。");
-        return false;
-    }
-
-    const data = db.load();
-    const family = plannerFamilyEnsureData(data);
-
-    if (plannerFamilyIsOverLimit(family)) {
-        alert(
-            "登録中の家族メンバーが8人を超えています。\n" +
-            "家族管理画面からメンバーをアーカイブして、8人以下にしてください。"
-        );
         return false;
     }
 
@@ -434,7 +439,6 @@ function plannerFamilyToggleMember(memberId) {
 
     if (!member || member.archived) return;
 
-    // OFFからONにするときだけ、表示人数を確認
     if (!member.enabled) {
         const visibleCount = plannerFamilyGetActiveMembers(family)
             .filter(item => item.enabled).length;
@@ -456,8 +460,9 @@ function plannerFamilyToggleMember(memberId) {
 }
 
 /*
- * メンバー削除ではなくアーカイブする。
+ * アーカイブ。
  * events / rules / exceptions は一切変更しない。
+ * アーカイブしても登録枠は空かない。
  */
 function plannerFamilyDeleteMember(memberId) {
     const data = db.load();
@@ -470,7 +475,8 @@ function plannerFamilyDeleteMember(memberId) {
         `${member.name}をアーカイブしますか？\n\n` +
         "予定・繰り返し設定・例外は削除されません。\n" +
         "過去の予定は、該当日を開くと引き続き確認できます。\n" +
-        "アーカイブ一覧から復元することもできます。"
+        "アーカイブ一覧から復元することもできます。\n\n" +
+        "※アーカイブしても登録枠は空きません。"
     )) {
         return;
     }
@@ -490,6 +496,91 @@ function plannerFamilyDeleteMember(memberId) {
     }
 }
 
+/*
+ * 完全削除。
+ * 対象メンバーの単発予定・繰り返し予定・例外を削除する。
+ * 他のメンバーのデータには触れない。
+ */
+function plannerFamilyPermanentDeleteMember(memberId) {
+    const data = db.load();
+    const family = plannerFamilyEnsureData(data);
+    const member = family.members.find(item => item.id === memberId);
+
+    if (!member) return;
+
+    const memberEvents = family.events.filter(
+        event => event.memberId === memberId
+    );
+
+    const memberRules = family.rules.filter(
+        rule => rule.memberId === memberId
+    );
+
+    const ruleIds = new Set(
+        memberRules.map(rule => rule.id)
+    );
+
+    const memberExceptions = family.exceptions.filter(exception =>
+        exception.memberId === memberId ||
+        ruleIds.has(exception.ruleId)
+    );
+
+    const message =
+        `「${member.name}」を完全に削除しますか？\n\n` +
+        `削除されるデータ：\n` +
+        `・家族メンバー情報\n` +
+        `・単発予定：${memberEvents.length}件\n` +
+        `・繰り返し予定：${memberRules.length}件\n` +
+        `・日別例外：${memberExceptions.length}件\n\n` +
+        "この操作は取り消せません。\n" +
+        "削除したデータは復元できません。\n\n" +
+        "アーカイブとは異なり、関連データもすべて削除されます。\n" +
+        "本当に完全削除しますか？";
+
+    if (!confirm(message)) return;
+
+    family.events = family.events.filter(
+        event => event.memberId !== memberId
+    );
+
+    family.rules = family.rules.filter(
+        rule => rule.memberId !== memberId
+    );
+
+    family.exceptions = family.exceptions.filter(exception =>
+        exception.memberId !== memberId &&
+        !ruleIds.has(exception.ruleId)
+    );
+
+    family.members = family.members.filter(
+        item => item.id !== memberId
+    );
+
+    plannerFamilySave(data);
+
+    const memberScreen =
+        document.getElementById("plannerFamilyMemberScreen");
+
+    if (memberScreen && memberScreen.dataset.memberId === memberId) {
+        memberScreen.style.display = "none";
+    }
+
+    const detailScreen =
+        document.getElementById("plannerFamilyDetailScreen");
+
+    if (detailScreen) {
+        detailScreen.style.display = "none";
+    }
+
+    plannerFamilyRenderMembers();
+    plannerFamilyRenderLanes();
+
+    alert(
+        `${member.name}と関連データを完全に削除しました。\n` +
+        "登録枠が1人分空きました。"
+    );
+}
+
 /* アーカイブしたメンバーを復元 */
 function plannerFamilyRestoreMember(memberId) {
     const data = db.load();
@@ -498,26 +589,19 @@ function plannerFamilyRestoreMember(memberId) {
 
     if (!member || !member.archived) return;
 
-    const activeCount = plannerFamilyGetActiveCount(family);
-
-    if (activeCount >= PLANNER_FAMILY_MAX_MEMBERS) {
-        alert(
-            "登録中のメンバーがすでに8人います。\n" +
-            "先に別のメンバーをアーカイブしてください。"
-        );
-        return;
-    }
-
     if (!confirm(
         `${member.name}を登録中に戻しますか？\n` +
-        "以前の予定・繰り返し設定・例外も引き続き利用できます。"
+        "以前の予定・繰り返し設定・例外も引き続き利用できます。\n\n" +
+        "復元後の表示はOFFになります。必要に応じて表示をONにしてください。"
     )) {
         return;
     }
 
     delete member.archived;
     delete member.archivedAtDate;
-    member.enabled = true;
+
+    /* 復元時は表示OFF。表示人数4人の上限を守る */
+    member.enabled = false;
 
     plannerFamilySave(data);
     plannerFamilyRenderMembers();
@@ -1345,11 +1429,7 @@ function plannerFamilyShowEventDetail(event) {
     if (!member) return;
 
     const isArchived = !!member.archived;
-    const canEdit = !isArchived &&
-        plannerFamilyIsAllowed() &&
-        !plannerFamilyIsOverLimit(
-            plannerFamilyEnsureData(db.load())
-        );
+    const canEdit = !isArchived && plannerFamilyIsAllowed();
 
     const screen = plannerFamilyCreateScreen(
         "plannerFamilyDetailScreen",
@@ -1476,11 +1556,6 @@ function plannerFamilyShowEventDetail(event) {
         const note = document.createElement("p");
         note.textContent =
             "このメンバーはアーカイブ済みのため、過去の予定を閲覧できます。";
-        screen.appendChild(note);
-    } else {
-        const note = document.createElement("p");
-        note.textContent =
-            "登録中のメンバーが8人を超えているため、予定の操作は停止中です。";
         screen.appendChild(note);
     }
 
@@ -1647,7 +1722,7 @@ function plannerFamilyRenderMembers() {
     const family = plannerFamilyEnsureData(data);
 
     /*
-     * 既存データに表示ONが5人以上ある場合、
+     * 表示ONが5人以上ある場合、
      * 登録順で先頭4人だけをONにする。
      * 予定データやアーカイブ情報には触れない。
      */
@@ -1666,22 +1741,24 @@ function plannerFamilyRenderMembers() {
 
     const activeMembers = plannerFamilyGetActiveMembers(family);
     const archivedMembers = family.members.filter(member => member.archived);
+
     const activeCount = activeMembers.length;
-    const overLimit = activeCount > PLANNER_FAMILY_MAX_MEMBERS;
+    const totalCount = plannerFamilyGetTotalCount(family);
+    const overLimit = plannerFamilyIsOverLimit(family);
 
     list.replaceChildren();
 
     const count = document.createElement("p");
     count.className = "planner-family-member-count";
     count.textContent =
-        `登録中：${activeCount}/${PLANNER_FAMILY_MAX_MEMBERS}人`;
+        `登録中：${activeCount}人 ／ 登録総数：${totalCount}/${PLANNER_FAMILY_MAX_MEMBERS}人`;
     list.appendChild(count);
 
     if (overLimit) {
         const warning = document.createElement("p");
         warning.className = "planner-family-over-limit-warning";
         warning.textContent =
-            "登録中のメンバーが8人を超えています。家族予定の表示・操作は停止中です。8人以下になるようアーカイブしてください。";
+            "登録総数が8人を超えています。既存の予定はそのまま利用できますが、新しい家族メンバーは追加できません。登録枠を空けるには、アーカイブではなく完全削除が必要です。";
         list.appendChild(warning);
     }
 
@@ -1719,6 +1796,14 @@ function plannerFamilyRenderMembers() {
         archive.title = "アーカイブ";
         archive.setAttribute("aria-label", "アーカイブ");
 
+        const permanentDelete = plannerFamilyMakeButton(
+            "❌",
+            () => plannerFamilyPermanentDeleteMember(member.id),
+            "planner-family-icon-button"
+        );
+        permanentDelete.title = "完全削除";
+        permanentDelete.setAttribute("aria-label", "完全削除");
+
         const edit = plannerFamilyMakeButton(
             "✏️",
             () => plannerFamilyEditMember(member.id),
@@ -1736,7 +1821,7 @@ function plannerFamilyRenderMembers() {
         toggle.setAttribute("aria-label", toggle.title);
         toggle.setAttribute("aria-pressed", String(!!member.enabled));
 
-        actions.append(archive, edit, toggle);
+        actions.append(archive, permanentDelete, edit, toggle);
         row.append(identity, actions);
         list.appendChild(row);
     });
@@ -1784,7 +1869,15 @@ function plannerFamilyRenderMembers() {
         restore.title = "登録中に戻す";
         restore.setAttribute("aria-label", "登録中に戻す");
 
-        actions.appendChild(restore);
+        const permanentDelete = plannerFamilyMakeButton(
+            "❌",
+            () => plannerFamilyPermanentDeleteMember(member.id),
+            "planner-family-icon-button"
+        );
+        permanentDelete.title = "完全削除";
+        permanentDelete.setAttribute("aria-label", "完全削除");
+
+        actions.append(restore, permanentDelete);
         row.append(identity, actions);
         list.appendChild(row);
     });
@@ -1794,9 +1887,9 @@ function plannerFamilyRenderMembers() {
     );
 
     if (addButton) {
-        addButton.disabled = activeCount >= PLANNER_FAMILY_MAX_MEMBERS;
+        addButton.disabled = !plannerFamilyCanAddMember(family);
         addButton.title = addButton.disabled
-            ? "登録中のメンバーは8人までです"
+            ? "アーカイブ済みを含めて8人までです。完全削除すると登録できます。"
             : "家族を追加";
     }
 }
@@ -1838,7 +1931,7 @@ function openPlannerFamily() {
 
     const description = document.createElement("p");
     description.textContent =
-        "家族の名前・アイコンと表示設定を管理できます。アーカイブしたメンバーの予定は削除されません。";
+        "家族の名前・アイコンと表示設定を管理できます。アーカイブしたメンバーの予定は削除されません。登録枠を空ける場合は完全削除してください。";
 
     const list = document.createElement("div");
     list.id = "plannerFamilyMemberList";
@@ -1861,8 +1954,12 @@ function plannerFamilyAddMember() {
     const data = db.load();
     const family = plannerFamilyEnsureData(data);
 
-    if (plannerFamilyGetActiveCount(family) >= PLANNER_FAMILY_MAX_MEMBERS) {
-        alert("登録中の家族メンバーは8人までです。");
+    if (!plannerFamilyCanAddMember(family)) {
+        alert(
+            "家族メンバーはアーカイブ済みを含めて8人までです。\n\n" +
+            "アーカイブしても登録枠は空きません。\n" +
+            "登録枠を空けるには、不要なメンバーを完全削除してください。"
+        );
         return;
     }
 
@@ -1899,11 +1996,11 @@ function plannerFamilyAddMember() {
             const latest = db.load();
             const latestFamily = plannerFamilyEnsureData(latest);
 
-            if (
-                plannerFamilyGetActiveCount(latestFamily) >=
-                PLANNER_FAMILY_MAX_MEMBERS
-            ) {
-                alert("登録中の家族メンバーは8人までです。");
+            if (!plannerFamilyCanAddMember(latestFamily)) {
+                alert(
+                    "家族メンバーはアーカイブ済みを含めて8人までです。\n" +
+                    "登録枠を空けるには、不要なメンバーを完全削除してください。"
+                );
                 return false;
             }
 
@@ -1917,6 +2014,8 @@ function plannerFamilyAddMember() {
             plannerFamilySave(latest);
             plannerFamilyRenderMembers();
             plannerFamilyRenderLanes();
+
+            return true;
         }
     });
 }
@@ -1965,6 +2064,8 @@ function plannerFamilyEditMember(memberId) {
             plannerFamilySave(data);
             plannerFamilyRenderMembers();
             plannerFamilyRenderLanes();
+
+            return true;
         }
     });
 }
@@ -2297,13 +2398,7 @@ function plannerFamilyRenderLanes() {
     const data = db.load();
     const family = plannerFamilyEnsureData(data);
 
-    /*
-     * 9人以上なら全レーンを停止。
-     * 管理画面は別なので、アーカイブ操作は可能。
-     */
-    if (plannerFamilyIsOverLimit(family)) {
-        return;
-    }
+    /* 登録総数が8人を超えていても既存予定は表示する */
 
     const date = plannerFamilyGetSelectedDate();
 
@@ -2624,8 +2719,6 @@ function plannerFamilyOpenBulkDelete() {
         const latest = db.load();
         const latestFamily = plannerFamilyEnsureData(latest);
 
-        if (plannerFamilyIsOverLimit(latestFamily)) return null;
-
         const currentActive = plannerFamilyGetActiveMembers(latestFamily);
         const memberId = memberSelect.value;
         const kind = typeSelect.value;
@@ -2711,8 +2804,7 @@ function plannerFamilyOpenBulkDelete() {
         const targets = getTargets();
 
         if (!targets) {
-            count.textContent =
-                "期間を正しく選択してください。登録人数が8人を超えている場合は管理画面で整理してください。";
+            count.textContent = "期間を正しく選択してください。";
             submit.disabled = true;
             return;
         }
@@ -2770,13 +2862,6 @@ function plannerFamilyOpenBulkDelete() {
 
         const latest = db.load();
         const latestFamily = plannerFamilyEnsureData(latest);
-
-        if (plannerFamilyIsOverLimit(latestFamily)) {
-            alert(
-                "登録中のメンバーが8人を超えたため、一括削除を中止しました。"
-            );
-            return;
-        }
 
         const currentActiveIds = new Set(
             plannerFamilyGetActiveMembers(latestFamily).map(member => member.id)
